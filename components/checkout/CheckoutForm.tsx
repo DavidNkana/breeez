@@ -8,7 +8,7 @@ import { Select } from '@/components/ui/Select';
 import { useCart } from '@/lib/cart/store';
 import { useToast } from '@/components/ui/Toast';
 import { formatRand } from '@/lib/format';
-import { getAllShippingOptions, calculateShippingCents, isMockMode as shippingMock } from '@/lib/shipping';
+import { getAllShippingOptions, calculateShippingCents } from '@/lib/shipping';
 import { isMockMode as paymentsMock } from '@/lib/payments';
 import type { User } from '@supabase/supabase-js';
 
@@ -207,7 +207,7 @@ export function CheckoutForm({ user, savedAddresses }: Props) {
         {step === 'payment' && (
           <div className="space-y-4 rounded-lg border border-brand-200 bg-white p-5">
             <h2 className="text-lg font-semibold text-brand-950">Payment method</h2>
-            {(paymentsMock() || shippingMock()) && (
+            {paymentsMock() && (
               <div className="rounded-md border border-warning bg-yellow-50 p-3 text-sm text-yellow-900">
                 <strong>Mock mode active.</strong> No real payment will be taken. Order will be auto-confirmed.
               </div>

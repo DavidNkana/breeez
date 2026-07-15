@@ -8,10 +8,12 @@ import { Select } from '@/components/ui/Select';
 import { useToast } from '@/components/ui/Toast';
 import { createBrowserClient } from '@supabase/ssr';
 
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+function getSupabase() {
+  return createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+}
 
 type Category = { id: string; name: string; slug: string };
 
@@ -51,7 +53,7 @@ export function NewProductForm({ categories }: Props) {
     }
 
     // Insert product
-    const { data: product, error: pErr } = await supabase.from('products').insert({
+    const { data: product, error: pErr } = await getSupabase().from('products').insert({
       slug: finalSlug,
       name,
       description,
@@ -68,7 +70,7 @@ export function NewProductForm({ categories }: Props) {
     }
 
     // Insert a default variant (so product is buyable)
-    await supabase.from('product_variants').insert({
+    await getSupabase().from('product_variants').insert({
       product_id: product.id,
       sku: `${finalSlug.toUpperCase()}-DEFAULT`,
       name: 'Default',
@@ -80,7 +82,7 @@ export function NewProductForm({ categories }: Props) {
 
     // Insert image if provided
     if (imageUrl) {
-      await supabase.from('product_images').insert({
+      await getSupabase().from('product_images').insert({
         product_id: product.id,
         url: imageUrl,
         sort_order: 0

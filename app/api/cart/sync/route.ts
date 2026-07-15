@@ -25,7 +25,8 @@ export async function POST(req: Request) {
     cookieStore.set('breeez_cart_session', sessionId, { maxAge: 60 * 60 * 24 * 30, path: '/' });
   }
 
-  const admin = createAdminClient();
+  // Cast admin to any to avoid Supabase typed-client friction with our hand-written Database
+  const admin: any = createAdminClient();
 
   // Find or create cart
   let cartId: string;
@@ -35,15 +36,15 @@ export async function POST(req: Request) {
       .select('id')
       .eq('customer_id', user.id)
       .maybeSingle();
-    if (existing) {
-      cartId = existing.id;
+    if (existing && (existing as any).id) {
+      cartId = (existing as any).id;
     } else {
       const { data: created } = await admin
         .from('carts')
         .insert({ customer_id: user.id })
         .select('id')
         .single();
-      cartId = created!.id;
+      cartId = (created as any)!.id;
     }
     // Migrate anonymous cart if exists
     if (sessionId) {
@@ -52,10 +53,10 @@ export async function POST(req: Request) {
         .select('id')
         .eq('session_id', sessionId)
         .maybeSingle();
-      if (anonCart && anonCart.id !== cartId) {
+      if (anonCart && (anonCart as any).id !== cartId) {
         // Move items from anonymous cart to user cart
-        await admin.from('cart_items').update({ cart_id: cartId }).eq('cart_id', anonCart.id);
-        await admin.from('carts').delete().eq('id', anonCart.id);
+        await admin.from('cart_items').update({ cart_id: cartId }).eq('cart_id', (anonCart as any).id);
+        await admin.from('carts').delete().eq('id', (anonCart as any).id);
       }
     }
   } else {
@@ -64,15 +65,15 @@ export async function POST(req: Request) {
       .select('id')
       .eq('session_id', sessionId)
       .maybeSingle();
-    if (existing) {
-      cartId = existing.id;
+    if (existing && (existing as any).id) {
+      cartId = (existing as any).id;
     } else {
       const { data: created } = await admin
         .from('carts')
         .insert({ session_id: sessionId })
         .select('id')
         .single();
-      cartId = created!.id;
+      cartId = (created as any)!.id;
     }
   }
 
@@ -83,7 +84,7 @@ export async function POST(req: Request) {
       cart_id: cartId,
       variant_id: it.variantId,
       quantity: it.quantity
-    }))
+    })) as any
   );
 
   return NextResponse.json({ cartId });

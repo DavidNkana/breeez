@@ -8,10 +8,12 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useToast } from '@/components/ui/Toast';
 
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+function getSupabase() {
+  return createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+}
 
 export function LoginForm({ next = '/account' }: { next?: string }) {
   const router = useRouter();
@@ -24,7 +26,7 @@ export function LoginForm({ next = '/account' }: { next?: string }) {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await getSupabase().auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
       showToast(error.message, 'error');
@@ -41,7 +43,7 @@ export function LoginForm({ next = '/account' }: { next?: string }) {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.signInWithOtp({
+    const { error } = await getSupabase().auth.signInWithOtp({
       email,
       options: { emailRedirectTo: `${window.location.origin}${next}` }
     });

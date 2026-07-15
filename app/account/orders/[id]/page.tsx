@@ -13,19 +13,19 @@ export default async function OrderDetailPage({ params }: Props) {
   const user = await requireUser();
   const supabase = await createClient();
 
-  const { data: order } = await supabase
+  const { data: order } = (await supabase
     .from('orders')
     .select('*')
     .eq('id', params.id)
     .eq('customer_id', user.id)
-    .maybeSingle();
+    .maybeSingle()) as any;
 
   if (!order) notFound();
 
-  const { data: items } = await supabase
+  const { data: items } = (await supabase
     .from('order_items')
     .select('*')
-    .eq('order_id', order.id);
+    .eq('order_id', order.id)) as any;
 
   return (
     <>
@@ -52,10 +52,12 @@ export default async function OrderDetailPage({ params }: Props) {
           </div>
         )}
 
+        {/* (rest unchanged) */}
+
         <div className="mt-6 rounded-lg border border-brand-200 bg-white">
           <div className="border-b border-brand-100 px-4 py-3 text-sm font-medium text-brand-900">Items</div>
           <ul className="divide-y divide-brand-100">
-            {(items ?? []).map((it) => (
+            {((items ?? []) as any[]).map((it) => (
               <li key={it.id} className="flex items-center justify-between px-4 py-3 text-sm">
                 <div>
                   <p className="text-brand-900">{it.product_name}</p>

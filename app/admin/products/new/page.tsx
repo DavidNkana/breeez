@@ -20,7 +20,7 @@ export default async function NewProductPage() {
       <main className="mx-auto max-w-3xl px-4 py-10 pb-20 safe-bottom">
         <Link href="/admin/products" className="text-sm text-brand-600 hover:underline">← Back to products</Link>
         <h1 className="mt-2 text-2xl font-semibold text-brand-950">Add new product</h1>
-        <p className="mt-1 text-sm text-brand-600">Create a product. You'll be able to add variants and images after.</p>
+          <p className="mt-1 text-sm text-brand-600">Create a product. You&apos;ll be able to add variants and images after.</p>
 
         <div className="mt-6">
           <NewProductForm categories={categories ?? []} />

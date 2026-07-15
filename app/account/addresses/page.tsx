@@ -8,12 +8,12 @@ export default async function AddressesPage() {
   const user = await requireUser();
   const supabase = await createClient();
 
-  const { data: addresses } = await supabase
+  const { data: addresses } = (await supabase
     .from('addresses')
     .select('*')
     .eq('customer_id', user.id)
     .order('is_default', { ascending: false })
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })) as any;
 
   return (
     <>
@@ -25,7 +25,7 @@ export default async function AddressesPage() {
         <div className="mt-6">
           {addresses && addresses.length > 0 ? (
             <div className="space-y-3">
-              {addresses.map((a) => (
+              {((addresses ?? []) as any[]).map((a) => (
                 <div key={a.id} className="rounded-lg border border-brand-200 bg-white p-4">
                   <div className="flex items-baseline justify-between">
                     <p className="font-medium text-brand-900">{a.label}</p>

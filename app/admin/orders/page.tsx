@@ -10,11 +10,11 @@ export default async function AdminOrdersPage() {
   await requireAdmin();
   const supabase = await createClient();
 
-  const { data: orders } = await supabase
+  const { data: orders } = (await supabase
     .from('orders')
     .select('*')
     .order('created_at', { ascending: false })
-    .limit(50);
+    .limit(50)) as any;
 
   return (
     <>
@@ -35,7 +35,7 @@ export default async function AdminOrdersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-100">
-              {(orders ?? []).map((o) => (
+              {((orders ?? []) as any[]).map((o) => (
                 <tr key={o.id}>
                   <td className="px-4 py-3 font-mono text-xs">{o.order_number}</td>
                   <td className="px-4 py-3 text-brand-700">{o.email}</td>

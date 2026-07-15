@@ -11,11 +11,11 @@ export default async function OrdersPage() {
   const user = await requireUser();
   const supabase = await createClient();
 
-  const { data: orders } = await supabase
+  const { data: orders } = (await supabase
     .from('orders')
     .select('*')
     .eq('customer_id', user.id)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })) as any;
 
   return (
     <>
@@ -27,7 +27,7 @@ export default async function OrdersPage() {
         <div className="mt-6">
           {orders && orders.length > 0 ? (
             <div className="space-y-3">
-              {orders.map((o) => (
+              {((orders ?? []) as any[]).map((o) => (
                 <Link
                   key={o.id}
                   href={`/account/orders/${o.id}`}

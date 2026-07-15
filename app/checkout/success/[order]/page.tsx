@@ -27,17 +27,17 @@ export default async function OrderSuccessPage({ params, searchParams }: Props) 
 
         <h1 className="mt-4 text-2xl font-semibold text-brand-950">Order placed!</h1>
         <p className="mt-2 text-sm text-brand-600">
-          Thanks for shopping with Breeez. We've sent a confirmation email.
+          Thanks for shopping with Breeez. We&apos;ve sent a confirmation email.
         </p>
 
         {order && (
           <div className="mt-6 rounded-lg border border-brand-200 bg-white p-4 text-left">
             <div className="flex items-center justify-between">
-              <span className="font-mono text-sm text-brand-900">{order.order_number}</span>
-              <Badge variant="success">{(order.status as string).replace('_', ' ')}</Badge>
+              <span className="font-mono text-sm text-brand-900">{(order as any).order_number}</span>
+              <Badge variant="success">{((order as any).status as string).replace('_', ' ')}</Badge>
             </div>
-            <p className="mt-2 text-sm text-brand-600">Total: <strong>{formatRand(order.total_cents)}</strong></p>
-            <p className="text-xs text-brand-500 mt-1">Shipping: {((order.shipping_method as string) || '').replace('_', ' ')}</p>
+            <p className="mt-2 text-sm text-brand-600">Total: <strong>{formatRand((order as any).total_cents)}</strong></p>
+            <p className="text-xs text-brand-500 mt-1">Shipping: {((order as any).shipping_method as string || '').replace('_', ' ')}</p>
           </div>
         )}
 

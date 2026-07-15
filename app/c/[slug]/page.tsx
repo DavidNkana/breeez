@@ -62,7 +62,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
             const label = s === 'newest' ? 'Newest' : s === 'price_asc' ? 'Price: Low → High' : s === 'price_desc' ? 'Price: High → Low' : 'Popular';
             const isActive = sort === s;
             const params = new URLSearchParams({ ...searchParams, sort: s, page: '1' });
-            const href = `/c/${params.slug}?${params.toString()}`;
+            const href = `/c/${category.slug}?${params.toString()}`;
             return (
               <Link
                 key={s}
