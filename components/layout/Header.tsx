@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { CartButton } from '@/components/shop/CartButton';
+import { SearchBar } from '@/components/shop/SearchBar';
 
 const NAV_LINKS = [
   { href: '/c/apparel',     label: 'Apparel' },
@@ -28,16 +29,7 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Link
-            href="/search"
-            aria-label="Search"
-            className="rounded-md p-2 text-brand-700 hover:bg-brand-50"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="11" cy="11" r="7" />
-              <path d="m21 21-4.3-4.3" />
-            </svg>
-          </Link>
+          <SearchBar />
           <Link
             href="/account"
             aria-label="Account"

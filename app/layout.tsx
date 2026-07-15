@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import { StorefrontProviders } from '@/components/shop/StorefrontProviders';
 
 export const metadata: Metadata = {
   title: 'Breeez — Shop SA',
@@ -25,6 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en-ZA">
       <body className="min-h-screen bg-white text-brand-950 font-sans">
+        <StorefrontProviders />
         {children}
       </body>
     </html>

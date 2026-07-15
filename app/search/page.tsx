@@ -1,20 +1,37 @@
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { ProductGrid } from '@/components/shop/ProductGrid';
+import { searchProducts } from '@/lib/catalog/queries';
+import { EmptyState } from '@/components/ui/EmptyState';
 
-export default function SearchPage() {
+type Props = { searchParams: { q?: string } };
+
+export default async function SearchPage({ searchParams }: Props) {
+  const q = (searchParams.q || '').trim();
+  const results = q.length >= 2 ? await searchProducts(q, 40) : [];
+
   return (
     <>
       <Header />
-      <main className="mx-auto max-w-3xl px-4 py-10 pb-20 safe-bottom">
-        <h1 className="text-2xl font-semibold text-brand-950">Search</h1>
-        <input
-          type="search"
-          placeholder="Search products..."
-          className="mt-4 w-full rounded-md border border-brand-300 px-3 py-2 text-sm"
-        />
-        <p className="mt-4 text-sm text-brand-600">
-          Search results placeholder. Postgres FTS wired in plan Task 11.
+      <main className="mx-auto max-w-6xl px-4 py-6 pb-20 safe-bottom">
+        <h1 className="text-2xl font-semibold text-brand-950">
+          {q ? `Results for "${q}"` : 'Search'}
+        </h1>
+        <p className="mt-1 text-sm text-brand-600">
+          {q ? `${results.length} ${results.length === 1 ? 'product' : 'products'} found` : 'Use the search bar above to find products.'}
         </p>
+
+        <div className="mt-6">
+          {q && results.length === 0 ? (
+            <EmptyState
+              title="No products found"
+              description={`We couldn't find anything matching "${q}". Try different keywords.`}
+              action={{ label: 'Browse categories', href: '/' }}
+            />
+          ) : (
+            <ProductGrid products={results} />
+          )}
+        </div>
       </main>
       <Footer />
     </>

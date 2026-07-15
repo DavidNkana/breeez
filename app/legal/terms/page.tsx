@@ -1,8 +1,40 @@
+export const metadata = { title: 'Terms & Conditions — Breeez' };
+
 export default function TermsPage() {
   return (
-    <main className="mx-auto max-w-3xl px-4 py-10 pb-20 safe-bottom prose prose-sm">
+    <main className="mx-auto max-w-3xl px-4 py-10 pb-20 safe-bottom prose prose-sm prose-headings:text-brand-950 prose-a:text-accent-700">
       <h1>Terms &amp; Conditions</h1>
-      <p>Placeholder — full T&amp;Cs written in plan Task 22 (legal pages).</p>
+      <p className="text-sm text-brand-500">Last updated: 2026-07-15</p>
+
+      <h2>1. About Breeez</h2>
+      <p>Breeez is an online retail store operated from South Africa. By using this website you agree to these terms.</p>
+
+      <h2>2. Orders &amp; Payment</h2>
+      <p>All prices are in South African Rand (ZAR) and include VAT where applicable. We accept payment via PayFast, Yoco, and Ozow. Orders are confirmed only after successful payment. We reserve the right to cancel orders due to pricing errors, stock issues, or suspected fraud.</p>
+
+      <h2>3. Delivery</h2>
+      <p>We deliver nationwide via Pargo pickup points, The Courier Guy, and Dawn Wing (metro areas only). Delivery times are estimates, not guarantees. Risk passes to you on delivery.</p>
+
+      <h2>4. Returns &amp; Refunds</h2>
+      <p>You have <strong>7 days</strong> from the date of delivery to return an item for a refund. The item must be unused and in its original packaging. Return shipping is at the customer&apos;s cost. Refunds are processed within 5 business days of us receiving the returned item. See our <a href="/legal/returns">full Returns Policy</a> for details.</p>
+
+      <h2>5. Product Information</h2>
+      <p>We try to display accurate product images, descriptions, and stock levels. Slight variations in colour may occur due to screen differences. Weights and dimensions are approximate.</p>
+
+      <h2>6. Account</h2>
+      <p>You&apos;re responsible for keeping your account credentials secure. Notify us immediately if you suspect unauthorised access.</p>
+
+      <h2>7. Intellectual Property</h2>
+      <p>All content on this site (logos, images, copy, code) belongs to Breeez or our licensors. Don&apos;t copy or redistribute without permission.</p>
+
+      <h2>8. Limitation of Liability</h2>
+      <p>Breeez&apos;s total liability for any claim is limited to the amount you paid for the relevant order. We&apos;re not liable for indirect or consequential damages.</p>
+
+      <h2>9. Governing Law</h2>
+      <p>These terms are governed by the laws of the Republic of South Africa. Any disputes are subject to the jurisdiction of South African courts.</p>
+
+      <h2>10. Contact</h2>
+      <p>Questions? Email <a href="mailto:support@breeez.app">support@breeez.app</a>.</p>
     </main>
   );
 }
