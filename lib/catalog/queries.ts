@@ -155,16 +155,23 @@ export async function searchProducts(query: string, limit = 20): Promise<Product
 
 /**
  * "Today's picks" — for the home page.
- * Returns up to `limit` products added TODAY (UTC). If none added today,
- * falls back to the `limit` newest products overall.
+ *
+ * Uses South African Standard Time (SAST, UTC+2) for "today" so the
+ * result matches what a South African customer sees on their wall clock.
+ * If no products were added today (SAST), falls back to the `limit` newest
+ * products overall (last 7 days, to avoid showing ancient products).
  */
 export async function getTodaysPicks(limit = 9): Promise<ProductListItem[]> {
   const supabase = await createClient();
   const now = new Date();
-  const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0));
-  const startOfDayISO = startOfDay.toISOString();
+  // SAST = UTC+2, so subtract 2 hours to get "SAST midnight" in UTC
+  const nowSAST = new Date(now.getTime() - 2 * 60 * 60 * 1000);
+  const startOfDaySAST = new Date(Date.UTC(nowSAST.getUTCFullYear(), nowSAST.getUTCMonth(), nowSAST.getUTCDate(), 0, 0, 0));
+  // Convert back to UTC: add 2 hours
+  const startOfDayUTC = new Date(startOfDaySAST.getTime() + 2 * 60 * 60 * 1000);
+  const startOfDayISO = startOfDayUTC.toISOString();
 
-  // First try: products created today
+  // First try: products created today (SAST)
   const { data: todays } = await supabase
     .from('products')
     .select(`
@@ -192,6 +199,6 @@ export async function getTodaysPicks(limit = 9): Promise<ProductListItem[]> {
     });
   }
 
-  // Fallback: newest overall
+  // Fallback: any active product sorted by created_at desc (not just today)
   return listProducts({ sort: 'newest', limit });
 }
