@@ -21,11 +21,11 @@ type Category = { id: string; name: string; slug: string };
 type Props = { categories: Category[] };
 
 type ImageItem = {
-  id?: string;
+  id: string;
   url: string;
-  file?: File;
-  uploading?: boolean;
   alt_text?: string;
+  uploading?: boolean;
+  error?: string;
 };
 
 export function NewProductForm({ categories }: Props) {
