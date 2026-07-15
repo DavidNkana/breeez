@@ -151,25 +151,28 @@ export function ImageUploader({ images, onChange, max = 10 }: Props) {
             onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
             onDragLeave={() => setDragOver(false)}
             onDrop={onDrop}
+            onClick={(e) => {
+              // Only trigger file picker if click target is the dropzone itself or its icon/label
+              // (not the camera button which stops propagation)
+              fileInputRef.current?.click();
+            }}
             className={clsx(
-              'aspect-square rounded-md border-2 border-dashed flex flex-col items-center justify-center gap-1 text-xs text-brand-500 transition-colors',
-              dragOver ? 'border-accent-500 bg-accent-50 text-accent-700' : 'border-brand-300 bg-white'
+              'relative aspect-square rounded-md border-2 border-dashed flex flex-col items-center justify-center gap-1 text-xs text-brand-500 transition-colors cursor-pointer',
+              dragOver ? 'border-accent-500 bg-accent-50 text-accent-700' : 'border-brand-300 bg-white hover:border-accent-500 hover:bg-accent-50/30'
             )}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInputRef.current?.click(); } }}
+            aria-label="Upload images. Drop files here, click to browse, or use camera button."
           >
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="absolute inset-0 w-full h-full"
-              aria-label="Choose from device"
-            />
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="pointer-events-none">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" />
             </svg>
-            <span className="font-medium pointer-events-none">Drop or click</span>
+            <span className="font-medium">Drop or click</span>
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); cameraInputRef.current?.click(); }}
-              className="text-accent-700 hover:underline mt-1"
+              className="relative z-10 text-accent-700 hover:underline mt-1 px-2 py-0.5 rounded hover:bg-accent-100"
             >
               Use camera
             </button>
