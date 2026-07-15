@@ -36,7 +36,7 @@ export function RegisterForm() {
       password,
       options: {
         data: { full_name: fullName },
-        emailRedirectTo: `${window.location.origin}/account`
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=/account`
       }
     });
     setLoading(false);

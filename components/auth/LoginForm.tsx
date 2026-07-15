@@ -45,7 +45,7 @@ export function LoginForm({ next = '/account' }: { next?: string }) {
     setLoading(true);
     const { error } = await getSupabase().auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${window.location.origin}${next}` }
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}` }
     });
     setLoading(false);
     if (error) {
