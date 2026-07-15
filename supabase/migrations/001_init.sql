@@ -39,17 +39,33 @@ create table if not exists public.products (
   is_active         boolean not null default true,
   is_featured       boolean not null default false,
   tags              text[] not null default '{}',
-  search_tsv        tsvector generated always as (
-    setweight(to_tsvector('english', coalesce(name, '')), 'A') ||
-    setweight(to_tsvector('english', coalesce(description, '')), 'B') ||
-    setweight(to_tsvector('english', array_to_string(tags, ' ')), 'C')
-  ) stored,
+  search_tsv        tsvector,
   created_at        timestamptz not null default now(),
   updated_at        timestamptz not null default now()
 );
 create index if not exists products_search_idx on public.products using gin (search_tsv);
 create index if not exists products_category_idx on public.products (category_id);
 create index if not exists products_active_idx on public.products (is_active);
+
+-- Trigger to maintain the search_tsv column on insert/update.
+-- (PostgreSQL requires generated columns to use IMMUTABLE functions;
+-- to_tsvector is STABLE, so we use a trigger instead.)
+create or replace function public.products_search_tsv_update()
+returns trigger language plpgsql as $$
+begin
+  new.search_tsv :=
+    setweight(to_tsvector('english', coalesce(new.name, '')), 'A') ||
+    setweight(to_tsvector('english', coalesce(new.description, '')), 'B') ||
+    setweight(to_tsvector('english', array_to_string(new.tags, ' ')), 'C');
+  new.updated_at := now();
+  return new;
+end;
+$$;
+
+drop trigger if exists products_search_tsv_trigger on public.products;
+create trigger products_search_tsv_trigger
+  before insert or update on public.products
+  for each row execute function public.products_search_tsv_update();
 
 create table if not exists public.product_variants (
   id              uuid primary key default uuid_generate_v4(),
