@@ -11,11 +11,11 @@ export default async function AdminProductsPage() {
   await requireAdmin();
   const supabase = await createClient();
 
-  const { data: products } = await supabase
+  const { data: products } = (await supabase
     .from('products')
-    .select('*, category:categories(name, slug)')
+    .select('*, category:categories(name, slug), images:product_images(url, sort_order)')
     .order('created_at', { ascending: false })
-    .limit(50);
+    .limit(50)) as any;
 
   return (
     <>
@@ -38,6 +38,7 @@ export default async function AdminProductsPage() {
           <table className="w-full text-sm">
             <thead className="bg-brand-50 text-left text-xs uppercase text-brand-600">
               <tr>
+                <th className="px-4 py-3">Image</th>
                 <th className="px-4 py-3">Name</th>
                 <th className="px-4 py-3">Category</th>
                 <th className="px-4 py-3">Price</th>
@@ -45,21 +46,36 @@ export default async function AdminProductsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-100">
-              {(products ?? []).map((p: any) => (
-                <tr key={p.id}>
-                  <td className="px-4 py-3">
-                    <p className="font-medium text-brand-900">{p.name}</p>
-                    <p className="text-xs text-brand-500">/{p.slug}</p>
-                  </td>
-                  <td className="px-4 py-3 text-brand-700">{p.category?.name ?? '—'}</td>
-                  <td className="px-4 py-3 font-medium text-brand-900">{formatRand(p.base_price_cents)}</td>
-                  <td className="px-4 py-3">
-                    {p.is_active ? <Badge variant="success">Active</Badge> : <Badge variant="warning">Draft</Badge>}
-                  </td>
-                </tr>
-              ))}
-              {(!products || products.length === 0) && (
-                <tr><td colSpan={4} className="px-4 py-8 text-center text-sm text-brand-500">No products yet. Add your first one.</td></tr>
+              {((products ?? []) as any[]).map((p) => {
+                const imgs = (p.images ?? []).sort((a: any, b: any) => a.sort_order - b.sort_order);
+                const mainImg = imgs[0]?.url;
+                return (
+                  <tr key={p.id}>
+                    <td className="px-4 py-3">
+                      <Link href={`/p/${p.slug}`} className="block h-12 w-12 overflow-hidden rounded bg-brand-100">
+                        {mainImg ? (
+                          <img src={mainImg} alt="" className="h-full w-full object-cover" />
+                        ) : (
+                          <div className="h-full w-full flex items-center justify-center text-xs text-brand-400">—</div>
+                        )}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3">
+                      <Link href={`/p/${p.slug}`} className="font-medium text-brand-900 hover:underline">
+                        {p.name}
+                      </Link>
+                      <p className="text-xs text-brand-500">/{p.slug}</p>
+                    </td>
+                    <td className="px-4 py-3 text-brand-700">{p.category?.name ?? '—'}</td>
+                    <td className="px-4 py-3 font-medium text-brand-900">{formatRand(p.base_price_cents)}</td>
+                    <td className="px-4 py-3">
+                      {p.is_active ? <Badge variant="success">Active</Badge> : <Badge variant="warning">Draft</Badge>}
+                    </td>
+                  </tr>
+                );
+              })}
+              {(!products || (products as any[]).length === 0) && (
+                <tr><td colSpan={5} className="px-4 py-8 text-center text-sm text-brand-500">No products yet. Add your first one.</td></tr>
               )}
             </tbody>
           </table>
