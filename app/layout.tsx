@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: 'Breeez — Shop SA',
   description: 'South African multi-category ecommerce. Apparel, home, kitchen, school and more.',
   applicationName: 'Breeez',
+  icons: { icon: '/icon.svg' },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
