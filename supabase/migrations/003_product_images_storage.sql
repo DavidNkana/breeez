@@ -38,6 +38,6 @@ create policy "product images admin all"
     )
   );
 
--- IMPORTANT: We also need to enable RLS on storage.objects (it's a separate
--- table from public.* tables). Without this, ALL operations are denied by default.
-alter table storage.objects enable row level security;
+-- NOTE: storage.objects RLS is already enabled by default in Supabase.
+-- We do NOT need ALTER TABLE ... ENABLE ROW LEVEL SECURITY on it (and can't
+-- run that statement anyway — only the postgres role owns that table).
