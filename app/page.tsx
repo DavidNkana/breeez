@@ -56,7 +56,7 @@ export default async function HomePage() {
             </div>
             <p className="mt-1 text-sm text-brand-600">Hand-picked favourites from the team.</p>
             <div className="mt-6">
-              <ProductGrid products={featured} />
+              <ProductGrid products={featured} showPreview />
             </div>
           </section>
         )}

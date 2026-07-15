@@ -8,9 +8,10 @@ type ProductGridProps = {
   products: ProductListItem[];
   loading?: boolean;
   error?: Error | null;
+  showPreview?: boolean; // hover preview (default false — too heavy for PLP, true for home featured)
 };
 
-export function ProductGrid({ products, loading, error }: ProductGridProps) {
+export function ProductGrid({ products, loading, error, showPreview = false }: ProductGridProps) {
   if (loading) return <ProductGridSkeleton />;
   if (error) return <ErrorState message={error.message} />;
   if (products.length === 0) {
@@ -26,6 +27,9 @@ export function ProductGrid({ products, loading, error }: ProductGridProps) {
           priceCents={p.price_min_cents}
           compareAtCents={p.compare_at_cents ?? undefined}
           imageUrl={p.primary_image?.url || '/placeholder.svg'}
+          description={showPreview ? p.description : undefined}
+          variants={showPreview ? [] : undefined}
+          categoryName={showPreview ? p.category?.name : undefined}
         />
       ))}
     </div>

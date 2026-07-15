@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { formatRand } from '@/lib/format';
 import { Badge } from '@/components/ui/Badge';
 import { LogoutButton } from '@/components/auth/LogoutButton';
+import { calcDiscountPercent } from '@/lib/format';
 
 export default async function AdminProductsPage() {
   await requireAdmin();
@@ -43,12 +44,14 @@ export default async function AdminProductsPage() {
                 <th className="px-4 py-3">Category</th>
                 <th className="px-4 py-3">Price</th>
                 <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-100">
               {((products ?? []) as any[]).map((p) => {
                 const imgs = (p.images ?? []).sort((a: any, b: any) => a.sort_order - b.sort_order);
                 const mainImg = imgs[0]?.url;
+                const discount = calcDiscountPercent(p.base_price_cents, p.compare_at_cents);
                 return (
                   <tr key={p.id}>
                     <td className="px-4 py-3">
@@ -65,17 +68,31 @@ export default async function AdminProductsPage() {
                         {p.name}
                       </Link>
                       <p className="text-xs text-brand-500">/{p.slug}</p>
+                      {discount && (
+                        <Badge variant="danger" className="mt-1">{discount}% OFF</Badge>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-brand-700">{p.category?.name ?? '—'}</td>
                     <td className="px-4 py-3 font-medium text-brand-900">{formatRand(p.base_price_cents)}</td>
                     <td className="px-4 py-3">
-                      {p.is_active ? <Badge variant="success">Active</Badge> : <Badge variant="warning">Draft</Badge>}
+                      <div className="flex flex-col gap-1">
+                        {p.is_active ? <Badge variant="success">Active</Badge> : <Badge variant="warning">Draft</Badge>}
+                        {p.is_featured && <Badge variant="accent">Featured</Badge>}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <Link
+                        href={`/admin/products/${p.id}/edit`}
+                        className="inline-flex items-center rounded-md border border-brand-300 bg-white px-3 py-1.5 text-xs font-medium text-brand-900 hover:bg-brand-50"
+                      >
+                        Edit
+                      </Link>
                     </td>
                   </tr>
                 );
               })}
               {(!products || (products as any[]).length === 0) && (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-sm text-brand-500">No products yet. Add your first one.</td></tr>
+                <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-brand-500">No products yet. Add your first one.</td></tr>
               )}
             </tbody>
           </table>

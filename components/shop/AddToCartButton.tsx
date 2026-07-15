@@ -14,9 +14,10 @@ type AddToCartButtonProps = {
   imageUrl?: string;
   variants: ProductVariant[];
   basePriceCents: number;
+  size?: 'sm' | 'md' | 'lg';
 };
 
-export function AddToCartButton({ productId, productSlug, productName, imageUrl, variants, basePriceCents }: AddToCartButtonProps) {
+export function AddToCartButton({ productId, productSlug, productName, imageUrl, variants, basePriceCents, size = 'lg' }: AddToCartButtonProps) {
   const [selectedId, setSelectedId] = useState<string>(variants[0]?.id ?? '');
   const [quantity, setQuantity] = useState(1);
   const add = useCart((s) => s.add);
@@ -69,7 +70,7 @@ export function AddToCartButton({ productId, productSlug, productName, imageUrl,
 
       <div className="flex items-center gap-3">
         <QuantityStepper value={quantity} min={1} max={Math.max(1, stockCap)} onChange={setQuantity} />
-        <Button onClick={handleAdd} disabled={isOutOfStock} fullWidth size="lg" variant="primary">
+        <Button onClick={handleAdd} disabled={isOutOfStock} fullWidth size={size} variant="primary">
           {isOutOfStock ? 'Out of stock' : 'Add to cart'}
         </Button>
       </div>
