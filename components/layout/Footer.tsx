@@ -1,42 +1,77 @@
 import Link from 'next/link';
 
+const FOOTER_COLUMNS = [
+  {
+    title: 'Shop',
+    links: [
+      { href: '/c/apparel', label: 'Apparel' },
+      { href: '/c/kitchen', label: 'Kitchen' },
+      { href: '/c/home-decor', label: 'Home Decor' },
+      { href: '/c/bathroom', label: 'Bathroom' },
+      { href: '/c/bedroom', label: 'Bedroom' }
+    ]
+  },
+  {
+    title: 'Account',
+    links: [
+      { href: '/auth/login', label: 'Sign in' },
+      { href: '/auth/register', label: 'Register' },
+      { href: '/account/orders', label: 'My orders' },
+      { href: '/account/wishlist', label: 'Wishlist' }
+    ]
+  },
+  {
+    title: 'Help',
+    links: [
+      { href: '/legal/returns', label: 'Returns' },
+      { href: '/legal/shipping', label: 'Shipping' },
+      { href: '/contact', label: 'Contact us' }
+    ]
+  },
+  {
+    title: 'Legal',
+    links: [
+      { href: '/legal/terms', label: 'Terms' },
+      { href: '/legal/privacy', label: 'Privacy (POPIA)' }
+    ]
+  }
+];
+
 export function Footer() {
   return (
-    <footer className="border-t border-brand-100 bg-brand-50 safe-bottom">
-      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 md:grid-cols-4">
-        <div>
-          <p className="text-lg font-semibold text-brand-950">Breeez</p>
-          <p className="mt-2 text-sm text-brand-600">Shop SA, all in one place.</p>
-        </div>
-        <div>
-          <p className="font-medium text-brand-900">Shop</p>
-          <ul className="mt-2 space-y-1 text-sm text-brand-600">
-            <li><Link href="/c/apparel" className="hover:underline">Apparel</Link></li>
-            <li><Link href="/c/kitchen" className="hover:underline">Kitchen</Link></li>
-            <li><Link href="/c/home-decor" className="hover:underline">Home Decor</Link></li>
-          </ul>
-        </div>
-        <div>
-          <p className="font-medium text-brand-900">Account</p>
-          <ul className="mt-2 space-y-1 text-sm text-brand-600">
-            <li><Link href="/auth/login" className="hover:underline">Sign in</Link></li>
-            <li><Link href="/auth/register" className="hover:underline">Register</Link></li>
-            <li><Link href="/account/orders" className="hover:underline">My orders</Link></li>
-          </ul>
-        </div>
-        <div>
-          <p className="font-medium text-brand-900">Legal</p>
-          <ul className="mt-2 space-y-1 text-sm text-brand-600">
-            <li><Link href="/legal/terms" className="hover:underline">Terms</Link></li>
-            <li><Link href="/legal/privacy" className="hover:underline">Privacy (POPIA)</Link></li>
-            <li><Link href="/legal/returns" className="hover:underline">Returns</Link></li>
-          </ul>
+    <footer className="mt-auto border-t border-brand-200 bg-brand-50">
+      <div className="mx-auto max-w-6xl px-4 py-10 md:py-12">
+        <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-4 md:gap-10">
+          <div className="sm:col-span-2 md:col-span-1">
+            <Link href="/" className="inline-flex items-center gap-2">
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-brand-900 text-white font-bold">B</span>
+              <span className="text-lg font-semibold tracking-tight text-brand-950">Breeez</span>
+            </Link>
+            <p className="mt-3 text-sm text-brand-600 leading-relaxed max-w-xs">
+              South African multi-category ecommerce. Apparel, home, kitchen, school and more — delivered nationwide.
+            </p>
+          </div>
+          {FOOTER_COLUMNS.map((col) => (
+            <div key={col.title}>
+              <p className="text-sm font-semibold text-brand-900 mb-3">{col.title}</p>
+              <ul className="space-y-2 text-sm text-brand-600">
+                {col.links.map((l) => (
+                  <li key={l.href}>
+                    <Link href={l.href} className="hover:text-brand-900 hover:underline">
+                      {l.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
       </div>
-      <div className="border-t border-brand-100">
-        <p className="mx-auto max-w-6xl px-4 py-4 text-xs text-brand-500">
-          © {new Date().getFullYear()} Breeez. Prices in ZAR. POPIA-compliant.
-        </p>
+      <div className="border-t border-brand-200">
+        <div className="mx-auto max-w-6xl px-4 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-brand-500">
+          <p>© {new Date().getFullYear()} Breeez. Prices in ZAR. POPIA-compliant.</p>
+          <p>Made in South Africa 🇿🇦</p>
+        </div>
       </div>
     </footer>
   );

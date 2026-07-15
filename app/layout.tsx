@@ -25,7 +25,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en-ZA">
-      <body className="min-h-screen bg-white text-brand-950 font-sans">
+      <body className="min-h-screen flex flex-col bg-white text-brand-950 font-sans antialiased">
         <StorefrontProviders />
         {children}
       </body>

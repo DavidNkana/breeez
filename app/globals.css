@@ -14,6 +14,31 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+@layer base {
+  body {
+    text-rendering: optimizeLegibility;
+  }
+}
+
+/* Custom xs breakpoint for very small phones (down to 360px) */
+@layer utilities {
+  .xs\:inline {
+    @media (min-width: 380px) {
+      display: inline;
+    }
+  }
+  .xs\:hidden {
+    @media (min-width: 380px) {
+      display: none;
+    }
+  }
+  .xs\:flex {
+    @media (min-width: 380px) {
+      display: flex;
+    }
+  }
+}
+
 /* Capacitor native shell adjustments */
 @supports (padding: max(0px)) {
   .safe-top    { padding-top:    max(0px, env(safe-area-inset-top)); }
@@ -23,3 +48,28 @@ html, body {
 /* Hide scrollbar on horizontal category strip */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Smooth transitions everywhere */
+@layer base {
+  a, button, [role="button"] {
+    transition-property: color, background-color, border-color, opacity, transform;
+    transition-duration: 150ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+/* Hide number input spinners (Chrome, Safari) */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Focus-visible ring (only show on keyboard nav) */
+:focus-visible {
+  outline: 2px solid #f98212;
+  outline-offset: 2px;
+}
