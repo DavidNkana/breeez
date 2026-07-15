@@ -152,3 +152,46 @@ export async function getRelatedProducts(productId: string, categoryId: string |
 export async function searchProducts(query: string, limit = 20): Promise<ProductListItem[]> {
   return listProducts({ search: query, limit });
 }
+
+/**
+ * "Today's picks" — for the home page.
+ * Returns up to `limit` products added TODAY (UTC). If none added today,
+ * falls back to the `limit` newest products overall.
+ */
+export async function getTodaysPicks(limit = 9): Promise<ProductListItem[]> {
+  const supabase = await createClient();
+  const now = new Date();
+  const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0));
+  const startOfDayISO = startOfDay.toISOString();
+
+  // First try: products created today
+  const { data: todays } = await supabase
+    .from('products')
+    .select(`
+      *,
+      category:categories(id, slug, name),
+      images:product_images(*)
+    `)
+    .eq('is_active', true)
+    .gte('created_at', startOfDayISO)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  type RowWithJoins = Product & { images: ProductImage[] | null; category: { id: string; slug: string; name: string } | null };
+
+  if (todays && todays.length > 0) {
+    return (todays as RowWithJoins[]).map((p) => {
+      const images = [...(p.images ?? [])].sort((a, b) => a.sort_order - b.sort_order);
+      return {
+        ...p,
+        primary_image: images[0] ?? null,
+        price_min_cents: p.base_price_cents,
+        price_max_cents: p.base_price_cents,
+        total_stock: 0
+      };
+    });
+  }
+
+  // Fallback: newest overall
+  return listProducts({ sort: 'newest', limit });
+}

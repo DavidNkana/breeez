@@ -39,7 +39,7 @@ const FOOTER_COLUMNS = [
 
 export function Footer() {
   return (
-    <footer className="mt-auto border-t border-brand-200 bg-brand-50">
+    <footer className="mt-16 md:mt-24 border-t border-brand-200 bg-brand-50">
       <div className="mx-auto max-w-6xl px-4 py-10 md:py-12">
         <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-4 md:gap-10">
           <div className="sm:col-span-2 md:col-span-1">

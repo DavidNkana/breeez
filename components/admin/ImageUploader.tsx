@@ -172,7 +172,7 @@ export function ImageUploader({ images, onChange, max = 10 }: Props) {
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); cameraInputRef.current?.click(); }}
-          className="relative z-10 inline-flex items-center gap-1.5 rounded-md border border-accent-300 bg-white px-3 py-1.5 text-sm font-medium text-accent-700 hover:bg-accent-50"
+          className="relative z-10 sm:hidden inline-flex items-center gap-1.5 rounded-md border border-accent-300 bg-white px-3 py-1.5 text-sm font-medium text-accent-700 hover:bg-accent-50"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
             <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />

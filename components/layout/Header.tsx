@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { CartButton } from '@/components/shop/CartButton';
 import { SearchBar } from '@/components/shop/SearchBar';
+import { WishlistButton } from '@/components/shop/WishlistButton';
 
 const NAV_LINKS = [
   { href: '/c/apparel',         label: 'Apparel' },
@@ -30,6 +31,7 @@ export function Header() {
 
         <div className="flex items-center gap-1 sm:gap-2">
           <SearchBar />
+          <WishlistButton />
           <Link
             href="/account"
             aria-label="Account"

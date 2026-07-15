@@ -41,6 +41,8 @@ export function NewProductForm({ categories }: Props) {
   const [tags, setTags] = useState('');
   const [stock, setStock] = useState('0');
   const [sku, setSku] = useState('');
+  const [isFeatured, setIsFeatured] = useState(false);
+  const [isActive, setIsActive] = useState(true);
   const [images, setImages] = useState<ImageItem[]>([]);
 
   function slugify(s: string) {
@@ -141,6 +143,34 @@ export function NewProductForm({ categories }: Props) {
           className="w-full rounded-md border border-brand-300 bg-white px-3 py-2 text-sm text-brand-950 placeholder:text-brand-400 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
           placeholder="Describe the product..."
         />
+      </div>
+
+      {/* Visibility toggles */}
+      <div className="rounded-md border border-brand-200 bg-brand-50 p-4 space-y-3">
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={isFeatured}
+            onChange={(e) => setIsFeatured(e.target.checked)}
+            className="mt-1 h-4 w-4 rounded border-brand-300 text-accent-500 focus:ring-accent-500"
+          />
+          <div>
+            <p className="text-sm font-medium text-brand-900">Featured product</p>
+            <p className="text-xs text-brand-600">Show in the &ldquo;Featured&rdquo; section on the home page.</p>
+          </div>
+        </label>
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={isActive}
+            onChange={(e) => setIsActive(e.target.checked)}
+            className="mt-1 h-4 w-4 rounded border-brand-300 text-accent-500 focus:ring-accent-500"
+          />
+          <div>
+            <p className="text-sm font-medium text-brand-900">Active (visible to customers)</p>
+            <p className="text-xs text-brand-600">Uncheck to hide from the storefront without deleting.</p>
+          </div>
+        </label>
       </div>
 
       <ImageUploader images={images} onChange={setImages} max={10} />

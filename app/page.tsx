@@ -2,14 +2,17 @@ import Link from 'next/link';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { CategoryGrid } from '@/components/shop/CategoryGrid';
-import { ProductCard } from '@/components/shop/ProductCard';
+import { ProductGrid } from '@/components/shop/ProductGrid';
+import { getTodaysPicks, listProducts } from '@/lib/catalog/queries';
 
-export default function HomePage() {
+export default async function HomePage() {
+  const todaysPicks = await getTodaysPicks(9);
+  const featured = await listProducts({ featured: true, sort: 'newest', limit: 4 });
+
   return (
     <>
       <Header />
-      <main className="flex-1 pb-20 safe-bottom">
-        {/* Hero */}
+      <main className="flex-1 pb-12 safe-bottom">
         <section className="bg-gradient-to-br from-brand-50 via-white to-accent-50">
           <div className="mx-auto max-w-6xl px-4 py-10 md:py-20">
             <p className="text-sm font-medium text-accent-700">Welcome to Breeez</p>
@@ -37,7 +40,6 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Categories */}
         <section className="mx-auto max-w-6xl px-4 py-10 md:py-14">
           <div className="flex items-baseline justify-between gap-4">
             <h2 className="text-xl md:text-2xl font-semibold text-brand-950">Shop by category</h2>
@@ -46,25 +48,35 @@ export default function HomePage() {
           <CategoryGrid />
         </section>
 
-        {/* Featured products placeholder */}
-        <section className="mx-auto max-w-6xl px-4 py-10 md:py-14">
-          <h2 className="text-xl md:text-2xl font-semibold text-brand-950">Featured</h2>
-          <p className="mt-1 text-sm text-brand-600">Hand-picked favourites for you.</p>
-          <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
-            {[1, 2, 3, 4].map((i) => (
-              <ProductCard
-                key={i}
-                slug={`placeholder-${i}`}
-                name={`Featured item ${i}`}
-                priceCents={12900 + i * 500}
-                imageUrl={`https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop&q=${i * 20}`}
-              />
-            ))}
-          </div>
-        </section>
+        {featured.length > 0 && (
+          <section className="mx-auto max-w-6xl px-4 py-10 md:py-14">
+            <div className="flex items-baseline justify-between gap-4">
+              <h2 className="text-xl md:text-2xl font-semibold text-brand-950">Featured</h2>
+              <Link href="/c/apparel" className="text-sm text-brand-600 hover:underline whitespace-nowrap">Shop all</Link>
+            </div>
+            <p className="mt-1 text-sm text-brand-600">Hand-picked favourites from the team.</p>
+            <div className="mt-6">
+              <ProductGrid products={featured} />
+            </div>
+          </section>
+        )}
 
-        {/* Trust strip */}
-        <section className="border-t border-brand-200 bg-brand-50">
+        {todaysPicks.length > 0 && (
+          <section className="mx-auto max-w-6xl px-4 py-10 md:py-14">
+            <div className="flex items-baseline justify-between gap-4">
+              <h2 className="text-xl md:text-2xl font-semibold text-brand-950">Today&apos;s picks</h2>
+              <Link href="/c/apparel?sort=newest" className="text-sm text-brand-600 hover:underline whitespace-nowrap">Browse newest</Link>
+            </div>
+            <p className="mt-1 text-sm text-brand-600">
+              {todaysPicks.length} new product{todaysPicks.length === 1 ? '' : 's'} added recently.
+            </p>
+            <div className="mt-6">
+              <ProductGrid products={todaysPicks} />
+            </div>
+          </section>
+        )}
+
+        <section className="mt-8 border-t border-brand-200 bg-brand-50">
           <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 py-8 md:grid-cols-3 md:gap-8 md:py-10">
             <div className="flex items-start gap-3">
               <div className="flex-shrink-0 h-10 w-10 rounded-full bg-white flex items-center justify-center text-brand-900">🚚</div>
