@@ -54,12 +54,16 @@ export function ImageUploader({ images, onChange, max = 10 }: Props) {
     try {
       const ext = file.name.split('.').pop() || 'jpg';
       const path = `${tempId}.${ext}`;
-      const { error: upErr } = await supabase.storage
+      const { data, error: upErr } = await supabase.storage
         .from('product-images')
-        .upload(path, file, { cacheControl: '3600', upsert: true });
-      if (upErr) throw upErr;
+        .upload(path, file, { cacheControl: '3600', upsert: false });
+      if (upErr) {
+        showToast(`Upload failed: ${upErr.message}`, 'error');
+        onChange(newImages.filter((img) => img.id !== tempId));
+        return null;
+      }
 
-      const { data: { publicUrl } } = supabase.storage.from('product-images').getPublicUrl(path);
+      const { data: { publicUrl } } = supabase.storage.from('product-images').getPublicUrl(data.path);
       URL.revokeObjectURL(previewUrl);
 
       // Replace placeholder with uploaded URL
@@ -69,7 +73,7 @@ export function ImageUploader({ images, onChange, max = 10 }: Props) {
       onChange(replaced);
       return publicUrl;
     } catch (err: any) {
-      showToast(`Upload failed: ${err.message}`, 'error');
+      showToast(`Upload failed: ${err?.message ?? 'unknown error'}`, 'error');
       onChange(newImages.filter((img) => img.id !== tempId));
       return null;
     }
