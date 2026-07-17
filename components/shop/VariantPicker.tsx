@@ -1,59 +1,95 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo } from 'react';
 import clsx from 'clsx';
 import type { ProductVariant } from '@/lib/supabase/types';
 
-type VariantPickerProps = {
+type Props = {
   variants: ProductVariant[];
   basePriceCents: number;
+  selectedOptions: Record<string, string>;
+  onOptionChange: (key: string, value: string) => void;
 };
 
-export function VariantPicker({ variants, basePriceCents }: VariantPickerProps) {
-  const [selected, setSelected] = useState<string>(variants[0]?.id ?? '');
+/**
+ * Variant option selector.
+ *
+ * Uses independent option tracking (e.g. selectedOptions = { Size: 'M', Colour: 'Silver' })
+ * so picking a colour doesn't auto-select a size. Disables option buttons that would lead
+ * to a non-existent variant combination.
+ */
+export function VariantPicker({ variants, basePriceCents, selectedOptions, onOptionChange }: Props) {
+  const optionKeys = useMemo(() => {
+    return Array.from(new Set(variants.flatMap((v) => Object.keys(v.options))));
+  }, [variants]);
 
-  const selectedVariant = variants.find((v) => v.id === selected) ?? variants[0];
-  const optionKeys = Array.from(new Set(variants.flatMap((v) => Object.keys(v.options))));
-  const inStock = (id: string) => (variants.find((v) => v.id === id)?.stock ?? 0) > 0;
+  // Find the variant matching ALL selected options
+  const selectedVariant = useMemo(() => {
+    return variants.find((v) =>
+      optionKeys.every((key) => v.options[key] === selectedOptions[key])
+    ) ?? null;
+  }, [variants, optionKeys, selectedOptions]);
+
+  // For each option key, find which values have at least one valid variant
+  // given the OTHER selected options
+  function getValidValues(key: string): Set<string> {
+    const others = optionKeys.filter((k) => k !== key);
+    const valid = new Set<string>();
+    for (const v of variants) {
+      if (v.stock === 0 && !v.is_active) continue;
+      const matchesOthers = others.every((k) => v.options[k] === selectedOptions[k]);
+      if (matchesOthers) {
+        valid.add(v.options[key]);
+      }
+    }
+    return valid;
+  }
+
+  const priceCents = selectedVariant?.price_cents ?? basePriceCents;
+  const stock = selectedVariant?.stock ?? 0;
 
   return (
-    <div className="space-y-4">
-      {optionKeys.map((key) => (
-        <div key={key}>
-          <p className="text-sm font-medium text-brand-900 capitalize">{key}</p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {variants.map((v) => {
-              const value = v.options[key];
-              if (!value) return null;
-              const isSelected = selected === v.id;
-              const isOut = v.stock === 0;
-              return (
-                <button
-                  key={`${v.id}-${key}`}
-                  type="button"
-                  onClick={() => !isOut && setSelected(v.id)}
-                  disabled={isOut}
-                  className={clsx(
-                    'rounded-md border px-3 py-1.5 text-sm font-medium transition-colors',
-                    isOut && 'border-brand-200 bg-brand-50 text-brand-400 line-through cursor-not-allowed',
-                    !isOut && isSelected && 'border-brand-900 bg-brand-900 text-white',
-                    !isOut && !isSelected && 'border-brand-300 bg-white text-brand-900 hover:border-brand-500'
-                  )}
-                  title={isOut ? 'Out of stock' : `In stock (${v.stock})`}
-                >
-                  {value}
-                </button>
-              );
-            })}
+    <div className="space-y-5">
+      {optionKeys.map((key) => {
+        const validValues = getValidValues(key);
+        return (
+          <div key={key}>
+            <p className="text-sm font-medium text-brand-900 capitalize mb-2">{key}</p>
+            <div className="flex flex-wrap gap-2">
+              {variants
+                .filter((v) => v.options[key])
+                .map((v) => {
+                  const value = v.options[key];
+                  if (!value) return null;
+                  const isSelected = selectedOptions[key] === value;
+                  const isValid = validValues.has(value);
+                  return (
+                    <button
+                      key={`${key}-${value}`}
+                      type="button"
+                      onClick={() => isValid && onOptionChange(key, value)}
+                      disabled={!isValid}
+                      className={clsx(
+                        'rounded-md border px-3 py-1.5 text-sm font-medium transition-colors',
+                        !isValid && 'border-brand-200 bg-brand-50 text-brand-400 line-through cursor-not-allowed',
+                        isValid && isSelected && 'border-brand-900 bg-brand-900 text-white',
+                        isValid && !isSelected && 'border-brand-300 bg-white text-brand-900 hover:border-brand-500'
+                      )}
+                    >
+                      {value}
+                    </button>
+                  );
+                })}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
 
-      <div className="flex items-center gap-2 text-xs text-brand-600">
-        {selectedVariant && selectedVariant.stock > 0 ? (
+      <div className="flex items-center gap-2 text-xs text-brand-600 pt-1">
+        {stock > 0 ? (
           <>
             <span className="inline-block h-2 w-2 rounded-full bg-success" />
-            <span>In stock — {selectedVariant.stock} available</span>
+            <span>In stock — {stock} available</span>
           </>
         ) : (
           <>
