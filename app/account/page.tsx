@@ -8,6 +8,9 @@ export default async function AccountPage() {
   const user = await requireUser();
   const customer = await getCurrentCustomer();
 
+  // Display name: full_name first, then email prefix (before @), then email
+  const displayName = customer?.full_name || user.email?.split('@')[0] || user.email;
+
   return (
     <>
       <Header />
@@ -15,7 +18,7 @@ export default async function AccountPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-brand-950">
-              Hi {customer?.full_name || user.email}
+              Hi {displayName}
             </h1>
             <p className="mt-1 text-sm text-brand-600">{user.email}</p>
           </div>
