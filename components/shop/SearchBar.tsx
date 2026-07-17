@@ -117,7 +117,7 @@ export function SearchBar() {
 
       {/* Mobile search sheet */}
       {mobileOpen && (
-        <div className="fixed inset-0 z-50 sm:hidden bg-white" role="dialog" aria-label="Search">
+        <div className="fixed inset-0 z-50 sm:hidden flex flex-col bg-white" role="dialog" aria-label="Search">
           <div className="flex items-center gap-2 border-b border-brand-200 p-3">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-brand-500 flex-shrink-0" aria-hidden="true">
               <circle cx="11" cy="11" r="7" />
@@ -166,7 +166,7 @@ export function SearchBar() {
           )}
           {/* Show nav links when no query */}
           {query.length < 2 && (
-            <ul className="divide-y divide-brand-100">
+            <ul className="divide-y divide-brand-100 bg-white">
               {NAV_LINKS.map((l) => (
                 <li key={l.href}>
                   <a href={l.href} onClick={() => setMobileOpen(false)} className="block px-4 py-3 text-sm text-brand-700 hover:bg-brand-50">
