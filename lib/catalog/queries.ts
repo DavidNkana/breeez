@@ -163,37 +163,21 @@ export async function getTodaysPicks(limit = 9): Promise<ProductListItem[]> {
   const sodSAST = new Date(Date.UTC(nowSAST.getUTCFullYear(), nowSAST.getUTCMonth(), nowSAST.getUTCDate(), 0, 0, 0));
   const sodUTC = new Date(sodSAST.getTime() + 2 * 60 * 60 * 1000);
 
-  const { data: todays } = (await supabase
-    .from('products')
-    .select('*')
-    .eq('is_active', true)
-    .gte('created_at', sodUTC.toISOString())
-    .order('created_at', { ascending: false })
-    .limit(limit)) as any;
+  // Fetch ALL active products newest-first (no today filter)
+  const allNewest = await listProducts({ sort: 'newest', limit: limit * 2 });
 
-  const products = (todays ?? []) as Product[];
-  if (products.length === 0) return listProducts({ sort: 'newest', limit });
+  if (allNewest.length === 0) return [];
 
-  const categoryIds = [...new Set(products.map((p) => p.category_id).filter(Boolean))];
-  let catMap = new Map<string, Pick<Category, 'id' | 'slug' | 'name'>>();
-  if (categoryIds.length > 0) {
-    const { data: cats } = (await supabase.from('categories').select('id, slug, name').in('id', categoryIds)) as any;
-    for (const c of (cats ?? [])) catMap.set(c.id, c);
+  // Filter to today's products
+  const todays = allNewest.filter((p) => new Date(p.created_at) >= sodUTC);
+
+  // Always return exactly 'limit' items: today's first, then pad with newest
+  const result = todays.slice(0, limit);
+  if (result.length < limit) {
+    const todaysIds = new Set(result.map((p) => p.id));
+    const padding = allNewest.filter((p) => !todaysIds.has(p.id)).slice(0, limit - result.length);
+    result.push(...padding);
   }
 
-  const productIds = products.map((p) => p.id);
-  let imgMap = new Map<string, ProductImage>();
-  if (productIds.length > 0) {
-    const { data: imgs } = (await supabase.from('product_images').select('*').in('product_id', productIds).order('sort_order')) as any;
-    for (const img of (imgs ?? [])) { if (!imgMap.has(img.product_id)) imgMap.set(img.product_id, img); }
-  }
-
-  return products.map((p) => ({
-    ...p,
-    category: catMap.get(p.category_id ?? '') ?? null,
-    primary_image: imgMap.get(p.id) ?? null,
-    price_min_cents: p.base_price_cents,
-    price_max_cents: p.base_price_cents,
-    total_stock: 0
-  }));
+  return result;
 }
