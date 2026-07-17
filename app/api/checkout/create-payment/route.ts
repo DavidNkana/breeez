@@ -63,7 +63,13 @@ export async function POST(req: Request) {
     });
     if (rpcErr) throw rpcErr;
 
-    // Fetch the created order to get order_number
+    // Explicitly set customer_id on the order (the RPC reads from cart, but
+    // carts are sometimes created without customer_id — this is a safety net)
+    if (user) {
+      await admin.from('orders').update({
+        customer_id: user.id
+      } as any).eq('id', orderId as any);
+    }
     const { data: order } = await admin
       .from('orders')
       .select('*')
