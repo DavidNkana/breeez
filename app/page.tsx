@@ -25,7 +25,7 @@ export default async function HomePage() {
             </p>
             <div className="mt-6 flex flex-col sm:flex-row gap-3">
               <Link
-                href="/c/apparel"
+                href="/new"
                 className="inline-flex items-center justify-center rounded-md bg-brand-900 px-5 py-3 text-sm font-medium text-white hover:bg-brand-800 transition-colors"
               >
                 Shop new arrivals
@@ -52,7 +52,7 @@ export default async function HomePage() {
           <section className="mx-auto max-w-6xl px-4 py-10 md:py-14">
             <div className="flex items-baseline justify-between gap-4">
               <h2 className="text-xl md:text-2xl font-semibold text-brand-950">Featured</h2>
-              <Link href="/c/apparel" className="text-sm text-brand-600 hover:underline whitespace-nowrap">Shop all</Link>
+              <Link href="/new" className="text-sm text-brand-600 hover:underline whitespace-nowrap">Shop all</Link>
             </div>
             <p className="mt-1 text-sm text-brand-600">Hand-picked favourites from the team.</p>
             <div className="mt-6">
@@ -65,7 +65,7 @@ export default async function HomePage() {
           <section className="mx-auto max-w-6xl px-4 py-10 md:py-14">
             <div className="flex items-baseline justify-between gap-4">
               <h2 className="text-xl md:text-2xl font-semibold text-brand-950">Today&apos;s picks</h2>
-              <Link href="/c/apparel?sort=newest" className="text-sm text-brand-600 hover:underline whitespace-nowrap">Browse newest</Link>
+              <Link href="/new" className="text-sm text-brand-600 hover:underline whitespace-nowrap">Browse newest</Link>
             </div>
             <p className="mt-1 text-sm text-brand-600">
               {todaysPicks.length} new product{todaysPicks.length === 1 ? '' : 's'} added recently.
