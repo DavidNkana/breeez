@@ -6,7 +6,7 @@ import { ProductGrid } from '@/components/shop/ProductGrid';
 import { getTodaysPicks, listProducts } from '@/lib/catalog/queries';
 
 export default async function HomePage() {
-  const todaysPicks = await getTodaysPicks(9);
+  const todaysPicks = await getTodaysPicks(10);
   const featured = await listProducts({ featured: true, sort: 'newest', limit: 6 });
 
   return (
@@ -61,7 +61,7 @@ export default async function HomePage() {
             <div className="mt-6">
               <ProductGrid products={todaysPicks} />
             </div>
-            {todaysPicks.length >= 9 && (
+            {todaysPicks.length >= 10 && (
               <div className="mt-6 text-center">
                 <Link
                   href="/new"
