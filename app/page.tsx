@@ -7,7 +7,7 @@ import { getTodaysPicks, listProducts } from '@/lib/catalog/queries';
 
 export default async function HomePage() {
   const todaysPicks = await getTodaysPicks(9);
-  const featured = await listProducts({ featured: true, sort: 'newest', limit: 4 });
+  const featured = await listProducts({ featured: true, sort: 'newest', limit: 6 });
 
   return (
     <>
@@ -48,19 +48,7 @@ export default async function HomePage() {
           <CategoryGrid />
         </section>
 
-        {featured.length > 0 && (
-          <section className="mx-auto max-w-6xl px-4 py-10 md:py-14">
-            <div className="flex items-baseline justify-between gap-4">
-              <h2 className="text-xl md:text-2xl font-semibold text-brand-950">Featured</h2>
-              <Link href="/new" className="text-sm text-brand-600 hover:underline whitespace-nowrap">Shop all</Link>
-            </div>
-            <p className="mt-1 text-sm text-brand-600">Hand-picked favourites from the team.</p>
-            <div className="mt-6">
-              <ProductGrid products={featured} showPreview />
-            </div>
-          </section>
-        )}
-
+        {/* Today's picks — newest products (or today's if any added today) */}
         {todaysPicks.length > 0 && (
           <section className="mx-auto max-w-6xl px-4 py-10 md:py-14">
             <div className="flex items-baseline justify-between gap-4">
@@ -72,6 +60,29 @@ export default async function HomePage() {
             </p>
             <div className="mt-6">
               <ProductGrid products={todaysPicks} />
+            </div>
+            {todaysPicks.length >= 9 && (
+              <div className="mt-6 text-center">
+                <Link
+                  href="/new"
+                  className="inline-flex items-center rounded-md border border-brand-300 bg-white px-5 py-2.5 text-sm font-medium text-brand-900 hover:bg-brand-50"
+                >
+                  View all products →
+                </Link>
+              </div>
+            )}
+          </section>
+        )}
+
+        {featured.length > 0 && (
+          <section className="mx-auto max-w-6xl px-4 py-10 md:py-14">
+            <div className="flex items-baseline justify-between gap-4">
+              <h2 className="text-xl md:text-2xl font-semibold text-brand-950">Featured</h2>
+              <Link href="/new" className="text-sm text-brand-600 hover:underline whitespace-nowrap">Shop all</Link>
+            </div>
+            <p className="mt-1 text-sm text-brand-600">Hand-picked favourites from the team.</p>
+            <div className="mt-6">
+              <ProductGrid products={featured} showPreview />
             </div>
           </section>
         )}
