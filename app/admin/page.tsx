@@ -10,6 +10,7 @@ export default async function AdminDashboard() {
 
   const { count: productCount } = await supabase.from('products').select('*', { count: 'exact', head: true }).eq('is_active', true);
   const { count: orderCount } = await supabase.from('orders').select('*', { count: 'exact', head: true });
+  const { count: returnCount } = await supabase.from('returns').select('*', { count: 'exact', head: true }).eq('status', 'requested');
 
   const { data: recentOrders } = await supabase
     .from('orders')
@@ -26,7 +27,7 @@ export default async function AdminDashboard() {
           <LogoutButton redirectTo="/" />
         </div>
 
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
+        <div className="mt-6 grid gap-4 md:grid-cols-4">
           <div className="rounded-lg border border-brand-200 bg-white p-4">
             <p className="text-xs uppercase text-brand-500">Active products</p>
             <p className="mt-1 text-3xl font-semibold text-brand-950">{productCount ?? 0}</p>
@@ -39,9 +40,13 @@ export default async function AdminDashboard() {
             <p className="text-xs uppercase text-brand-500">Categories</p>
             <p className="mt-1 text-3xl font-semibold text-brand-950">10</p>
           </div>
+          <div className="rounded-lg border border-brand-200 bg-white p-4">
+            <p className="text-xs uppercase text-brand-500">Pending returns</p>
+            <p className="mt-1 text-3xl font-semibold text-brand-950">{returnCount ?? 0}</p>
+          </div>
         </div>
 
-        <div className="mt-8 grid gap-3 md:grid-cols-2">
+        <div className="mt-8 grid gap-3 md:grid-cols-3">
           <a href="/admin/products" className="rounded-lg border border-brand-200 bg-white p-4 hover:border-brand-400">
             <p className="font-medium text-brand-900">Manage products</p>
             <p className="mt-1 text-sm text-brand-600">Add, edit, or remove products from your catalogue.</p>
@@ -49,6 +54,10 @@ export default async function AdminDashboard() {
           <a href="/admin/orders" className="rounded-lg border border-brand-200 bg-white p-4 hover:border-brand-400">
             <p className="font-medium text-brand-900">View orders</p>
             <p className="mt-1 text-sm text-brand-600">Process and ship customer orders.</p>
+          </a>
+          <a href="/admin/returns" className="rounded-lg border border-brand-200 bg-white p-4 hover:border-brand-400">
+            <p className="font-medium text-brand-900">Manage returns</p>
+            <p className="mt-1 text-sm text-brand-600">Approve or reject customer return requests.</p>
           </a>
         </div>
 
