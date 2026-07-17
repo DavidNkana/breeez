@@ -4,6 +4,7 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/Badge';
+import { ReturnSection } from '@/components/account/ReturnSection';
 import { notFound } from 'next/navigation';
 import { formatRand } from '@/lib/format';
 
@@ -26,6 +27,9 @@ export default async function OrderDetailPage({ params }: Props) {
     .from('order_items')
     .select('*')
     .eq('order_id', order.id)) as any;
+
+  // Check for existing return
+  const { data: ret } = (await supabase.from('returns').select('*').eq('order_id', order.id).maybeSingle()) as any;
 
   return (
     <>
@@ -51,6 +55,13 @@ export default async function OrderDetailPage({ params }: Props) {
             <p className="mt-1 text-brand-700">{order.shipping_tracking}</p>
           </div>
         )}
+
+        <ReturnSection
+          orderId={order.id}
+          orderStatus={order.status}
+          orderCreatedAt={order.created_at}
+          existingReturn={ret ?? null}
+        />
 
         {/* (rest unchanged) */}
 
