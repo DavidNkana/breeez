@@ -8,6 +8,7 @@ import { Select } from '@/components/ui/Select';
 import { useToast } from '@/components/ui/Toast';
 import { createBrowserClient } from '@supabase/ssr';
 import { ImageUploader } from './ImageUploader';
+import { VariantEditor, type VariantRow } from './VariantEditor';
 
 function getSupabase() {
   return createBrowserClient(
@@ -39,11 +40,10 @@ export function NewProductForm({ categories }: Props) {
   const [categoryId, setCategoryId] = useState(categories[0]?.id ?? '');
   const [basePrice, setBasePrice] = useState('');
   const [tags, setTags] = useState('');
-  const [stock, setStock] = useState('0');
-  const [sku, setSku] = useState('');
   const [isFeatured, setIsFeatured] = useState(false);
   const [isActive, setIsActive] = useState(true);
   const [images, setImages] = useState<ImageItem[]>([]);
+  const [variants, setVariants] = useState<VariantRow[]>([]);
 
   function slugify(s: string) {
     return s.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
@@ -92,16 +92,22 @@ export function NewProductForm({ categories }: Props) {
       return;
     }
 
-    // Insert default variant
-    await supabase.from('product_variants').insert({
-      product_id: (product as any).id,
-      sku: sku || `${finalSlug.toUpperCase()}-DEFAULT`,
-      name: 'Default',
-      options: {},
-      price_cents: null,
-      stock: parseInt(stock, 10) || 0,
-      is_active: true
-    } as any);
+    // Insert variants
+    if (variants.length > 0) {
+      await supabase.from('product_variants').insert(
+        variants.map((v, idx) => ({
+          product_id: (product as any).id,
+          sku: v.sku,
+          name: v.name,
+          options: v.options,
+          price_cents: v.price_cents,
+          compare_at_cents: v.compare_at_cents,
+          stock: v.stock,
+          is_active: v.is_active,
+          sort_order: idx
+        })) as any
+      );
+    }
 
     // Insert images
     if (images.length > 0) {
@@ -130,8 +136,6 @@ export function NewProductForm({ categories }: Props) {
         options={categories.map((c) => ({ value: c.id, label: c.name }))}
       />
       <Input label="Price (ZAR)" type="number" step="0.01" required value={basePrice} onChange={(e) => setBasePrice(e.target.value)} placeholder="299.00" />
-      <Input label="Stock quantity" type="number" min="0" value={stock} onChange={(e) => setStock(e.target.value)} placeholder="0" />
-      <Input label="SKU (auto-generated if blank)" value={sku} onChange={(e) => setSku(e.target.value)} placeholder="CBL-TWL-001" />
       <Input label="Tags (comma-separated)" value={tags} onChange={(e) => setTags(e.target.value)} placeholder="new, summer, beach" />
       <div>
         <label className="mb-1 block text-sm font-medium text-brand-900">Description</label>
@@ -174,6 +178,8 @@ export function NewProductForm({ categories }: Props) {
       </div>
 
       <ImageUploader images={images} onChange={setImages} max={10} />
+
+      <VariantEditor productId="new-product" variants={variants} onChange={setVariants} />
 
       <div className="flex gap-2 pt-4 border-t border-brand-100">
         <Button type="submit" loading={saving} size="lg">Create product</Button>
