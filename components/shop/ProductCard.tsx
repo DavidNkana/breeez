@@ -86,7 +86,7 @@ export function ProductCard({ slug, name, priceCents, compareAtCents, imageUrl, 
             aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
             className={clsx(
               'absolute top-2 right-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/95 shadow-sm backdrop-blur-sm transition-all',
-              'opacity-0 group-hover:opacity-100',
+              'md:opacity-0 md:group-hover:opacity-100',
               inWishlist && 'opacity-100'
             )}
           >
