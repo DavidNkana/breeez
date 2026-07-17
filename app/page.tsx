@@ -53,7 +53,7 @@ export default async function HomePage() {
           <section className="mx-auto max-w-6xl px-4 py-10 md:py-14">
             <div className="flex items-baseline justify-between gap-4">
               <h2 className="text-xl md:text-2xl font-semibold text-brand-950">Today&apos;s picks</h2>
-              <Link href="/new" className="text-sm text-brand-600 hover:underline whitespace-nowrap">Browse newest</Link>
+              <Link href="/new" className="text-sm text-brand-600 hover:underline whitespace-nowrap">View all</Link>
             </div>
             <p className="mt-1 text-sm text-brand-600">
               {todaysPicks.length} new product{todaysPicks.length === 1 ? '' : 's'} added recently.

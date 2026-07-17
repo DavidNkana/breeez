@@ -3,10 +3,10 @@ import { createClient } from '@/lib/supabase/server';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import Link from 'next/link';
-import { formatRand } from '@/lib/format';
+import { formatRand, calcDiscountPercent } from '@/lib/format';
 import { Badge } from '@/components/ui/Badge';
 import { LogoutButton } from '@/components/auth/LogoutButton';
-import { calcDiscountPercent } from '@/lib/format';
+import { DeleteProductButton } from '@/components/admin/DeleteProductButton';
 
 export default async function AdminProductsPage() {
   await requireAdmin();
@@ -81,12 +81,15 @@ export default async function AdminProductsPage() {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <Link
-                        href={`/admin/products/${p.id}/edit`}
-                        className="inline-flex items-center rounded-md border border-brand-300 bg-white px-3 py-1.5 text-xs font-medium text-brand-900 hover:bg-brand-50"
-                      >
-                        Edit
-                      </Link>
+                      <div className="flex items-center justify-end gap-2">
+                        <Link
+                          href={`/admin/products/${p.id}/edit`}
+                          className="inline-flex items-center rounded-md border border-brand-300 bg-white px-3 py-1.5 text-xs font-medium text-brand-900 hover:bg-brand-50"
+                        >
+                          Edit
+                        </Link>
+                        <DeleteProductButton productId={p.id} productName={p.name} />
+                      </div>
                     </td>
                   </tr>
                 );
