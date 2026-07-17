@@ -47,7 +47,7 @@ export function Header() {
       </div>
 
       {/* Mobile category strip — hidden on desktop where the main nav is visible */}
-      <nav aria-label="Categories" className="md:hidden border-t border-brand-100 overflow-x-auto no-scrollbar">
+      <nav aria-label="Categories" className="md:hidden border-t border-brand-100 bg-brand-50 overflow-x-auto no-scrollbar">
         <ul className="flex gap-4 px-4 py-2.5 text-sm whitespace-nowrap">
           {NAV_LINKS.map((l) => (
             <li key={l.href}>
