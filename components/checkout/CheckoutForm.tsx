@@ -8,7 +8,7 @@ import { Select } from '@/components/ui/Select';
 import { useCart } from '@/lib/cart/store';
 import { useToast } from '@/components/ui/Toast';
 import { formatRand } from '@/lib/format';
-import { getAllShippingOptions, calculateShippingCents } from '@/lib/shipping';
+import { getAllShippingOptions, calculateShippingCents, type ShippingMethod } from '@/lib/shipping';
 import { isMockMode as paymentsMock } from '@/lib/payments';
 import type { User } from '@supabase/supabase-js';
 
@@ -35,7 +35,7 @@ export function CheckoutForm({ user, savedAddresses }: Props) {
   const [city, setCity] = useState('');
   const [province, setProvince] = useState('Gauteng');
   const [postalCode, setPostalCode] = useState('');
-  const [shippingMethod, setShippingMethod] = useState<'pargo_pickup' | 'tcg_door' | 'dawn_wing_metro'>('tcg_door');
+  const [shippingMethod, setShippingMethod] = useState<ShippingMethod>('tcg_door');
   const [paymentMethod, setPaymentMethod] = useState<'payfast' | 'yoco' | 'ozow'>('payfast');
   const [submitting, setSubmitting] = useState(false);
 

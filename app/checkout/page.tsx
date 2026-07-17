@@ -2,22 +2,18 @@ import { createClient } from '@/lib/supabase/server';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { CheckoutForm } from '@/components/checkout/CheckoutForm';
-import { getCurrentUser } from '@/lib/auth/session';
+import { requireUser } from '@/lib/auth/session';
+import { redirect } from 'next/navigation';
 
 export default async function CheckoutPage() {
-  const user = await getCurrentUser();
+  const user = await requireUser();
+  const supabase = await createClient();
 
-  // If logged in, fetch their saved addresses for the address picker
-  let savedAddresses: any[] = [];
-  if (user) {
-    const supabase = await createClient();
-    const { data } = await supabase
-      .from('addresses')
-      .select('*')
-      .eq('customer_id', user.id)
-      .order('is_default', { ascending: false });
-    savedAddresses = data ?? [];
-  }
+  const { data: savedAddresses } = (await supabase
+    .from('addresses')
+    .select('*')
+    .eq('customer_id', user.id)
+    .order('is_default', { ascending: false })) as any;
 
   return (
     <>

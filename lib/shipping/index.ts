@@ -11,7 +11,7 @@
 
 const MOCK = process.env.MOCK_SHIPPING !== 'false';
 
-export type ShippingMethod = 'pargo_pickup' | 'tcg_door' | 'dawn_wing_metro';
+export type ShippingMethod = 'pargo_pickup' | 'tcg_door' | 'dawn_wing_metro' | 'store_pickup';
 
 export type ShippingQuote = {
   method: ShippingMethod;
@@ -22,6 +22,12 @@ export type ShippingQuote = {
 };
 
 const RATES: Record<ShippingMethod, Omit<ShippingQuote, 'method'>> = {
+  store_pickup: {
+    label: 'Pickup from Store',
+    description: 'Collect your order from our store. We\'ll notify you when it\'s ready.',
+    costCents: 0,
+    estimatedDays: 'Ready within 24 hours'
+  },
   pargo_pickup: {
     label: 'Pargo Pickup Point',
     description: 'Collect at one of 2,500+ Pargo points nationwide',
