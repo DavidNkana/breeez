@@ -8,6 +8,7 @@ import { Select } from '@/components/ui/Select';
 import { useToast } from '@/components/ui/Toast';
 import { createBrowserClient } from '@supabase/ssr';
 import { ImageUploader } from './ImageUploader';
+import { VariantEditor, type VariantRow } from './VariantEditor';
 
 function getSupabase() {
   return createBrowserClient(
@@ -47,9 +48,10 @@ type Props = {
     compare_at_cents: number | null;
   };
   existingImages: ExistingImage[];
+  existingVariants: VariantRow[];
 };
 
-export function EditProductForm({ categories, product, existingImages }: Props) {
+export function EditProductForm({ categories, product, existingImages, existingVariants }: Props) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -69,6 +71,7 @@ export function EditProductForm({ categories, product, existingImages }: Props) 
   const [images, setImages] = useState<ImageItem[]>(
     existingImages.map((img) => ({ id: img.id, url: img.url }))
   );
+  const [variants, setVariants] = useState<VariantRow[]>(existingVariants);
 
   function slugify(s: string) {
     return s.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
@@ -133,6 +136,24 @@ export function EditProductForm({ categories, product, existingImages }: Props) 
         images.map((img, idx) => ({
           product_id: product.id,
           url: img.url,
+          sort_order: idx
+        })) as any
+      );
+    }
+
+    // Sync variants: delete all existing, re-insert with current data
+    await supabase.from('product_variants').delete().eq('product_id', product.id);
+    if (variants.length > 0) {
+      await supabase.from('product_variants').insert(
+        variants.map((v, idx) => ({
+          product_id: product.id,
+          sku: v.sku,
+          name: v.name,
+          options: v.options,
+          price_cents: v.price_cents,
+          compare_at_cents: v.compare_at_cents,
+          stock: v.stock,
+          is_active: v.is_active,
           sort_order: idx
         })) as any
       );
@@ -234,6 +255,8 @@ export function EditProductForm({ categories, product, existingImages }: Props) 
       </div>
 
       <ImageUploader images={images} onChange={setImages} max={10} />
+
+      <VariantEditor productId={product.id} variants={variants} onChange={setVariants} />
 
       <div className="flex flex-col sm:flex-row gap-2 pt-4 border-t border-brand-100">
         <Button type="submit" loading={saving} size="lg">Save changes</Button>
