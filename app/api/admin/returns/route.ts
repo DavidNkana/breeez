@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { requireAdmin } from '@/lib/auth/session';
 import { NextResponse } from 'next/server';
+import { sendReturnUpdate } from '@/lib/email/resend';
 
 export async function PATCH(req: Request) {
   await requireAdmin();
@@ -26,8 +27,13 @@ export async function PATCH(req: Request) {
   });
 
   if (status === 'refunded') {
-    // Set order to refunded
     await supabase.from('orders').update({ status: 'refunded' }).eq('id', ret.order_id);
+  }
+
+  // Send email to customer about return status
+  const { data: order } = await supabase.from('orders').select('order_number, email').eq('id', ret.order_id).single();
+  if (order?.email) {
+    sendReturnUpdate({ to: order.email, orderNumber: order.order_number, status }).catch(() => {});
   }
 
   return NextResponse.json({ ok: true, returnId: ret.id, status: ret.status });

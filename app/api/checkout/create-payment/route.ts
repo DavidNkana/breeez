@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { createPayment, isMockMode } from '@/lib/payments/server';
 import { getCurrentUser } from '@/lib/auth/session';
+import { sendOrderConfirmation } from '@/lib/email/resend';
 
 /** Bypasses the RPC — inserts order directly with explicit customer_id */
 export async function POST(req: Request) {
@@ -56,6 +57,13 @@ export async function POST(req: Request) {
 
     if (isMockMode()) {
       const _m: any = await supabase.from('orders').update({ status: 'paid', paid_at: new Date().toISOString() } as any).eq('id', order.id);
+
+      // Send order confirmation email (silent fail if RESEND_API_KEY not set)
+      const itemsList = items.map((ci: any) =>
+        `<div style="font-size:14px;color:#566c7d;margin:4px 0">${ci.quantity}× ${ci.variant?.name ?? (ci.variant as any)?.product?.name ?? 'Item'} — R${((ci.variant?.price_cents ?? (ci.variant as any)?.product?.base_price_cents ?? 0) * ci.quantity / 100).toFixed(2)}</div>`
+      ).join('');
+      sendOrderConfirmation({ to: email, orderNumber: order.order_number, totalRand: `R${(totalCents / 100).toFixed(2)}`, items: itemsList }).catch(() => {});
+
       return NextResponse.json({ orderId: order.id, orderNumber: order.order_number });
     }
 
