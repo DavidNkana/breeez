@@ -1,110 +1,74 @@
-import { createAdminClient } from '@/lib/supabase/admin';
+import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { createPayment, isMockMode } from '@/lib/payments/server';
-import { bookShipment } from '@/lib/shipping';
-import { createClient } from '@/lib/supabase/server';
+import { getCurrentUser } from '@/lib/auth/session';
 
-/**
- * Place an order: create the order row via RPC, decrement stock, return payment redirect.
- */
+/** Bypasses the RPC — inserts order directly with explicit customer_id */
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { cartId, email, fullName, phone, shippingMethod, paymentMethod, shippingAddress } = body;
-
+    const { cartId, email, shippingMethod, paymentMethod, shippingAddress } = body;
     if (!cartId || !email || !shippingMethod || !paymentMethod || !shippingAddress?.line1) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-  const admin: any = createAdminClient();
-  const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getCurrentUser();
+    const supabase: any = await createClient(); // cast to any to bypass typed-client friction
 
-    // Get cart items + prices to compute totals
-    const { data: cartItems, error: cartErr } = await admin
-      .from('cart_items')
-      .select('*, variant:product_variants(*, product:products(base_price_cents, weight_grams))')
-      .eq('cart_id', cartId);
-    if (cartErr || !cartItems || (cartItems as any[]).length === 0) {
-      return NextResponse.json({ error: 'Cart is empty' }, { status: 400 });
-    }
+    const { data: cartItems } = (await supabase.from('cart_items')
+      .select('*, variant:product_variants(*, product:products(base_price_cents))')
+      .eq('cart_id', cartId)) as any;
+    const items = (cartItems ?? []) as any[];
+    if (items.length === 0) return NextResponse.json({ error: 'Cart empty' }, { status: 400 });
 
-    // Compute subtotal
     let subtotalCents = 0;
-    for (const ci of (cartItems as any[])) {
-      const priceCents = ci.variant?.price_cents ?? ci.variant?.product?.base_price_cents ?? 0;
-      subtotalCents += priceCents * ci.quantity;
+    for (const ci of items) {
+      subtotalCents += (ci.variant?.price_cents ?? ci.variant?.product?.base_price_cents ?? 0) * ci.quantity;
     }
 
-    // Shipping cost
     const { calculateShippingCents } = await import('@/lib/shipping');
     const shippingCents = calculateShippingCents(shippingMethod, subtotalCents);
     const totalCents = subtotalCents + shippingCents;
 
-    // If logged in, update phone/name on customer profile
-    if (user) {
-      await admin.from('customers').update({
-        full_name: fullName || null,
-        phone: phone || null
-      } as any).eq('id', user.id);
-    }
+    const { count } = (await supabase.from('orders').select('*', { count: 'exact', head: true })) as any;
+    const orderNumber = `BRZ-${new Date().getFullYear()}-${String((count ?? 0) + 1).padStart(5, '0')}`;
 
-    // Create the order via RPC
-    const { data: orderId, error: rpcErr } = await admin.rpc('place_order' as any, {
-      p_cart_id: cartId,
-      p_email: email,
-      p_shipping_address: shippingAddress,
-      p_shipping_method: shippingMethod,
-      p_payment_gateway: paymentMethod,
-      p_subtotal_cents: subtotalCents,
-      p_shipping_cents: shippingCents,
-      p_discount_cents: 0,
-      p_total_cents: totalCents
-    });
-    if (rpcErr) throw rpcErr;
+    const { data: order, error: orderErr } = (await supabase.from('orders').insert({
+      order_number: orderNumber, customer_id: user?.id ?? null, email, status: 'pending_payment',
+      subtotal_cents: subtotalCents, shipping_cents: shippingCents, discount_cents: 0, total_cents: totalCents,
+      currency: 'ZAR', shipping_address: shippingAddress, shipping_method: shippingMethod, payment_gateway: paymentMethod
+    } as any).select('id, order_number').single()) as any;
 
-    // Explicitly set customer_id on the order (the RPC reads from cart, but
-    // carts are sometimes created without customer_id — this is a safety net)
-    if (user) {
-      await admin.from('orders').update({
-        customer_id: user.id
-      } as any).eq('id', orderId as any);
-    }
-    const { data: order } = await admin
-      .from('orders')
-      .select('*')
-      .eq('id', orderId as any)
-      .single();
+    if (orderErr || !order) return NextResponse.json({ error: 'Failed to create order' }, { status: 500 });
 
-    const orderRow = order as any;
-
-    // In mock mode, mark as paid immediately
-    if (isMockMode()) {
-      await admin.from('orders').update({ status: 'paid', paid_at: new Date().toISOString() } as any).eq('id', orderId as any);
-      await admin.from('order_events').insert({
-        order_id: orderId,
-        event_type: 'payment_received',
-        payload: { mock: true, gateway: paymentMethod }
+    for (const ci of items) {
+      const v = ci.variant as any;
+      const p = v?.product as any;
+      const pc = v?.price_cents ?? p?.base_price_cents ?? 0;
+      await supabase.from('order_items').insert({
+        order_id: order.id, variant_id: ci.variant_id, product_name: p?.name ?? '', variant_name: v?.name ?? 'Default',
+        sku: v?.sku ?? '', quantity: ci.quantity, unit_price_cents: pc, line_total_cents: pc * ci.quantity
       } as any);
-    } else {
-      // Real payment: create gateway intent
-      const origin = req.headers.get('origin') || `https://${req.headers.get('host')}`;
-      const intent = await createPayment({
-        orderId: orderId!,
-        orderNumber: orderRow.order_number,
-        amountCents: totalCents,
-        customerEmail: email,
-        method: paymentMethod,
-        returnUrl: `${origin}/checkout/success/${orderId}?ref=${orderRow.order_number}`,
-        cancelUrl: `${origin}/cart`
-      });
-      await admin.from('orders').update({ payment_reference: intent.reference } as any).eq('id', orderId as any);
-      return NextResponse.json({ orderId, orderNumber: orderRow.order_number, redirectUrl: intent.redirectUrl });
+      if (v?.id) { const _: any = await supabase.from('product_variants').update({ stock: Math.max(0, (v.stock ?? 0) - ci.quantity) } as any).eq('id', v.id); }
     }
 
-    return NextResponse.json({ orderId, orderNumber: orderRow.order_number });
+    const _d: any = await supabase.from('cart_items').delete().eq('cart_id', cartId);
+
+    if (isMockMode()) {
+      const _m: any = await supabase.from('orders').update({ status: 'paid', paid_at: new Date().toISOString() } as any).eq('id', order.id);
+      return NextResponse.json({ orderId: order.id, orderNumber: order.order_number });
+    }
+
+    const origin = req.headers.get('origin') || '';
+    const intent = await createPayment({
+      orderId: order.id, orderNumber: order.order_number, amountCents: totalCents,
+      customerEmail: email, method: paymentMethod,
+      returnUrl: `${origin}/checkout/success/${order.id}?ref=${order.order_number}`, cancelUrl: `${origin}/cart`
+    });
+    const _p: any = await supabase.from('orders').update({ payment_reference: intent.reference } as any).eq('id', order.id);
+    return NextResponse.json({ orderId: order.id, orderNumber: order.order_number, redirectUrl: intent.redirectUrl });
   } catch (err: any) {
-    console.error('Checkout error:', err);
-    return NextResponse.json({ error: err.message || 'Checkout failed' }, { status: 500 });
+    console.error('[checkout]', err);
+    return NextResponse.json({ error: err?.message || 'Checkout failed' }, { status: 500 });
   }
 }
