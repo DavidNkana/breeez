@@ -43,10 +43,11 @@ export async function ReviewSection({ productId }: { productId: string }) {
     if (existing) {
       eligibility = { canReview: false, reason: 'You have already reviewed this product.' };
     } else {
+      // Join through product_variants because order_items doesn't store product_id directly.
       const { data: orderItem } = await (supabase as any)
         .from('order_items')
-        .select('id, orders!inner(customer_id, status, paid_at)')
-        .eq('product_id', productId)
+        .select('id, variant:product_variants!inner(product_id), orders!inner(customer_id, status, paid_at)')
+        .eq('variant.product_id', productId)
         .eq('orders.customer_id', user.id)
         .in('orders.status', ['paid', 'processing', 'shipped', 'delivered'])
         .not('orders.paid_at', 'is', null)

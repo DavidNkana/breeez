@@ -75,11 +75,12 @@ export async function POST(req: NextRequest) {
 
   const supabase = await createClient();
 
-  // 1. Confirm the customer has a PAID order containing this product
+  // 1. Confirm the customer has a PAID order containing this product.
+  //    order_items doesn't store product_id — join through product_variants.
   const { data: orderRow, error: orderErr } = await (supabase as any)
     .from('order_items')
-    .select('id, order_id, orders!inner(id, customer_id, status, paid_at)')
-    .eq('product_id', productId)
+    .select('id, order_id, variant:product_variants!inner(product_id), orders!inner(id, customer_id, status, paid_at)')
+    .eq('variant.product_id', productId)
     .eq('orders.customer_id', user.id)
     .in('orders.status', ['paid', 'processing', 'shipped', 'delivered'])
     .not('orders.paid_at', 'is', null)
