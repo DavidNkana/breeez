@@ -144,3 +144,29 @@ export async function sendReturnUpdate(params: {
     html: emailTemplate(s.title, `<p style="color:#566c7d;line-height:1.6">${s.body}</p>`)
   });
 }
+
+/**
+ * Newsletter welcome. Subject + short body. Fire-and-forget.
+ */
+export async function sendNewsletterWelcome(params: { to: string }): Promise<void> {
+  const SITE = (process.env.NEXT_PUBLIC_SITE_URL || 'https://breeez-lyart.vercel.app').replace(/\/+$/, '');
+  await sendEmail({
+    to: params.to,
+    subject: 'Welcome to Breeez — your 10% code is inside',
+    html: `
+      <div style="max-width:560px;margin:0 auto;font-family:system-ui,sans-serif">
+        <h1 style="color:#1a1f26;font-size:22px;margin:0 0 12px">Welcome to Breeez 👋</h1>
+        <p style="color:#566c7d;line-height:1.6">
+          Thanks for subscribing. Use code <strong style="color:#1a1f26">WELCOME10</strong> for 10% off your first order.
+        </p>
+        <p style="margin:24px 0">
+          <a href="${SITE}/new"
+             style="display:inline-block;padding:10px 16px;background:#1a1f26;color:white;border-radius:6px;text-decoration:none;font-weight:500">
+            Shop new arrivals
+          </a>
+        </p>
+        <p style="color:#94a3b8;font-size:12px">Reply to this email to unsubscribe.</p>
+      </div>
+    `,
+  });
+}

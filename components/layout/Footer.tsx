@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { PaymentMethodsStrip } from '@/components/checkout/PaymentMethodsStrip';
+import { NewsletterSignup } from '@/components/marketing/NewsletterSignup';
 
 const FOOTER_COLUMNS = [
   {
@@ -51,6 +52,9 @@ export function Footer() {
             <p className="mt-3 text-sm text-brand-600 leading-relaxed max-w-xs">
               South African multi-category ecommerce. Apparel, home, kitchen, school and more — delivered nationwide.
             </p>
+            <div className="mt-4 max-w-xs">
+              <NewsletterSignup variant="inline" />
+            </div>
           </div>
           {FOOTER_COLUMNS.map((col) => (
             <div key={col.title}>
