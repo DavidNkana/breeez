@@ -14,7 +14,7 @@
  */
 
 const API_KEY = process.env.RESEND_API_KEY;
-const FROM = process.env.RESEND_FROM_EMAIL || 'Breeez <orders@breeez.app>';
+const FROM = process.env.RESEND_FROM_EMAIL || 'Breeez <onboarding@resend.dev>';
 
 type EmailPayload = {
   to: string;
