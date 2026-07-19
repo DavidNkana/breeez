@@ -5,6 +5,9 @@ import { Footer } from '@/components/layout/Footer';
 import Link from 'next/link';
 import { formatRand } from '@/lib/format';
 import { Badge } from '@/components/ui/Badge';
+import { OrderRowActions } from '@/components/admin/OrderRowActions';
+
+export const dynamic = 'force-dynamic';
 
 export default async function AdminOrdersPage() {
   await requireAdmin();
@@ -14,16 +17,23 @@ export default async function AdminOrdersPage() {
     .from('orders')
     .select('*')
     .order('created_at', { ascending: false })
-    .limit(50)) as any;
+    .limit(100)) as { data: any[] | null };
 
   return (
     <>
       <Header />
       <main className="mx-auto max-w-6xl px-4 py-10 pb-20 safe-bottom">
-        <h1 className="text-2xl font-semibold text-brand-950">Orders</h1>
-        <p className="mt-1 text-sm text-brand-600">All customer orders.</p>
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div>
+            <h1 className="text-2xl font-semibold text-brand-950">Orders</h1>
+            <p className="mt-1 text-sm text-brand-600">All customer orders.</p>
+          </div>
+          <Link href="/admin/customers" className="text-sm text-brand-700 underline hover:text-brand-900">
+            Customer list →
+          </Link>
+        </div>
 
-        <div className="mt-6 rounded-lg border border-brand-200 bg-white overflow-hidden">
+        <div className="mt-6 rounded-lg border border-brand-200 bg-white overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-brand-50 text-left text-xs uppercase text-brand-600">
               <tr>
@@ -32,6 +42,7 @@ export default async function AdminOrdersPage() {
                 <th className="px-4 py-3">Total</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Date</th>
+                <th className="px-4 py-3"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-100">
@@ -41,25 +52,31 @@ export default async function AdminOrdersPage() {
                   <td className="px-4 py-3 text-brand-700">{o.email}</td>
                   <td className="px-4 py-3 font-medium">{formatRand(o.total_cents)}</td>
                   <td className="px-4 py-3">
-                    <Badge variant={o.status === 'paid' || o.status === 'shipped' || o.status === 'delivered' ? 'success' : 'warning'}>
+                    <Badge variant={['paid', 'shipped', 'delivered'].includes(o.status) ? 'success' : 'warning'}>
                       {o.status.replace('_', ' ')}
                     </Badge>
                   </td>
                   <td className="px-4 py-3 text-brand-500 text-xs">
                     {new Date(o.created_at).toLocaleDateString('en-ZA')}
                   </td>
+                  <td className="px-4 py-3">
+                    <OrderRowActions order={{
+                      id: o.id,
+                      order_number: o.order_number,
+                      email: o.email,
+                      status: o.status,
+                      shipping_method: o.shipping_method,
+                      shipping_address: o.shipping_address,
+                    }} onChanged={() => null} />
+                  </td>
                 </tr>
               ))}
               {(!orders || orders.length === 0) && (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-sm text-brand-500">No orders yet.</td></tr>
+                <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-brand-500">No orders yet.</td></tr>
               )}
             </tbody>
           </table>
         </div>
-
-        <p className="mt-3 text-xs text-brand-500">
-          <Link href="/admin" className="hover:underline">← Back to admin dashboard</Link>
-        </p>
       </main>
       <Footer />
     </>
