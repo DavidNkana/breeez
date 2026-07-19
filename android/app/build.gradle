@@ -1,0 +1,81 @@
+apply plugin: 'com.android.application'
+
+android {
+    namespace "co.za.breeez.app"
+    compileSdk rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "co.za.breeez.app"
+        minSdkVersion 23  // Android 6.0+ (matches our webview baseline)
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 1
+        versionName "1.0.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+            ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+
+    // Signing config: reads keystore from environment vars (breeez-android-key)
+    // If env vars not set, falls back to debug signing (dev only)
+    signingConfigs {
+        release {
+            if (System.getenv('BREEZ_KEYSTORE_PATH')) {
+                storeFile file(System.getenv('BREEZ_KEYSTORE_PATH'))
+                storePassword System.getenv('BREEZ_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('BREEZ_KEY_ALIAS')
+                keyPassword System.getenv('BREEZ_KEY_PASSWORD')
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (System.getenv('BREEZ_KEYSTORE_PATH')) {
+                signingConfig signingConfigs.release
+            }
+        }
+        debug {
+            applicationIdSuffix '.debug'
+            versionNameSuffix '-DEBUG'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+repositories {
+    flatDir {
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'
+
+// Apply google-services plugin only if google-services.json is present
+// (needed for Firebase Cloud Messaging push notifications)
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied. Push notifications will fall back to local notifications only.")
+}
