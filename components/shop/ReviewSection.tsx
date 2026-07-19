@@ -126,8 +126,8 @@ export async function ReviewSection({ productId }: { productId: string }) {
       {/* Review form for verified buyers */}
       <ReviewForm productId={productId} loggedIn={loggedIn} eligibility={eligibility} />
 
-      {/* Reviews list */}
-      {reviews && reviews.length > 0 ? (
+      {/* Reviews list (only when there are reviews to show) */}
+      {reviews && reviews.length > 0 && (
         <ul className="mt-8 space-y-6">
           {reviews.map((r) => (
             <li key={r.id} className="border-b border-brand-100 pb-6 last:border-b-0">
@@ -169,18 +169,18 @@ export async function ReviewSection({ productId }: { productId: string }) {
             </li>
           ))}
         </ul>
-      ) : (
-        !eligibility.canReview &&
-        loggedIn && (
-          <p className="mt-8 text-sm text-brand-500 italic">
-            No reviews yet for this product.
-          </p>
-        )
       )}
 
-      {count === 0 && !loggedIn && (
+      {/* "No reviews" message — only ONE message, the most helpful one for the viewer's state.
+          ReviewForm above already handles "sign in to review" and "only verified buyers".
+          So if they're here with no reviews, we add a one-line note that's context-specific. */}
+      {count === 0 && (
         <p className="mt-8 text-sm text-brand-500 italic">
-          No reviews yet. Sign in to be the first.
+          {loggedIn
+            ? eligibility.canReview
+              ? 'No reviews yet for this product. Be the first.'
+              : 'No reviews yet for this product.'
+            : 'No reviews yet for this product.'}
         </p>
       )}
     </section>
