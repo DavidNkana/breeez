@@ -1,15 +1,18 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // For Capacitor native apps: we point server.url at the live Vercel
+  // deployment, so we don't need static export. The native app just
+  // loads our deployed site in a webview. All SSR features (auth,
+  // checkout, server actions) work normally because the webview loads
+  // the live site.
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: '*.supabase.co' },
       { protocol: 'https', hostname: 'images.unsplash.com' }
     ]
   },
-  // Note: For Capacitor we use 'export' (static) output.
-  // Once Supabase + auth callbacks need server-side runtime,
-  // switch to standalone + SSR. Tracked in implementation plan.
+  poweredByHeader: false
 };
 
 export default nextConfig;
