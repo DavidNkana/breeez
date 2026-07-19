@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { CartButton } from '@/components/shop/CartButton';
-import { SearchBar } from '@/components/shop/SearchBar';
+import { SearchAutocomplete } from '@/components/shop/SearchAutocomplete';
 import { WishlistButton } from '@/components/shop/WishlistButton';
 
 const NAV_LINKS = [
@@ -30,7 +30,7 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-1 sm:gap-2">
-          <SearchBar />
+          <SearchAutocomplete />
           <WishlistButton />
           <Link
             href="/account"
