@@ -1,13 +1,17 @@
+import { InfoHeader } from '@/components/ui/InfoHeader';
+
 export const metadata = { title: 'Shipping Policy — Breeez' };
 
 export default function ShippingPage() {
   return (
-    <main className="mx-auto max-w-3xl px-4 py-10 pb-20 safe-bottom prose prose-sm prose-headings:text-brand-950 prose-a:text-accent-700">
-      <h1>Shipping Policy</h1>
-      <p className="text-sm text-brand-500">Last updated: 2026-07-15</p>
+    <>
+      <InfoHeader title="Shipping Policy" />
+      <main className="mx-auto max-w-3xl px-4 py-10 pb-20 safe-bottom prose prose-sm prose-headings:text-brand-950 prose-a:text-accent-700">
+        <h1>Shipping Policy</h1>
+        <p className="text-sm text-brand-500">Last updated: 2026-07-15</p>
 
-      <h2>Delivery options</h2>
-      <p>We offer three delivery options at checkout. Availability depends on your postal code and order size.</p>
+        <h2>Delivery options</h2>
+        <p>We offer three delivery options at checkout. Availability depends on your postal code and order size.</p>
 
       <h3>1. Pargo Pickup Point — R49</h3>
       <p>Collect your order at one of 2,500+ Pargo pickup points across South Africa. Best for affordable nationwide delivery. ETA 3-5 working days. We&apos;ll send you a pickup code via SMS when your order is ready.</p>
@@ -29,6 +33,7 @@ export default function ShippingPage() {
 
       <h2>Issues with delivery</h2>
       <p>If your order hasn&apos;t arrived within 7 days of the ETA, please email <a href="mailto:support@breeez.app">support@breeez.app</a> with your order number.</p>
-    </main>
+      </main>
+    </>
   );
 }
