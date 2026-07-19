@@ -26,12 +26,12 @@ export default async function AdminCustomersPage() {
     .limit(200);
 
   // Aggregate total spent
-  const { data: spendRows } = await supabase
+  const spendRes = (await supabase
     .from('orders')
     .select('customer_id, total_cents')
-    .not('customer_id', 'is', null);
+    .not('customer_id', 'is', null)) as any;
   const spendByCustomer = new Map<string, number>();
-  for (const r of spendRows ?? []) {
+  for (const r of (spendRes?.data ?? []) as any[]) {
     if (!r.customer_id) continue;
     spendByCustomer.set(r.customer_id, (spendByCustomer.get(r.customer_id) ?? 0) + r.total_cents);
   }

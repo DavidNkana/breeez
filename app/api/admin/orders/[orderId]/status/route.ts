@@ -46,8 +46,7 @@ export async function PATCH(
     sendOrderShipped({
       to: order.email,
       orderNumber: order.order_number,
-      trackingNumber: tracking_number || '—',
-      courier: 'Our delivery partner',
+      tracking: tracking_number || undefined,
     }).catch(() => {});
   }
 
