@@ -101,8 +101,9 @@ create or replace view public.review_summary as
   where is_published = true
   group by product_id;
 
--- Speed up the view
-create unique index if not exists review_summary_product_id_idx
-  on public.review_summary (product_id);
+-- Speed up the view's group-by — index the underlying reviews table instead
+-- (views themselves cannot be indexed in Postgres).
+create index if not exists reviews_product_id_published_idx
+  on public.reviews (product_id) where is_published = true;
 
 grant select on public.review_summary to anon, authenticated;
