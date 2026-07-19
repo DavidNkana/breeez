@@ -30,6 +30,8 @@ export function ProductGrid({ products, loading, error, showPreview = false }: P
           description={showPreview ? p.description : undefined}
           variants={showPreview ? [] : undefined}
           categoryName={showPreview ? p.category?.name : undefined}
+          avgRating={p.avg_rating}
+          reviewCount={p.review_count}
         />
       ))}
     </div>

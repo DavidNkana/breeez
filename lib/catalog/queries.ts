@@ -51,6 +51,8 @@ export type ProductListItem = Product & {
   price_min_cents: number;
   price_max_cents: number;
   total_stock: number;
+  avg_rating?: number;
+  review_count?: number;
 };
 
 export async function listProducts(params: ListProductsParams = {}): Promise<ProductListItem[]> {
@@ -98,14 +100,34 @@ export async function listProducts(params: ListProductsParams = {}): Promise<Pro
     for (const img of (imgs ?? [])) { if (!imgMap.has(img.product_id)) imgMap.set(img.product_id, img); }
   }
 
-  return products.map((p) => ({
-    ...p,
-    category: catMap.get(p.category_id ?? '') ?? null,
-    primary_image: imgMap.get(p.id) ?? null,
-    price_min_cents: p.base_price_cents,
-    price_max_cents: p.base_price_cents,
-    total_stock: 0
-  }));
+  // Review summaries in one query
+  let ratingMap = new Map<string, { avg_rating: number; review_count: number }>();
+  if (productIds.length > 0) {
+    const { data: sums } = (await supabase
+      .from('review_summary')
+      .select('product_id, avg_rating, review_count')
+      .in('product_id', productIds)) as any;
+    for (const s of sums ?? []) {
+      ratingMap.set(s.product_id, {
+        avg_rating: Number(s.avg_rating ?? 0),
+        review_count: s.review_count ?? 0,
+      });
+    }
+  }
+
+  return products.map((p) => {
+    const r = ratingMap.get(p.id);
+    return {
+      ...p,
+      category: catMap.get(p.category_id ?? '') ?? null,
+      primary_image: imgMap.get(p.id) ?? null,
+      price_min_cents: p.base_price_cents,
+      price_max_cents: p.base_price_cents,
+      total_stock: 0,
+      avg_rating: r?.avg_rating ?? 0,
+      review_count: r?.review_count ?? 0,
+    };
+  });
 }
 
 export type ProductDetail = Product & {

@@ -6,6 +6,7 @@ import { useWishlist } from '@/lib/wishlist/store';
 import { formatRand, calcDiscountPercent } from '@/lib/format';
 import { useToast } from '@/components/ui/Toast';
 import { AddToCartButton } from './AddToCartButton';
+import { StarRating } from './StarRating';
 import type { ProductVariant } from '@/lib/supabase/types';
 import clsx from 'clsx';
 
@@ -19,9 +20,11 @@ type ProductCardProps = {
   description?: string;
   variants?: ProductVariant[];
   categoryName?: string;
+  avgRating?: number;
+  reviewCount?: number;
 };
 
-export function ProductCard({ slug, name, priceCents, compareAtCents, imageUrl, description, variants, categoryName }: ProductCardProps) {
+export function ProductCard({ slug, name, priceCents, compareAtCents, imageUrl, description, variants, categoryName, avgRating, reviewCount }: ProductCardProps) {
   const onSale = compareAtCents != null && compareAtCents > priceCents;
   const discountPct = calcDiscountPercent(priceCents, compareAtCents);
   const [hover, setHover] = useState(false);
@@ -105,6 +108,11 @@ export function ProductCard({ slug, name, priceCents, compareAtCents, imageUrl, 
             <span className="text-xs text-brand-500 line-through">{formatRand(compareAtCents)}</span>
           )}
         </div>
+        {avgRating != null && reviewCount != null && reviewCount > 0 && (
+          <div className="mt-1">
+            <StarRating value={avgRating} size="xs" showValue reviewCount={reviewCount} />
+          </div>
+        )}
       </Link>
 
       {/* Hover preview — appears on hover or when pinned (click) */}

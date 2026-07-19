@@ -46,7 +46,7 @@ export default async function AdminDashboard() {
           </div>
         </div>
 
-        <div className="mt-8 grid gap-3 md:grid-cols-3">
+        <div className="mt-8 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
           <a href="/admin/products" className="rounded-lg border border-brand-200 bg-white p-4 hover:border-brand-400">
             <p className="font-medium text-brand-900">Manage products</p>
             <p className="mt-1 text-sm text-brand-600">Add, edit, or remove products from your catalogue.</p>
@@ -58,6 +58,10 @@ export default async function AdminDashboard() {
           <a href="/admin/returns" className="rounded-lg border border-brand-200 bg-white p-4 hover:border-brand-400">
             <p className="font-medium text-brand-900">Manage returns</p>
             <p className="mt-1 text-sm text-brand-600">Approve or reject customer return requests.</p>
+          </a>
+          <a href="/admin/reviews" className="rounded-lg border border-brand-200 bg-white p-4 hover:border-brand-400">
+            <p className="font-medium text-brand-900">Moderate reviews</p>
+            <p className="mt-1 text-sm text-brand-600">Publish or hide customer reviews.</p>
           </a>
         </div>
 

@@ -3,6 +3,7 @@ import { Footer } from '@/components/layout/Footer';
 import { ProductGallery } from '@/components/shop/ProductGallery';
 import { ProductActions } from '@/components/shop/ProductActions';
 import { ProductGrid } from '@/components/shop/ProductGrid';
+import { ReviewSection } from '@/components/shop/ReviewSection';
 import { getProductBySlug, getRelatedProducts } from '@/lib/catalog/queries';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
@@ -73,6 +74,8 @@ export default async function ProductPage({ params }: Props) {
             </div>
           </section>
         )}
+
+        <ReviewSection productId={product.id} />
       </main>
       <Footer />
     </>
