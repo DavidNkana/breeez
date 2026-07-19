@@ -93,14 +93,27 @@ export async function POST(req: NextRequest) {
 
   const isVerifiedPurchase = !!orderRow;
 
-  // Display name: use customers.display_name from auth email if no profile name
+  // Resolve a friendly reviewer name. Order of preference:
+  //   1. customers.display_name (set via /account/settings)
+  //   2. user_metadata.full_name or name (from Google / social signup, etc.)
+  //   3. Email prefix capitalised (e.g. "david@example.com" → "David")
+  //   4. "Customer" as last resort
+  const meta = (user as any)?.user_metadata ?? {};
+  const metadataName: string | undefined =
+    (typeof meta.full_name === 'string' && meta.full_name.trim()) ||
+    (typeof meta.name === 'string' && meta.name.trim()) ||
+    undefined;
+
   const { data: customer } = await (supabase as any)
     .from('customers')
     .select('display_name, email')
     .eq('id', user.id)
     .single();
 
-  const reviewerDisplayName = customer?.display_name?.trim() || customerEmailPrefix(customer?.email);
+  const reviewerDisplayName =
+    customer?.display_name?.trim() ||
+    metadataName ||
+    customerEmailPrefix(user.email ?? customer?.email);
 
   const insertRow: any = {
     product_id: productId,
@@ -137,5 +150,19 @@ function customerEmailPrefix(email: string | undefined | null): string {
   if (!email) return 'Customer';
   const local = email.split('@')[0];
   if (!local) return 'Customer';
-  return local.charAt(0).toUpperCase() + local.slice(1);
+
+  // Convert "firstname.lastname" or "firstname_lastname" or "firstnamelastname"
+  // into a friendlier "Firstname Lastname" where possible.
+  const friendly = local
+    .replace(/[._]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!friendly) return 'Customer';
+
+  return friendly
+    .split(' ')
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(' ');
 }
