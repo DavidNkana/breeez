@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef, MouseEvent } from 'react';
 import clsx from 'clsx';
 import type { ProductImage } from '@/lib/supabase/types';
 
@@ -11,6 +11,8 @@ type ProductGalleryProps = {
 export function ProductGallery({ images }: ProductGalleryProps) {
   const [activeIdx, setActiveIdx] = useState(0);
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
+  const [zoom, setZoom] = useState<{ x: number; y: number } | null>(null);
+  const mainRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (lightboxIdx === null) return;
@@ -36,6 +38,14 @@ export function ProductGallery({ images }: ProductGalleryProps) {
     setLightboxIdx((lightboxIdx - 1 + images.length) % images.length);
   }, [lightboxIdx, images.length]);
 
+  function onMainMove(e: MouseEvent<HTMLDivElement>) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setZoom({
+      x: ((e.clientX - rect.left) / rect.width) * 100,
+      y: ((e.clientY - rect.top) / rect.height) * 100,
+    });
+  }
+
   if (images.length === 0) {
     return (
       <div className="aspect-square overflow-hidden rounded-lg bg-brand-100">
@@ -48,20 +58,32 @@ export function ProductGallery({ images }: ProductGalleryProps) {
 
   return (
     <div>
-      {/* Main image with "Full view" button */}
-      <div className="group relative aspect-square overflow-hidden rounded-lg bg-brand-100">
-        <button
-          type="button"
+      {/* Main image with hover zoom + click-to-lightbox */}
+      <div
+        ref={mainRef}
+        className="group relative aspect-square overflow-hidden rounded-lg bg-brand-100 cursor-zoom-in"
+        onMouseMove={onMainMove}
+        onMouseLeave={() => setZoom(null)}
+      >
+        <img
+          src={active.url}
+          alt={active.alt_text || 'Product image'}
+          className={clsx(
+            'h-full w-full select-none object-cover transition-transform duration-150 ease-out',
+            zoom ? '' : 'group-hover:scale-105'
+          )}
+          style={
+            zoom
+              ? {
+                  transformOrigin: `${zoom.x}% ${zoom.y}%`,
+                  transform: 'scale(2.4)',
+                  transition: 'transform 80ms linear',
+                }
+              : undefined
+          }
           onClick={() => setLightboxIdx(activeIdx)}
-          className="absolute inset-0 w-full h-full cursor-zoom-in"
-          aria-label="Open full view"
-        >
-          <img
-            src={active.url}
-            alt={active.alt_text || 'Product image'}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-          />
-        </button>
+          draggable={false}
+        />
 
         {/* Floating "Full view" button — always visible on mobile, hover-revealed on desktop */}
         <button
@@ -75,6 +97,14 @@ export function ProductGallery({ images }: ProductGalleryProps) {
           </svg>
           Full view
         </button>
+
+        {/* Hint pill on hover */}
+        <div className="pointer-events-none absolute left-3 bottom-3 hidden sm:flex items-center gap-1.5 rounded-full bg-black/60 px-2 py-1 text-[10px] font-medium text-white opacity-0 transition-opacity group-hover:opacity-100">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" />
+          </svg>
+          Hover to zoom · Click for full view
+        </div>
 
         {/* Image counter */}
         {images.length > 1 && (
