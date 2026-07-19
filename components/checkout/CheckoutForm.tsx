@@ -12,6 +12,8 @@ import { getAllShippingOptions, calculateShippingCents, type ShippingMethod } fr
 import { isMockMode as paymentsMock } from '@/lib/payments';
 import type { User } from '@supabase/supabase-js';
 import { PaymentMethodsStrip } from './PaymentMethodsStrip';
+import { CouponCodeInput } from './CouponCodeInput';
+import type { AppliedCoupon } from './CouponCodeInput';
 
 type Props = {
   user: User | null;
@@ -40,11 +42,13 @@ export function CheckoutForm({ user, savedAddresses }: Props) {
   const [paymentMethod, setPaymentMethod] = useState<
     'payfast' | 'yoco' | 'ozow' | 'apple_pay' | 'paypal'
   >('payfast');
+  const [coupon, setCoupon] = useState<AppliedCoupon | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const shippingOptions = getAllShippingOptions(postalCode);
   const shippingCents = items.length > 0 ? calculateShippingCents(shippingMethod, subtotal) : 0;
-  const totalCents = subtotal + shippingCents;
+  const discountCents = coupon?.discountCents ?? 0;
+  const totalCents = Math.max(0, subtotal + shippingCents - discountCents);
 
   async function placeOrder() {
     if (items.length === 0) {
@@ -72,7 +76,8 @@ export function CheckoutForm({ user, savedAddresses }: Props) {
           phone,
           shippingMethod,
           paymentMethod,
-          shippingAddress: { line1, line2, city, province, postal_code: postalCode }
+          shippingAddress: { line1, line2, city, province, postal_code: postalCode },
+          couponCode: coupon?.code ?? null
         })
       });
       const { orderId, orderNumber, redirectUrl } = await paymentRes.json();
@@ -279,11 +284,23 @@ export function CheckoutForm({ user, savedAddresses }: Props) {
         <dl className="mt-3 border-t border-brand-100 pt-3 space-y-1 text-sm">
           <div className="flex justify-between text-brand-700"><dt>Subtotal</dt><dd>{formatRand(subtotal)}</dd></div>
           <div className="flex justify-between text-brand-700"><dt>Shipping</dt><dd>{shippingCents === 0 ? 'Free' : formatRand(shippingCents)}</dd></div>
+          {discountCents > 0 && (
+            <div className="flex justify-between text-emerald-700">
+              <dt>Discount ({coupon?.code})</dt>
+              <dd>− {formatRand(discountCents)}</dd>
+            </div>
+          )}
         </dl>
         <div className="mt-3 border-t border-brand-100 pt-3 flex justify-between font-semibold">
           <span className="text-brand-950">Total</span>
           <span className="text-brand-950">{formatRand(totalCents)}</span>
         </div>
+
+        <CouponCodeInput
+          subtotalCents={subtotal}
+          applied={coupon}
+          onApplied={setCoupon}
+        />
       </aside>
     </div>
   );

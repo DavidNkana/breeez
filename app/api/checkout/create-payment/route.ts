@@ -8,7 +8,7 @@ import { sendOrderConfirmation } from '@/lib/email/resend';
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { cartId, email, shippingMethod, paymentMethod, shippingAddress } = body;
+    const { cartId, email, shippingMethod, paymentMethod, shippingAddress, couponCode } = body;
     if (!cartId || !email || !shippingMethod || !paymentMethod || !shippingAddress?.line1) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
@@ -29,18 +29,54 @@ export async function POST(req: Request) {
 
     const { calculateShippingCents } = await import('@/lib/shipping');
     const shippingCents = calculateShippingCents(shippingMethod, subtotalCents);
-    const totalCents = subtotalCents + shippingCents;
+
+    // Coupon discount
+    let discountCents = 0;
+    let appliedCouponCode: string | null = null;
+    if (typeof couponCode === 'string' && couponCode.trim()) {
+      const code = couponCode.trim().toUpperCase();
+      const { data: coupon } = await supabase
+        .from('discount_codes')
+        .select('*')
+        .eq('code', code)
+        .eq('is_active', true)
+        .maybeSingle();
+      if (coupon) {
+        const now = new Date();
+        const expired = coupon.expires_at && new Date(coupon.expires_at) < now;
+        const notYet = coupon.starts_at && new Date(coupon.starts_at) > now;
+        const exhausted = coupon.max_uses !== null && coupon.used_count >= coupon.max_uses;
+        const underMin = subtotalCents < coupon.min_order_cents;
+        if (!expired && !notYet && !exhausted && !underMin) {
+          if (coupon.kind === 'percent') {
+            discountCents = Math.round((subtotalCents * coupon.value) / 100);
+          } else if (coupon.kind === 'fixed_amount') {
+            discountCents = Math.min(subtotalCents, coupon.value);
+          }
+          appliedCouponCode = coupon.code;
+        }
+      }
+    }
+
+    const totalCents = Math.max(0, subtotalCents + shippingCents - discountCents);
 
     const { count } = (await supabase.from('orders').select('*', { count: 'exact', head: true })) as any;
     const orderNumber = `BRZ-${new Date().getFullYear()}-${String((count ?? 0) + 1).padStart(5, '0')}`;
 
     const { data: order, error: orderErr } = (await supabase.from('orders').insert({
       order_number: orderNumber, customer_id: user?.id ?? null, email, status: 'pending_payment',
-      subtotal_cents: subtotalCents, shipping_cents: shippingCents, discount_cents: 0, total_cents: totalCents,
-      currency: 'ZAR', shipping_address: shippingAddress, shipping_method: shippingMethod, payment_gateway: paymentMethod
+      subtotal_cents: subtotalCents, shipping_cents: shippingCents, discount_cents: discountCents, total_cents: totalCents,
+      currency: 'ZAR', shipping_address: shippingAddress, shipping_method: shippingMethod,
+      payment_gateway: paymentMethod,
+      coupon_code: appliedCouponCode,
+      discount_code: appliedCouponCode,
     } as any).select('id, order_number').single()) as any;
 
     if (orderErr || !order) return NextResponse.json({ error: 'Failed to create order' }, { status: 500 });
+
+    if (appliedCouponCode) {
+      const _r: any = await supabase.rpc('increment_coupon_usage' as any, { p_code: appliedCouponCode } as any).catch(() => null);
+    }
 
     for (const ci of items) {
       const v = ci.variant as any;
