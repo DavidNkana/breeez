@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useCart } from '@/lib/cart/store';
 import { Button } from '@/components/ui/Button';
 import { QuantityStepper } from './QuantityStepper';
 import { useToast } from '@/components/ui/Toast';
+import { useCartFly } from './CartFly';
 import type { ProductVariant } from '@/lib/supabase/types';
 
 type AddToCartButtonProps = {
@@ -22,6 +23,8 @@ export function AddToCartButton({ productId, productSlug, productName, imageUrl,
   const [quantity, setQuantity] = useState(1);
   const add = useCart((s) => s.add);
   const showToast = useToast((s) => s.show);
+  const { fly } = useCartFly();
+  const btnRef = useRef<HTMLButtonElement>(null);
 
   const selected = variants.find((v) => v.id === selectedId);
   const priceCents = selected?.price_cents ?? basePriceCents;
@@ -34,6 +37,9 @@ export function AddToCartButton({ productId, productSlug, productName, imageUrl,
       showToast(`Only ${stockCap} available`, 'warning');
       return;
     }
+    // Capture rect of the add-to-cart button before the cart drawer opens
+    const fromRect = btnRef.current?.getBoundingClientRect();
+
     add(
       {
         variantId: selected.id,
@@ -45,6 +51,16 @@ export function AddToCartButton({ productId, productSlug, productName, imageUrl,
       quantity
     );
     showToast(`Added ${quantity} × ${productName} to cart`, 'success');
+
+    if (fromRect && imageUrl) {
+      // Find the cart icon to land on
+      const toEl = document.querySelector<HTMLElement>('[data-cart-icon]');
+      const toRect = toEl?.getBoundingClientRect();
+      if (toRect) {
+        fly({ imageUrl, fromRect, toRect });
+      }
+    }
+
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('breeez:open-cart'));
     }
@@ -70,7 +86,7 @@ export function AddToCartButton({ productId, productSlug, productName, imageUrl,
 
       <div className="flex items-center gap-3">
         <QuantityStepper value={quantity} min={1} max={Math.max(1, stockCap)} onChange={setQuantity} />
-        <Button onClick={handleAdd} disabled={isOutOfStock} fullWidth size={size} variant="primary">
+        <Button ref={btnRef} onClick={handleAdd} disabled={isOutOfStock} fullWidth size={size} variant="primary">
           {isOutOfStock ? 'Out of stock' : 'Add to cart'}
         </Button>
       </div>
