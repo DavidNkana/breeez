@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { LoginForm } from '@/components/auth/LoginForm';
@@ -12,6 +13,11 @@ export default function LoginPage() {
         <div className="mt-6">
           <LoginForm />
         </div>
+        <p className="mt-4 text-center text-sm">
+          <Link href="/auth/forgot-password" className="text-brand-700 hover:underline">
+            Forgot your password?
+          </Link>
+        </p>
       </main>
       <Footer />
     </>
