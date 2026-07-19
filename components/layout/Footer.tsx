@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { PaymentMethodsStrip } from '@/components/checkout/PaymentMethodsStrip';
 
 const FOOTER_COLUMNS = [
   {
@@ -65,6 +66,14 @@ export function Footer() {
               </ul>
             </div>
           ))}
+        </div>
+
+        {/* Accepted payment methods — trust strip */}
+        <div className="mt-8 border-t border-brand-200 pt-6">
+          <p className="text-xs font-semibold uppercase tracking-wider text-brand-500 mb-3">
+            Accepted payment methods
+          </p>
+          <PaymentMethodsStrip size="sm" showLabel />
         </div>
       </div>
       <div className="border-t border-brand-200">

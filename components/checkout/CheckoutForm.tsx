@@ -11,6 +11,7 @@ import { formatRand } from '@/lib/format';
 import { getAllShippingOptions, calculateShippingCents, type ShippingMethod } from '@/lib/shipping';
 import { isMockMode as paymentsMock } from '@/lib/payments';
 import type { User } from '@supabase/supabase-js';
+import { PaymentMethodsStrip } from './PaymentMethodsStrip';
 
 type Props = {
   user: User | null;
@@ -36,7 +37,9 @@ export function CheckoutForm({ user, savedAddresses }: Props) {
   const [province, setProvince] = useState('Gauteng');
   const [postalCode, setPostalCode] = useState('');
   const [shippingMethod, setShippingMethod] = useState<ShippingMethod>('tcg_door');
-  const [paymentMethod, setPaymentMethod] = useState<'payfast' | 'yoco' | 'ozow'>('payfast');
+  const [paymentMethod, setPaymentMethod] = useState<
+    'payfast' | 'yoco' | 'ozow' | 'apple_pay' | 'paypal'
+  >('payfast');
   const [submitting, setSubmitting] = useState(false);
 
   const shippingOptions = getAllShippingOptions(postalCode);
@@ -212,24 +215,42 @@ export function CheckoutForm({ user, savedAddresses }: Props) {
                 <strong>Mock mode active.</strong> No real payment will be taken. Order will be auto-confirmed.
               </div>
             )}
+
+            {/* Visual trust strip at the top of the payment step */}
+            <PaymentMethodsStrip />
+
             <div className="space-y-2">
               {[
                 { id: 'payfast', label: 'PayFast', desc: 'Card, Instant EFT, SnapScan, Zapper, normal EFT' },
                 { id: 'yoco', label: 'Yoco', desc: 'Credit/debit card' },
-                { id: 'ozow', label: 'Ozow', desc: 'Instant EFT from your bank' }
+                { id: 'ozow', label: 'Ozow', desc: 'Instant EFT from your bank' },
+                { id: 'apple_pay', label: 'Apple Pay', desc: 'Touch ID / Face ID on your Apple device', planned: true },
+                { id: 'paypal', label: 'PayPal', desc: 'Pay with your PayPal balance or linked card', planned: true }
               ].map((g) => (
                 <label
                   key={g.id}
-                  className={`block cursor-pointer rounded-lg border p-4 ${paymentMethod === g.id ? 'border-brand-900 bg-brand-50' : 'border-brand-200 bg-white'}`}
+                  className={`block rounded-lg border p-4 ${
+                    (g as any).planned
+                      ? 'cursor-not-allowed border-brand-100 bg-brand-50 opacity-60'
+                      : `cursor-pointer ${paymentMethod === g.id ? 'border-brand-900 bg-brand-50' : 'border-brand-200 bg-white'}`
+                  }`}
                 >
-                  <p className="font-medium text-brand-900">{g.label}</p>
+                  <div className="flex items-center justify-between">
+                    <p className="font-medium text-brand-900">{g.label}</p>
+                    {(g as any).planned && (
+                      <span className="rounded-full bg-brand-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-brand-700">
+                        Coming soon
+                      </span>
+                    )}
+                  </div>
                   <p className="text-sm text-brand-600">{g.desc}</p>
                   <input
                     type="radio"
                     name="payment"
                     value={g.id}
                     checked={paymentMethod === g.id as any}
-                    onChange={() => setPaymentMethod(g.id as any)}
+                    onChange={() => !(g as any).planned && setPaymentMethod(g.id as any)}
+                    disabled={(g as any).planned}
                     className="sr-only"
                   />
                 </label>
