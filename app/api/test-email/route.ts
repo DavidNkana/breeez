@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { sendEmail } from '@/lib/email/resend';
 
 /**
  * Test endpoint — POST /api/test-email
