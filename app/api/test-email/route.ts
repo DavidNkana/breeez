@@ -1,32 +1,20 @@
 import { NextResponse } from 'next/server';
 
 /**
- * Test endpoint — POST /api/test-email
- * Sends a test email via Resend to verify the integration is working.
- * Body: { "to": "email@example.com" }
+ * Test endpoint — GET or POST /api/test-email
+ * GET uses ?to= query param. POST uses JSON body { "to": "..." }.
+ * Returns JSON with Resend response details.
  */
-export async function POST(req: Request) {
+async function handleSend(to: string) {
   const apiKey = process.env.RESEND_API_KEY;
   const fromEmail = process.env.RESEND_FROM_EMAIL || 'Breeez <orders@breeez.app>';
 
   if (!apiKey) {
-    return NextResponse.json({
-      ok: false,
-      error: 'RESEND_API_KEY env var not set on server'
-    }, { status: 500 });
+    return { ok: false, error: 'RESEND_API_KEY env var not set on server', status: 500 };
   }
 
-  let to = '';
-  try {
-    const body = await req.json();
-    to = body.to;
-  } catch {}
-
   if (!to) {
-    return NextResponse.json({
-      ok: false,
-      error: 'Missing "to" field in request body'
-    }, { status: 400 });
+    return { ok: false, error: 'Missing "to" — use ?to=email@example.com or POST { "to": "..." }', status: 400 };
   }
 
   try {
@@ -53,19 +41,32 @@ export async function POST(req: Request) {
 
     const status = res.status;
     const data = await res.json().catch(() => ({}));
-
-    return NextResponse.json({
+    return {
       ok: res.ok,
       status,
       resendId: data.id,
       error: data.message || null,
       from: fromEmail,
       to
-    });
+    };
   } catch (err: any) {
-    return NextResponse.json({
-      ok: false,
-      error: err?.message || 'Network error calling Resend'
-    }, { status: 500 });
+    return { ok: false, error: err?.message || 'Network error', status: 500 };
   }
+}
+
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const to = url.searchParams.get('to') || '';
+  const result = await handleSend(to);
+  return NextResponse.json(result, { status: result.status });
+}
+
+export async function POST(req: Request) {
+  let to = '';
+  try {
+    const body = await req.json();
+    to = body.to;
+  } catch {}
+  const result = await handleSend(to);
+  return NextResponse.json(result, { status: result.status });
 }
