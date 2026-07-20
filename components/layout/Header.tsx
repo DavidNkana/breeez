@@ -13,33 +13,32 @@ const NAV_LINKS = [
 
 export function Header() {
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-brand-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 safe-top">
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-2 sm:gap-3 px-4 py-3">
-        <Link href="/" className="flex items-center gap-2 shrink-0">
+    <header className="sticky top-0 z-40 border-b border-brand-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 safe-top">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 sm:gap-4 px-4 py-3">
+        <Link href="/" className="flex items-center gap-2 flex-shrink-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={brand.logo}
             alt={`${brand.name} logo`}
-            className="h-7 sm:h-8 md:h-9 w-auto max-w-[55vw]"
+            className="h-8 sm:h-9 w-auto"
           />
         </Link>
 
-        {/* Desktop nav (md+) */}
         <nav className="hidden md:flex items-center gap-6 lg:gap-8">
           {NAV_LINKS.map((l) => (
-            <Link key={l.href} href={l.href} className="text-sm text-brand-700 hover:text-brand-950 transition-colors whitespace-nowrap">
+            <Link key={l.href} href={l.href} className="text-sm text-brand-700 hover:text-brand-950 transition-colors">
               {l.label}
             </Link>
           ))}
         </nav>
 
-        <div className="flex items-center gap-0.5 sm:gap-1 md:gap-2 shrink-0">
+        <div className="flex items-center gap-1 sm:gap-2">
           <SearchAutocomplete />
           <WishlistButton />
           <Link
             href="/account"
             aria-label="Account"
-            className="rounded-md p-1.5 sm:p-2 text-brand-700 hover:bg-brand-50"
+            className="rounded-md p-2 text-brand-700 hover:bg-brand-50"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
               <circle cx="12" cy="8" r="4" />
