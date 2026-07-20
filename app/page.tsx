@@ -14,7 +14,7 @@ export default async function HomePage() {
   return (
     <>
       <Header />
-      <main className="flex-1 pb-12 safe-bottom">
+      <main className="flex-1 min-w-0 overflow-x-hidden pb-12 safe-bottom">
         <section className="bg-gradient-to-br from-brand-50 via-white to-accent-50">
           <div className="mx-auto max-w-6xl min-w-0 overflow-x-hidden px-4 py-10 md:py-20">
             <p className="text-sm font-medium text-accent-700">{brand.home.eyebrow}</p>

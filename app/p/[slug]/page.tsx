@@ -130,7 +130,7 @@ export default async function ProductPage({ params }: Props) {
           <span className="text-brand-700">{product.name}</span>
         </nav>
 
-        <div className="mt-4 grid gap-6 md:grid-cols-2">
+        <div className="mt-4 grid min-w-0 gap-6 md:grid-cols-2">
           <ProductGallery images={product.images} />
 
           <div>
