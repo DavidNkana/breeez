@@ -8,9 +8,18 @@
 -- Run in Supabase SQL Editor AFTER all other migrations.
 -- Safe to re-run: this deletes all dummy-* products first, then re-inserts.
 
-delete from reviews where product_id in (select id from products where slug like 'demo-%' or slug like 'dummy-%');
-delete from product_images where product_id in (select id from products where slug like 'demo-%' or slug like 'dummy-%');
-delete from product_variants where product_id in (select id from products where slug like 'demo-%' or slug like 'dummy-%');
+-- Cascade cleanup: cart_items / order_items reference variants. Delete children first.
+with doomed as (
+  select id from products where slug like 'demo-%' or slug like 'dummy-%'
+),
+doomed_variants as (
+  select id from product_variants where product_id in (select id from doomed)
+)
+delete from cart_items where variant_id in (select id from doomed_variants);
+delete from order_items where variant_id in (select id from doomed_variants);
+delete from reviews where product_id in (select id from doomed);
+delete from product_images where product_id in (select id from doomed);
+delete from product_variants where product_id in (select id from doomed);
 delete from products where slug like 'demo-%' or slug like 'dummy-%';
 
 do $$
