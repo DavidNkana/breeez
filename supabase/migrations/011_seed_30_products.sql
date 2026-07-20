@@ -16,8 +16,6 @@ delete from order_items
     left join products p on p.id = pv.product_id
     where p.id is null or p.slug like 'demo-%' or p.slug like 'dummy-%'
   );
-delete from order_items
-  where product_id in (select id from products where slug like 'demo-%' or slug like 'dummy-%');
 delete from reviews
   where product_id in (select id from products where slug like 'demo-%' or slug like 'dummy-%');
 delete from reviews where customer_id = '00000000-0000-0000-0000-000000000001';
