@@ -5,6 +5,7 @@ import { CartDrawer } from './CartDrawer';
 import { ToastViewport } from '@/components/ui/Toast';
 import { CartFlyProvider } from './CartFly';
 import { CookieConsent } from '@/components/compliance/CookieConsent';
+import { CartAbandonmentTracker } from './CartAbandonmentTracker';
 import { logError } from '@/lib/utils/error-logger';
 
 export function StorefrontProviders() {
@@ -36,6 +37,7 @@ export function StorefrontProviders() {
       <CartDrawer />
       <ToastViewport />
       <CookieConsent />
+      <CartAbandonmentTracker />
     </CartFlyProvider>
   );
 }

@@ -169,9 +169,29 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
   };
 }
 
+/**
+ * Smarter related products: same category, exclude the current product,
+ * mix featured + newest for visual variety.
+ */
 export async function getRelatedProducts(productId: string, categoryId: string | null, limit = 4): Promise<ProductListItem[]> {
   if (!categoryId) return [];
-  return listProducts({ categoryId, limit });
+  // Get more than we need so we can filter out the current one
+  const all = await listProducts({ categoryId, sort: 'popular', limit: limit + 4 });
+  const filtered = all.filter((p) => p.id !== productId).slice(0, limit);
+  if (filtered.length >= limit) return filtered;
+  // Fallback: pull from other categories if not enough siblings
+  if (filtered.length < limit) {
+    const extras = await listProducts({ sort: 'popular', limit: limit + 2 });
+    const seen = new Set([productId, ...filtered.map((p) => p.id)]);
+    for (const p of extras) {
+      if (filtered.length >= limit) break;
+      if (!seen.has(p.id)) {
+        seen.add(p.id);
+        filtered.push(p);
+      }
+    }
+  }
+  return filtered;
 }
 
 export async function searchProducts(query: string, limit = 20): Promise<ProductListItem[]> {

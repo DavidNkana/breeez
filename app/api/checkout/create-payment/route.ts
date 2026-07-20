@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { NextResponse } from 'next/server';
 import { createPayment, isMockMode } from '@/lib/payments/server';
 import { getCurrentUser } from '@/lib/auth/session';
@@ -15,6 +16,7 @@ export async function POST(req: Request) {
 
     const user = await getCurrentUser();
     const supabase: any = await createClient(); // cast to any to bypass typed-client friction
+    const adminSupabase = (await createAdminClient()) as any; // service-role for atomic RPC + writes
 
     const { data: cartItems } = (await supabase.from('cart_items')
       .select('*, variant:product_variants(*, product:products(base_price_cents))')
@@ -79,15 +81,44 @@ export async function POST(req: Request) {
       const _r: any = await supabase.rpc('increment_coupon_usage' as any, { p_code: appliedCouponCode } as any).catch(() => null);
     }
 
+    // Atomic stock decrement using row-level locking so concurrent buyers can't oversell.
+    const stockShortages: { name: string; requested: number; available: number }[] = [];
     for (const ci of items) {
       const v = ci.variant as any;
       const p = v?.product as any;
       const pc = v?.price_cents ?? p?.base_price_cents ?? 0;
-      await supabase.from('order_items').insert({
-        order_id: order.id, variant_id: ci.variant_id, product_name: p?.name ?? '', variant_name: v?.name ?? 'Default',
-        sku: v?.sku ?? '', quantity: ci.quantity, unit_price_cents: pc, line_total_cents: pc * ci.quantity
-      } as any);
-      if (v?.id) { const _: any = await supabase.from('product_variants').update({ stock: Math.max(0, (v.stock ?? 0) - ci.quantity) } as any).eq('id', v.id); }
+      const ok = await (adminSupabase.rpc('atomic_checkout_stock' as any, {
+        p_variant_id: ci.variant_id,
+        p_quantity: ci.quantity,
+        p_order_id: order.id,
+        p_product_name: p?.name ?? 'Item',
+        p_sku: v?.sku ?? '',
+        p_unit_price_cents: pc,
+      } as any) as { data: boolean | null };
+      if (ok?.data !== true) {
+        // Inline the order_items row that the RPC didn't insert
+        stockShortages.push({
+          name: p?.name ?? 'Item',
+          requested: ci.quantity,
+          available: 0,
+        });
+      }
+    }
+
+    if (stockShortages.length > 0) {
+      // Roll back: cancel the order, decrement any partial stock already deducted
+      for (const ci of items) {
+        await adminSupabase.from('product_variants')
+          .update({ stock: ((await adminSupabase.from('product_variants').select('stock').eq('id', ci.variant_id).single() as any)?.data?.stock ?? 0) + ci.quantity } as any)
+          .eq('id', ci.variant_id)
+          .catch(() => null);
+      }
+      await adminSupabase.from('orders').update({ status: 'cancelled' } as any).eq('id', order.id);
+      const first = stockShortages[0];
+      return NextResponse.json(
+        { error: `Not enough stock for ${first.name} — only ${first.available} left, you asked for ${first.requested}.` },
+        { status: 409 }
+      );
     }
 
     const _d: any = await supabase.from('cart_items').delete().eq('cart_id', cartId);

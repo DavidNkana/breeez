@@ -153,7 +153,7 @@ export default async function ProductPage({ params }: Props) {
 
         {related.length > 0 && (
           <section className="mt-12">
-            <h2 className="text-lg font-semibold text-brand-950">You might also like</h2>
+            <h2 className="text-lg font-semibold text-brand-950">You may also like</h2>
             <div className="mt-4">
               <ProductGrid products={related} />
             </div>

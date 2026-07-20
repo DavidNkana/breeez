@@ -23,7 +23,12 @@ export function getConsent(): Consent | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (typeof parsed !== 'object' || parsed === null) return null;
-    return parsed as Consent;
+    const consent = parsed as Consent;
+    // 30-day expiry — after that, ask again (GDPR best practice)
+    if (typeof consent.ts === 'number' && Date.now() - consent.ts > 30 * 24 * 60 * 60 * 1000) {
+      return null;
+    }
+    return consent;
   } catch {
     return null;
   }

@@ -5,6 +5,7 @@ import { VariantPicker } from './VariantPicker';
 import { AddToCartButton } from './AddToCartButton';
 import { PriceDisplay } from './PriceDisplay';
 import { LowStockBadge } from './TrackRecentlyViewed';
+import { SizeGuide } from './SizeGuide';
 import type { ProductVariant } from '@/lib/supabase/types';
 
 type Props = {
@@ -52,6 +53,16 @@ export function ProductActions({ productId, productSlug, productName, basePriceC
       <PriceDisplay priceCents={priceCents} compareAtCents={variantCompareAt} />
       <LowStockBadge stock={selectedVariant?.stock} />
 
+      {/* Show currently selected variant name + sku */}
+      {selectedVariant && selectedVariant.name && selectedVariant.name !== 'Default' && (
+        <p className="mt-2 text-sm text-brand-700">
+          Selected: <span className="font-medium text-brand-900">{selectedVariant.name}</span>
+          {selectedVariant.sku && (
+            <span className="ml-2 text-xs text-brand-400">SKU: {selectedVariant.sku}</span>
+          )}
+        </p>
+      )}
+
       {variants.length > 0 && optionKeys.length > 1 && (
         <div className="mt-6">
           <VariantPicker
@@ -63,8 +74,27 @@ export function ProductActions({ productId, productSlug, productName, basePriceC
         </div>
       )}
 
+      {/* Size guide — only for apparel/shoes categories */}
+      {variants.some((v) =>
+        Object.values(v.options ?? {}).some((val) =>
+          ['XS', 'S', 'M', 'L', 'XL'].includes(val) ||
+          ['3', '4', '5', '6', '7', '8'].includes(val)
+        )
+      ) && (
+        <div className="mt-3">
+          <SizeGuide />
+        </div>
+      )}
+
       {variants.length === 1 && variants[0].name !== 'Default' && (
         <p className="mt-4 text-sm text-brand-600">{variants[0].name}</p>
+      )}
+
+      {/* Out of stock warning for the selected variant */}
+      {selectedVariant && selectedVariant.stock !== null && selectedVariant.stock !== undefined && selectedVariant.stock <= 0 && (
+        <div className="mt-4 rounded-md border border-danger bg-red-50 px-3 py-2 text-sm text-red-800">
+          This variant is out of stock. Pick a different option.
+        </div>
       )}
 
       <div className="mt-6">
