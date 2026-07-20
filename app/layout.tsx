@@ -3,7 +3,6 @@ import { Suspense } from 'react';
 import './globals.css';
 import { StorefrontProviders } from '@/components/shop/StorefrontProviders';
 import { NavigationLoader } from '@/components/layout/NavigationLoader';
-import { OverflowDebug } from '@/components/debug/OverflowDebug';
 import { brand } from '@/lib/brand';
 
 const SITE_URL = brand.siteUrl;
@@ -96,7 +95,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en-ZA">
       <body className="min-h-screen flex flex-col bg-white text-brand-950 font-sans antialiased overflow-x-hidden max-w-[100vw]">
-        <OverflowDebug />
         <StorefrontProviders />
         <Suspense fallback={null}>
           <NavigationLoader />
