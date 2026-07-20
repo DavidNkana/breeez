@@ -1,6 +1,6 @@
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
-import { InfoHeader } from '@/components/layout/InfoHeader';
+import { InfoHeader } from '@/components/ui/InfoHeader';
 
 export const metadata = {
   title: 'About Breeez — South African multi-category ecommerce',
