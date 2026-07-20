@@ -12,6 +12,14 @@ html, body {
   color: var(--color-fg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* CRITICAL for iOS: prevent wide children (long words, table cells) from
+     pushing the layout viewport wider than the visual viewport. Without
+     this, the page zooms out to fit its full width, but the sticky
+     header (anchored to layout viewport) doesn't zoom — resulting in
+     the "navbar fits, content zoomed" mismatch. */
+  overflow-x: hidden;
+  word-break: break-word;
+  -webkit-text-size-adjust: 100%;
 }
 
 @layer base {
