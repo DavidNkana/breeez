@@ -34,9 +34,10 @@ export default function AboutPage() {
       <Header />
       <InfoHeader title={`About ${brand.name}`} />
       <main className="mx-auto max-w-3xl px-4 py-10 pb-20 safe-bottom prose prose-sm">
-        <p className="text-lg text-brand-700 leading-relaxed">
-          {brand.name} is a South African curated marketplace for the everyday things
-          that make a house feel like a home.
+        <p className="text-sm font-medium text-accent-700">Proudly South African since {brand.about.founded}</p>
+        <h1 className="mt-2 text-3xl font-semibold text-brand-950">Shop Smart, Save Big — Every Day.</h1>
+        <p className="mt-4 text-base text-brand-700 leading-relaxed">
+          {brand.about.mission}
         </p>
 
         <h2 className="mt-10 text-2xl font-semibold text-brand-950">Why we started</h2>
@@ -47,11 +48,6 @@ export default function AboutPage() {
           everyday categories seriously — apparel, bathroom, bedroom,
           kitchen, school — and shipped them from local warehouses at prices
           that made sense on a ZAR salary.
-        </p>
-        <p className="mt-3 text-brand-700 leading-relaxed">
-          A year later we&apos;re live with 10 categories, the SA couriers
-          most people already use, and a checkout that takes the same path
-          you&apos;d see on Takealot or any local shop.
         </p>
 
         <h2 className="mt-10 text-2xl font-semibold text-brand-950">What we believe</h2>

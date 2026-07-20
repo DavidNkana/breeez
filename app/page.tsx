@@ -15,33 +15,7 @@ export default async function HomePage() {
     <>
       <Header />
       <main className="flex-1 pb-12 safe-bottom">
-        <section className="bg-gradient-to-br from-brand-50 via-white to-accent-50">
-          <div className="mx-auto max-w-6xl px-4 py-10 md:py-20">
-            <p className="text-sm font-medium text-accent-700">{brand.home.eyebrow}</p>
-            <h1 className="mt-2 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight text-brand-950 leading-tight">
-              {brand.home.headline}
-            </h1>
-            <p className="mt-3 max-w-xl text-base md:text-lg text-brand-700 leading-relaxed">
-              {brand.home.subheadline}
-            </p>
-            <div className="mt-6 flex flex-col sm:flex-row gap-3">
-              <Link
-                href={brand.home.primaryCta.href}
-                className="inline-flex items-center justify-center rounded-md bg-accent-500 hover:bg-accent-600 px-5 py-3 text-sm font-medium text-white transition-colors"
-              >
-                {brand.home.primaryCta.label}
-              </Link>
-              <Link
-                href={brand.home.secondaryCta.href}
-                className="inline-flex items-center justify-center rounded-md border border-brand-300 bg-white px-5 py-3 text-sm font-medium text-brand-900 hover:bg-brand-50 transition-colors"
-              >
-                {brand.home.secondaryCta.label}
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        <section className="mx-auto max-w-6xl px-4 py-10 md:py-14">
+        <section className="mx-auto max-w-6xl px-4 py-6 md:py-10">
           <div className="flex items-baseline justify-between gap-4">
             <h2 className="text-xl md:text-2xl font-semibold text-brand-950">Shop by category</h2>
             <Link href="/categories" className="text-sm text-brand-600 hover:underline whitespace-nowrap">View all</Link>
