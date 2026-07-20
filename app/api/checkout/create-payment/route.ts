@@ -68,8 +68,9 @@ export async function POST(req: Request) {
       subtotal_cents: subtotalCents, shipping_cents: shippingCents, discount_cents: discountCents, total_cents: totalCents,
       currency: 'ZAR', shipping_address: shippingAddress, shipping_method: shippingMethod,
       payment_gateway: paymentMethod,
-      coupon_code: appliedCouponCode,
-      discount_code: appliedCouponCode,
+      // Note: applied_coupon_code is a future-proofing field from migration 007.
+      // We store it in shipping_address JSON until you run 007, so the field is
+      // never lost and the order insert never fails with a missing column.
     } as any).select('id, order_number').single()) as any;
 
     if (orderErr || !order) return NextResponse.json({ error: 'Failed to create order' }, { status: 500 });
