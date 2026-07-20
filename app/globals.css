@@ -12,6 +12,14 @@ html, body {
   color: var(--color-fg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Safety net: prevent any single element (long word, table, image) from
+     pushing the page wider than the device and triggering iOS Safari's
+     auto-zoom. Each page-section should still wrap its own overflow where
+     needed (e.g. SizeGuide tables). */
+  overflow-x: hidden;
+  max-width: 100vw;
+  word-break: break-word;
+  -webkit-text-size-adjust: 100%;
 }
 
 @layer base {
