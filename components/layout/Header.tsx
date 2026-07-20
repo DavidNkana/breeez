@@ -5,10 +5,9 @@ import { WishlistButton } from '@/components/shop/WishlistButton';
 import { brand } from '@/lib/brand';
 
 const NAV_LINKS = [
-  { href: '/c/apparel',         label: 'Apparel' },
-  { href: '/c/kitchen',         label: 'Kitchen' },
-  { href: '/c/home-decor',      label: 'Home Decor' },
-  { href: '/c/back-to-school',  label: 'Back to School' }
+  { href: '/categories', label: 'Categories' },
+  { href: '/about',      label: 'About' },
+  { href: '/contact',    label: 'Contact' }
 ];
 
 export function Header() {
@@ -26,7 +25,22 @@ export function Header() {
 
         <nav className="hidden md:flex items-center gap-6 lg:gap-8">
           {NAV_LINKS.map((l) => (
-            <Link key={l.href} href={l.href} className="text-sm text-brand-700 hover:text-brand-950 transition-colors">
+            <Link key={l.href} href={l.href} className="inline-flex items-center gap-1.5 text-sm text-brand-700 hover:text-brand-950 transition-colors">
+              {l.href === '/categories' && (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                  <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
+                </svg>
+              )}
+              {l.href === '/about' && (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" />
+                </svg>
+              )}
+              {l.href === '/contact' && (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" />
+                </svg>
+              )}
               {l.label}
             </Link>
           ))}
