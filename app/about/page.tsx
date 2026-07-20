@@ -16,7 +16,7 @@ const VALUES = [
   },
   {
     title: 'Fair, transparent pricing',
-    body: 'You see the deal before checkout. No surprise fees at the end. Free delivery over R500, in-store pickup from R0.',
+    body: 'You see the deal before checkout. No surprise fees at the end. 7 Days Return Policy, in-store pickup from R0.',
   },
   {
     title: 'Local couriers, real tracking',

@@ -55,7 +55,7 @@ export default function OpengraphImage() {
             Apparel · Home · Kitchen · School
           </div>
           <div style={{ fontSize: 22, color: '#cbd5e1' }}>
-            Free delivery over R500 · PayFast / Yoco / Ozow
+            7 Days Return Policy · PayFast / Yoco / Ozow
           </div>
         </div>
       </div>

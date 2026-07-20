@@ -54,7 +54,7 @@ export function CartView() {
         <div className="mt-4">
           <Link href="/checkout"><Button fullWidth size="lg">Proceed to checkout</Button></Link>
         </div>
-        <p className="mt-2 text-center text-xs text-brand-500">Free delivery over R500</p>
+        <p className="mt-2 text-center text-xs text-brand-500">7 Days Return Policy</p>
       </aside>
     </div>
   );
