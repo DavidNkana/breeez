@@ -4,6 +4,8 @@ import { ProductGallery } from '@/components/shop/ProductGallery';
 import { ProductActions } from '@/components/shop/ProductActions';
 import { ProductGrid } from '@/components/shop/ProductGrid';
 import { ReviewSection } from '@/components/shop/ReviewSection';
+import { RecentlyViewed } from '@/components/shop/RecentlyViewed';
+import { TrackRecentlyViewed } from '@/components/shop/TrackRecentlyViewed';
 import { getProductBySlug, getRelatedProducts } from '@/lib/catalog/queries';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
@@ -14,9 +16,26 @@ type Props = { params: { slug: string } };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getProductBySlug(params.slug);
   if (!product) return { title: 'Product not found — Breeez' };
+  const SITE = (process.env.NEXT_PUBLIC_SITE_URL || 'https://breeez-lyart.vercel.app').replace(/\/+$/, '');
+  const priceCents = product.variants[0]?.price_cents ?? 0;
+  const priceRand = `R${(priceCents / 100).toFixed(2)}`;
   return {
     title: `${product.name} — Breeez`,
-    description: product.description.slice(0, 160) || `Buy ${product.name} on Breeez.`
+    description: product.description.slice(0, 160) || `Buy ${product.name} on Breeez for ${priceRand}.`,
+    openGraph: {
+      type: 'website',
+      title: product.name,
+      description: product.description.slice(0, 160) || `Buy ${product.name} for ${priceRand}`,
+      url: `${SITE}/p/${params.slug}`,
+      images: product.images[0]?.url ? [{ url: product.images[0].url }] : undefined,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: product.name,
+      description: `Buy ${product.name} for ${priceRand}`,
+      images: product.images[0]?.url ? [product.images[0].url] : undefined,
+    },
+    alternates: { canonical: `${SITE}/p/${params.slug}` },
   };
 }
 
@@ -28,8 +47,74 @@ export default async function ProductPage({ params }: Props) {
     ? await getRelatedProducts(product.id, product.category_id, 4)
     : [];
 
+  const priceCents = product.variants[0]?.price_cents ?? 0;
+  const compareAt = product.variants[0]?.compare_at_cents ?? null;
+  const inStock = product.variants.some((v) => v.stock > 0);
+  const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://breeez-lyart.vercel.app').replace(/\/+$/, '');
+
+  // JSON-LD structured data — drives Google rich snippets + product cards
+  const jsonLd = {
+    '@context': 'https://schema.org/',
+    '@type': 'Product',
+    name: product.name,
+    description: product.description || `${product.name} available at Breeez`,
+    image: product.images.map((i) => i.url).filter(Boolean),
+    sku: product.variants[0]?.sku ?? product.id,
+    brand: { '@type': 'Brand', name: 'Breeez' },
+    category: product.category?.name,
+    offers: {
+      '@type': 'Offer',
+      url: `${SITE_URL}/p/${params.slug}`,
+      priceCurrency: 'ZAR',
+      price: (priceCents / 100).toFixed(2),
+      ...(compareAt && compareAt > priceCents
+        ? {
+            priceValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+          }
+        : {}),
+      availability: inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+      seller: { '@type': 'Organization', name: 'Breeez' },
+    },
+  };
+
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
+      product.category && {
+        '@type': 'ListItem',
+        position: 2,
+        name: product.category.name,
+        item: `${SITE_URL}/c/${product.category.slug}`,
+      },
+      { '@type': 'ListItem', position: 3, name: product.name, item: `${SITE_URL}/p/${params.slug}` },
+    ].filter(Boolean),
+  };
+
+  const orgLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Breeez',
+    url: SITE_URL,
+    logo: `${SITE_URL}/icon.svg`,
+  };
+
   return (
     <>
+      {/* JSON-LD: drives Google rich snippets, BreadcrumbList, Organization. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(orgLd) }}
+      />
       <Header />
       <main className="mx-auto max-w-6xl px-4 py-6 pb-20 safe-bottom">
         <nav className="text-xs text-brand-500">
@@ -76,6 +161,18 @@ export default async function ProductPage({ params }: Props) {
         )}
 
         <ReviewSection productId={product.id} />
+
+        <RecentlyViewed currentSlug={product.slug} />
+
+        {/* Invisible client component for tracking */}
+        <TrackRecentlyViewed
+          slug={product.slug}
+          name={product.name}
+          imageUrl={product.images[0]?.url || '/placeholder.svg'}
+          priceCents={
+            product.variants[0]?.price_cents ?? 0
+          }
+        />
       </main>
       <Footer />
     </>

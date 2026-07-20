@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import { VariantPicker } from './VariantPicker';
 import { AddToCartButton } from './AddToCartButton';
 import { PriceDisplay } from './PriceDisplay';
+import { LowStockBadge } from './TrackRecentlyViewed';
 import type { ProductVariant } from '@/lib/supabase/types';
 
 type Props = {
@@ -49,6 +50,7 @@ export function ProductActions({ productId, productSlug, productName, basePriceC
   return (
     <>
       <PriceDisplay priceCents={priceCents} compareAtCents={variantCompareAt} />
+      <LowStockBadge stock={selectedVariant?.stock} />
 
       {variants.length > 0 && optionKeys.length > 1 && (
         <div className="mt-6">
