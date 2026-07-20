@@ -9,18 +9,35 @@
 -- Safe to re-run: this deletes all dummy-* products first, then re-inserts.
 
 -- Cascade cleanup: cart_items / order_items reference variants. Delete children first.
-with doomed as (
-  select id from products where slug like 'demo-%' or slug like 'dummy-%'
-),
-doomed_variants as (
-  select id from product_variants where product_id in (select id from doomed)
-)
-delete from cart_items where variant_id in (select id from doomed_variants);
-delete from order_items where variant_id in (select id from doomed_variants);
-delete from reviews where product_id in (select id from doomed);
-delete from product_images where product_id in (select id from doomed);
-delete from product_variants where product_id in (select id from doomed);
-delete from products where slug like 'demo-%' or slug like 'dummy-%';
+-- Use ORPHANED variants (those whose product is missing) so this works even
+-- if the original 'dummy-' / 'demo-' products are already gone but their
+-- variants and cart_items remain.
+delete from cart_items
+  where variant_id in (
+    select pv.id from product_variants pv
+    left join products p on p.id = pv.product_id
+    where p.id is null
+    or p.slug like 'demo-%'
+    or p.slug like 'dummy-%'
+  );
+delete from order_items
+  where variant_id in (
+    select pv.id from product_variants pv
+    left join products p on p.id = pv.product_id
+    where p.id is null
+    or p.slug like 'demo-%'
+    or p.slug like 'dummy-%'
+  );
+delete from reviews
+  where product_id in (select id from products where slug like 'demo-%' or slug like 'dummy-%');
+delete from product_images
+  where product_id in (select id from products where slug like 'demo-%' or slug like 'dummy-%');
+delete from product_variants
+  where product_id in (select id from products where slug like 'demo-%' or slug like 'dummy-%')
+  or product_id not in (select id from products);
+delete from products
+  where slug like 'demo-%' or slug like 'dummy-%'
+  or id not in (select distinct product_id from product_variants);
 
 do $$
 declare
