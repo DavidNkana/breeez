@@ -337,7 +337,21 @@ begin
   -- Uses a single demo customer so customer_id NOT NULL is satisfied.
   -- Real user reviews would use auth.uid() as the customer_id.
   -- ===========================================================
-  -- Create a sentinel "demo" customer (idempotent)
+  -- Create a sentinel "demo" customer (idempotent).
+  -- Must insert into auth.users FIRST (FK target) then into customers.
+  insert into auth.users (id, instance_id, aud, role, email, email_confirmed_at, created_at, updated_at)
+  values (
+    '00000000-0000-0000-0000-000000000001',
+    '00000000-0000-0000-0000-000000000000',
+    'authenticated',
+    'authenticated',
+    'demo-reviews@breeez.internal',
+    _now,
+    _now,
+    _now
+  )
+  on conflict (id) do nothing;
+
   insert into customers (id, email, created_at)
   values ('00000000-0000-0000-0000-000000000001', 'demo-reviews@breeez.internal', _now)
   on conflict (id) do nothing;
