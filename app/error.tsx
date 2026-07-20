@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { logError } from '@/lib/utils/error-logger';
 
 export default function GlobalError({
   error,
@@ -15,6 +16,12 @@ export default function GlobalError({
   useEffect(() => {
     // eslint-disable-next-line no-console
     console.error('[app error boundary]', error);
+    logError({
+      message: error?.message ?? 'Unknown error',
+      stack: error?.stack,
+      severity: 'error',
+      extra: { digest: error?.digest ?? null },
+    });
   }, [error]);
 
   return (

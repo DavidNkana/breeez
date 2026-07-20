@@ -3,6 +3,7 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { CategoryGrid } from '@/components/shop/CategoryGrid';
 import { ProductGrid } from '@/components/shop/ProductGrid';
+import { RecentlyViewed } from '@/components/shop/RecentlyViewed';
 import { getTodaysPicks, listProducts } from '@/lib/catalog/queries';
 
 export default async function HomePage() {
@@ -111,6 +112,11 @@ export default async function HomePage() {
               </div>
             </div>
           </div>
+        </section>
+
+        {/* Recently viewed — only renders after the user has visited any product */}
+        <section className="mx-auto max-w-6xl px-4 pb-4">
+          <RecentlyViewed heading="Continue where you left off" />
         </section>
       </main>
       <Footer />
