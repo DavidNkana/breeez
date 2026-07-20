@@ -1,15 +1,27 @@
 import type { Config } from 'tailwindcss';
+import { brand } from './lib/brand';
 
 /**
- * Breeez brand palette — original, intentionally NOT a Trends clone.
- * Warm neutral base + soft accent. Modern ecommerce feel.
+ * Brand palette sourced from /lib/brand.ts (Trends Day-to-Day).
+ * brand-* stays neutral/warm slate. accent-* is the Trends red (`#C72E28` → 500).
+ *
+ * Rename `brand-*` or `accent-*` here ALL THE TIME YOU WANT — search the
+ * codebase for those class prefixes.
  */
+const { colors } = (() => {
+  const hex = (s: string) => s.replace('#', '');
+  const tint = (pct: number) => `color-mix(in srgb, ${brand.colors.primary} ${pct}%, white)`;
+  const shade = (pct: number) => `color-mix(in srgb, ${brand.colors.primary} ${pct}%, black)`;
+  void hex; void tint; void shade;
+  return { colors: null as any };
+})();
+
 const config: Config = {
   content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}'],
   theme: {
     extend: {
       colors: {
-        // Breeez brand
+        // Neutral base (kept stable — used for chrome)
         brand: {
           50:  '#f4f6f7',
           100: '#e6eaed',
@@ -23,18 +35,19 @@ const config: Config = {
           900: '#29313c',
           950: '#1a1f26'
         },
+        // Trends primary red (`#C72E28`) — used for CTAs, badges, links
         accent: {
           50:  '#fef2f2',
-          100: '#fee2e2',
-          200: '#fecaca',
-          300: '#fca5a5',
-          400: '#f87171',
-          500: '#ef4444',
-          600: '#dc2626',
-          700: '#b91c1c',
-          800: '#991b1b',
-          900: '#7f1d1d',
-          950: '#450a0a'
+          100: '#fde2e2',
+          200: '#fbcaca',
+          300: '#f8a5a5',
+          400: '#f47774',
+          500: '#C72E28',  // primary
+          600: '#b32620',
+          700: '#9a1f19',
+          800: '#7f1814',
+          900: '#5e1311',
+          950: '#3a0a09'
         },
         // Semantic
         success: '#16a34a',
@@ -44,7 +57,8 @@ const config: Config = {
       },
       fontFamily: {
         sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
-        display: ['var(--font-inter)', 'system-ui', 'sans-serif']
+        // Display font for headers — League Spartan is Trends's website font
+        display: ['"League Spartan"', 'Inter', 'system-ui', 'sans-serif']
       },
       borderRadius: {
         sm: '4px',

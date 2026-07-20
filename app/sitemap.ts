@@ -1,7 +1,8 @@
 import type { MetadataRoute } from 'next';
 import { createClient } from '@/lib/supabase/server';
+import { brand } from '@/lib/brand';
 
-const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://breeez-lyart.vercel.app').replace(/\/+$/, '');
+const SITE_URL = brand.siteUrl;
 
 /**
  * Dynamic sitemap.xml — Next.js picks this up at /sitemap.xml.

@@ -7,6 +7,7 @@ import { ReviewSection } from '@/components/shop/ReviewSection';
 import { RecentlyViewed } from '@/components/shop/RecentlyViewed';
 import { TrackRecentlyViewed } from '@/components/shop/TrackRecentlyViewed';
 import { getProductBySlug, getRelatedProducts } from '@/lib/catalog/queries';
+import { brand } from '@/lib/brand';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import type { Metadata } from 'next';
@@ -50,17 +51,17 @@ export default async function ProductPage({ params }: Props) {
   const priceCents = product.variants[0]?.price_cents ?? 0;
   const compareAt = product.variants[0]?.compare_at_cents ?? null;
   const inStock = product.variants.some((v) => v.stock > 0);
-  const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://breeez-lyart.vercel.app').replace(/\/+$/, '');
+  const SITE_URL = brand.siteUrl;
 
   // JSON-LD structured data — drives Google rich snippets + product cards
   const jsonLd = {
     '@context': 'https://schema.org/',
     '@type': 'Product',
     name: product.name,
-    description: product.description || `${product.name} available at Breeez`,
+    description: product.description || `${product.name} available at ${brand.name}`,
     image: product.images.map((i) => i.url).filter(Boolean),
     sku: product.variants[0]?.sku ?? product.id,
-    brand: { '@type': 'Brand', name: 'Breeez' },
+    brand: { '@type': 'Brand', name: brand.name },
     category: product.category?.name,
     offers: {
       '@type': 'Offer',
@@ -73,7 +74,7 @@ export default async function ProductPage({ params }: Props) {
           }
         : {}),
       availability: inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-      seller: { '@type': 'Organization', name: 'Breeez' },
+      seller: { '@type': 'Organization', name: brand.name },
     },
   };
 
@@ -95,9 +96,9 @@ export default async function ProductPage({ params }: Props) {
   const orgLd = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'Breeez',
+    name: brand.name,
     url: SITE_URL,
-    logo: `${SITE_URL}/icon.svg`,
+    logo: `${SITE_URL}${brand.logo}`,
   };
 
   return (

@@ -3,13 +3,13 @@ import { Suspense } from 'react';
 import './globals.css';
 import { StorefrontProviders } from '@/components/shop/StorefrontProviders';
 import { NavigationLoader } from '@/components/layout/NavigationLoader';
+import { brand } from '@/lib/brand';
 
-const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://breeez-lyart.vercel.app').replace(/\/+$/, '');
-const SITE_NAME = 'Breeez';
-const TITLE_DEFAULT = `${SITE_NAME} — Shop South Africa`;
+const SITE_URL = brand.siteUrl;
+const SITE_NAME = brand.name;
+const TITLE_DEFAULT = `${SITE_NAME} — Shop Smart, Save Big`;
 const TITLE_TEMPLATE = `%s · ${SITE_NAME}`;
-const DESCRIPTION =
-  'South African multi-category ecommerce. Apparel, home, kitchen, school and more — curated for SA homes, delivered nationwide. Free delivery over R500.';
+const DESCRIPTION = brand.shortDescription;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -20,10 +20,11 @@ export const metadata: Metadata = {
   description: DESCRIPTION,
   applicationName: SITE_NAME,
   keywords: [
+    'Trends Day-to-Day',
     'South Africa',
     'online shopping SA',
-    'home goods',
-    'kitchen',
+    'household essentials',
+    'groceries',
     'apparel',
     'bedroom',
     'bathroom',
@@ -43,9 +44,10 @@ export const metadata: Metadata = {
   formatDetection: { telephone: false, address: false, email: false },
   icons: {
     icon: [
-      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: brand.favicon, type: 'image/png' },
+      { url: brand.favicon, sizes: '150x150', type: 'image/png' },
     ],
-    apple: [{ url: '/icon.svg' }],
+    apple: [{ url: brand.favicon }],
   },
   manifest: '/site.webmanifest',
   appleWebApp: {
@@ -63,10 +65,10 @@ export const metadata: Metadata = {
     alternateLocale: ['en_US'],
     images: [
       {
-        url: '/og-default.png',
+        url: brand.ogDefault,
         width: 1200,
         height: 630,
-        alt: 'Breeez — South African multi-category ecommerce',
+        alt: `${SITE_NAME} — everyday essentials`,
       },
     ],
   },
@@ -74,7 +76,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: TITLE_DEFAULT,
     description: DESCRIPTION,
-    images: ['/og-default.png'],
+    images: [brand.ogDefault],
   },
   alternates: {
     canonical: SITE_URL,
@@ -85,7 +87,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
-  themeColor: '#1a1f26',
+  themeColor: brand.colors.primary,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

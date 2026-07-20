@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { CartButton } from '@/components/shop/CartButton';
 import { SearchAutocomplete } from '@/components/shop/SearchAutocomplete';
 import { WishlistButton } from '@/components/shop/WishlistButton';
+import { brand } from '@/lib/brand';
 
 const NAV_LINKS = [
   { href: '/c/apparel',         label: 'Apparel' },
@@ -15,10 +16,12 @@ export function Header() {
     <header className="sticky top-0 z-40 border-b border-brand-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 safe-top">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 sm:gap-4 px-4 py-3">
         <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-brand-900 text-white font-bold text-base">
-            B
-          </span>
-          <span className="text-lg font-semibold tracking-tight text-brand-950 hidden xs:inline sm:inline">Breeez</span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={brand.logo}
+            alt={`${brand.name} logo`}
+            className="h-8 sm:h-9 w-auto"
+          />
         </Link>
 
         <nav className="hidden md:flex items-center gap-6 lg:gap-8">

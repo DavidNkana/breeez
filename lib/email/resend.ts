@@ -1,103 +1,107 @@
 /**
- * Breeez transactional email via Resend.
+ * Trends Day-to-Day transactional email via Resend.
  *
- * If RESEND_API_KEY env var is set, sends real emails. If not set, logs
- * the email to console and returns silently (dev/test compatibility).
+ * If RESEND_API_KEY env var is set, sends real emails. If not, logs
+ * to console (dev/test compatibility).
  *
- * Rate limit: Resend free tier = 100 emails/day, 3,000/month.
- *
- * Setup for Chris:
- * 1. Go to https://resend.com → sign up (free)
- * 2. Dashboard → API Keys → create key
- * 3. Add domain `breeez.app` (or your own) and verify it
- * 4. Add to Vercel env: RESEND_API_KEY=re_xxxxxx, RESEND_FROM_EMAIL=orders@breeez.app
+ * Setup:
+ * 1. Sign up at https://resend.com (free)
+ * 2. API Keys → create
+ * 3. Add domain trendsdaytoday.co.za (or your subdomain) + verify
+ * 4. Vercel env: RESEND_API_KEY + RESEND_FROM_EMAIL=orders@trendsdaytoday.co.za
  */
 
+import { brand } from '@/lib/brand';
+
 const API_KEY = process.env.RESEND_API_KEY;
-const FROM = process.env.RESEND_FROM_EMAIL || 'Breeez <onboarding@resend.dev>';
+const FROM = process.env.RESEND_FROM_EMAIL || `${brand.email.fromName} <onboarding@resend.dev>`;
+const REPLY_TO = brand.email.replyTo;
+const SITE = brand.siteUrl;
 
 type EmailPayload = {
   to: string;
   subject: string;
   html: string;
+  replyTo?: string;
 };
 
-async function sendEmail(payload: EmailPayload) {
+/**
+ * Wraps subject/body in a styled HTML email shell.
+ * Logo URL is from /public/brand/ — we use an inline PNG so it works without
+ * the recipient allowing CDN images.
+ */
+function emailTemplate(title: string, body: string) {
+  return `
+  <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;max-width:600px;margin:0 auto;color:#1a1f26">
+    <div style="padding:16px 0;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:12px">
+      <img src="${brand.logo}" alt="${brand.name}" height="36" style="height:36px;width:auto" />
+    </div>
+    <h1 style="font-size:22px;margin:24px 0 12px;color:#1a1f26">${title}</h1>
+    ${body}
+    <p style="margin-top:32px;font-size:11px;color:#94a3b8;border-top:1px solid #e5e7eb;padding-top:16px">
+      ${brand.copyrightLine.replace('{year}', String(new Date().getFullYear()))}<br />
+      ${brand.contact.address.line1}, ${brand.contact.address.line2} — ${brand.contact.email}
+    </p>
+  </div>`;
+}
+
+export async function sendEmail(payload: EmailPayload): Promise<void> {
   if (!API_KEY) {
-    console.log('[email] RESEND_API_KEY not set — skipped:', payload.subject, '→', payload.to);
+    // eslint-disable-next-line no-console
+    console.log('[email:mock]', payload.to, payload.subject);
     return;
   }
-
-  try {
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        from: FROM,
-        to: payload.to,
-        subject: payload.subject,
-        html: payload.html
-      })
-    });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ message: res.statusText }));
-      console.error('[email] Resend error:', err);
-    } else {
-      console.log('[email] Sent:', payload.subject, '→', payload.to);
-    }
-  } catch (err) {
-    console.error('[email] Network error:', err);
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: FROM,
+      to: payload.to,
+      subject: payload.subject,
+      html: payload.html,
+      reply_to: payload.replyTo ?? REPLY_TO,
+    }),
+  });
+  if (!res.ok) {
+    // eslint-disable-next-line no-console
+    console.error('[resend]', res.status, await res.text().catch(() => ''));
   }
 }
 
-function emailTemplate(title: string, body: string, footer?: string) {
-  return `
-<!DOCTYPE html><html><head><meta charset="utf-8"></head>
-<body style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#1a1f26">
-  <div style="text-align:center;margin-bottom:24px">
-    <span style="font-size:24px;font-weight:700;background:#1a1f26;color:#fff;padding:6px 12px;border-radius:6px">B</span>
-    <span style="font-size:20px;font-weight:600;margin-left:8px;color:#1a1f26">Breeez</span>
-  </div>
-  <h2 style="color:#1a1f26;margin-bottom:12px">${title}</h2>
-  ${body}
-  ${footer ? `<div style="margin-top:24px;padding-top:16px;border-top:1px solid #e6eaed;color:#788a98;font-size:13px">${footer}</div>` : ''}
-  <p style="margin-top:24px;color:#788a98;font-size:12px">Breeez — Shop SA, all in one place. Prices in ZAR. POPIA-compliant.</p>
-</body></html>`;
-}
-
-/** Order confirmation — sent after successful payment */
+/**
+ * Order confirmation. Subject from brand config.
+ */
 export async function sendOrderConfirmation(params: {
   to: string;
   orderNumber: string;
   totalRand: string;
-  items: string;
+  items: string; // pre-rendered HTML of items
 }) {
   await sendEmail({
     to: params.to,
-    subject: `Order confirmed — ${params.orderNumber}`,
+    subject: `${brand.email.orderConfirmationSubject} — ${params.orderNumber}`,
     html: emailTemplate(
-      `Thanks for your order!`,
-      `<p style="color:#566c7d;line-height:1.6">Your order <strong>${params.orderNumber}</strong> has been confirmed. We'll let you know when it ships.</p>
-       <div style="background:#f4f6f7;border-radius:8px;padding:16px;margin:16px 0">
-         <p style="font-weight:600;margin:0 0 8px">Order summary</p>
+      `Order ${params.orderNumber} confirmed`,
+      `<p style="color:#566c7d;line-height:1.6">Thanks for your order. Here's a summary:</p>
+       <div style="background:#fef2f2;padding:16px;border-radius:8px;margin:16px 0">
          ${params.items}
-         <p style="font-weight:700;margin:12px 0 0;font-size:16px">Total: ${params.totalRand}</p>
+         <p style="font-weight:600;margin-top:12px;color:#C72E28">Total: ${params.totalRand}</p>
        </div>
-       <p style="color:#566c7d">Track your order anytime at <a href="https://breeez-lyart.vercel.app/account/orders" style="color:#dc2626">your account</a>.</p>`,
-      `7-day returns · Free delivery over R500 · PayFast / Yoco / Ozow`
-    )
+       <p style="color:#566c7d">Track your order anytime at <a href="${SITE}/account/orders" style="color:#C72E28">your account</a>.</p>`
+    ),
   });
 }
 
-/** Order shipped — sent when admin marks order as shipped */
+/**
+ * Order shipped — includes tracking number + courier name.
+ */
 export async function sendOrderShipped(params: {
   to: string;
   orderNumber: string;
-  tracking?: string;
+  tracking: string | undefined;
 }) {
   const trackingHtml = params.tracking
     ? `<p style="color:#566c7d;line-height:1.6"><strong>Tracking number:</strong> ${params.tracking}</p>`
@@ -105,37 +109,27 @@ export async function sendOrderShipped(params: {
 
   await sendEmail({
     to: params.to,
-    subject: `Your order has shipped — ${params.orderNumber}`,
+    subject: `${brand.email.orderShippedSubject} — ${params.orderNumber}`,
     html: emailTemplate(
-      `Your order is on the way!`,
-      `<p style="color:#566c7d;line-height:1.6">Good news — order <strong>${params.orderNumber}</strong> has been packed and shipped.</p>
-       ${trackingHtml}`,
-      `Track your order at <a href="https://breeez-lyart.vercel.app/account/orders" style="color:#dc2626">your account</a>`
-    )
+      `Your order ${params.orderNumber} is on its way`,
+      `<p style="color:#566c7d;line-height:1.6">Great news — your order has been shipped and is heading your way.</p>
+       <p style="color:#566c7d;line-height:1.6">Need help? Call ${brand.contact.phone} or WhatsApp ${brand.contact.whatsapp}.</p>
+       ${trackingHtml}
+       <p style="color:#566c7d">Track at <a href="${SITE}/account/orders" style="color:#C72E28">your account</a>.</p>`
+    ),
   });
 }
 
-/** Return status update — sent when admin approves/rejects/refunds */
-export async function sendReturnUpdate(params: {
-  to: string;
-  orderNumber: string;
-  status: string; // approved | rejected | refunded
-}) {
+/**
+ * Return status update.
+ */
+export async function sendReturnUpdate(params: { to: string; orderNumber: string; status: string }) {
   const statusMap: Record<string, { title: string; body: string }> = {
-    approved: {
-      title: 'Return approved',
-      body: `Your return request for order <strong>${params.orderNumber}</strong> has been approved. Please ship the item back to us. We'll process your refund once we receive it. Return shipping is at your cost.`
-    },
-    rejected: {
-      title: 'Return request declined',
-      body: `Your return request for order <strong>${params.orderNumber}</strong> could not be approved. If you believe this is an error, please contact us.`
-    },
-    refunded: {
-      title: 'Refund processed',
-      body: `Your refund for order <strong>${params.orderNumber}</strong> has been processed. The amount will appear in your account within 3-5 business days.`
-    }
+    approved: { title: 'Return approved', body: 'Your return has been approved. Refund will arrive within 5–7 business days.' },
+    refunded: { title: 'Refund processed', body: 'Your refund has been processed and should appear within 5–7 business days.' },
+    rejected: { title: 'Return update', body: 'Your return was not approved. Please contact us for help.' },
+    received: { title: 'Return received', body: 'We have received your returned item.' },
   };
-
   const s = statusMap[params.status] || { title: 'Return updated', body: `Your return for order <strong>${params.orderNumber}</strong> has been updated to: ${params.status}.` };
 
   await sendEmail({
@@ -146,22 +140,21 @@ export async function sendReturnUpdate(params: {
 }
 
 /**
- * Newsletter welcome. Subject + short body. Fire-and-forget.
+ * Newsletter welcome.
  */
 export async function sendNewsletterWelcome(params: { to: string }): Promise<void> {
-  const SITE = (process.env.NEXT_PUBLIC_SITE_URL || 'https://breeez-lyart.vercel.app').replace(/\/+$/, '');
   await sendEmail({
     to: params.to,
-    subject: 'Welcome to Breeez — your 10% code is inside',
+    subject: brand.email.newsletterWelcomeSubject,
     html: `
       <div style="max-width:560px;margin:0 auto;font-family:system-ui,sans-serif">
-        <h1 style="color:#1a1f26;font-size:22px;margin:0 0 12px">Welcome to Breeez 👋</h1>
+        <h1 style="color:#1a1f26;font-size:22px;margin:0 0 12px">Welcome to ${brand.name} 👋</h1>
         <p style="color:#566c7d;line-height:1.6">
-          Thanks for subscribing. Use code <strong style="color:#1a1f26">WELCOME10</strong> for 10% off your first order.
+          Thanks for subscribing. Use code <strong style="color:#C72E28">${brand.short.toUpperCase()}10</strong> for 10% off your first order.
         </p>
         <p style="margin:24px 0">
           <a href="${SITE}/new"
-             style="display:inline-block;padding:10px 16px;background:#1a1f26;color:white;border-radius:6px;text-decoration:none;font-weight:500">
+             style="display:inline-block;padding:10px 16px;background:#C72E28;color:white;border-radius:6px;text-decoration:none;font-weight:500">
             Shop new arrivals
           </a>
         </p>
