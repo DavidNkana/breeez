@@ -334,39 +334,46 @@ begin
 
   -- ===========================================================
   -- REVIEWS — 1-3 reviews per product with varied ratings
+  -- Uses a single demo customer so customer_id NOT NULL is satisfied.
+  -- Real user reviews would use auth.uid() as the customer_id.
   -- ===========================================================
+  -- Create a sentinel "demo" customer (idempotent)
+  insert into customers (id, email, display_name, created_at)
+  values ('00000000-0000-0000-0000-000000000001', 'demo-reviews@breeez.internal', 'Demo Reviewer', _now)
+  on conflict (id) do nothing;
+
   insert into reviews (product_id, customer_id, order_id, order_item_id, rating, title, body, reviewer_display_name, is_verified_purchase, is_published) values
-  ((select id from products where slug='demo-linen-shirt'),  null, null, null, 5, 'Best linen shirt I have owned', 'Worth every cent. The fit is perfect and the fabric is high quality. Cool in summer. Highly recommend for SA weather.', 'Lerato M.', true, true),
-  ((select id from products where slug='demo-linen-shirt'),  null, null, null, 4, 'Beautiful but a bit sheer', 'Fabric is gorgeous and the fit is generous. Only complaint is the white is slightly see-through in direct sunlight, so wear an undershirt or go for the sand colour.', 'Nomsa K.', true, true),
-  ((select id from products where slug='demo-knit-tank'),     null, null, null, 5, 'Perfect summer basic', 'Soft, breathable, holds shape after washing. Bought three colours.', 'Thandi N.', true, true),
-  ((select id from products where slug='demo-cargo-pant'),    null, null, null, 4, 'Comfortable and stylish', 'Love the tapered leg. Drawstring waist is a nice touch. Runs slightly large so size down.', 'Sipho D.', true, true),
-  ((select id from products where slug='demo-crew-sweater'),   null, null, null, 5, 'Worth the price', 'Soft merino, not itchy at all. Wears well. Worth the investment for SA winters.', 'Pieter V.', true, true),
-  ((select id from products where slug='demo-mom-jeans'),      null, null, null, 4, 'Perfect fit', 'These are the only jeans that fit my hips and waist. Vintage wash is gorgeous.', 'Ayanda T.', true, true),
-  ((select id from products where slug='demo-dutch-oven'),     null, null, null, 5, 'Made my potjiekos perfect', 'Heat distribution is even. Heavy but worth it. Easy to clean enamel.', 'Maria S.', true, true),
-  ((select id from products where slug='demo-cutting-board'),  null, null, null, 4, 'Solid set', 'All three sizes used daily. Bamboo is gentle on knives. Stained slightly after 6 months but that is normal.', 'Kgomotso M.', true, true),
-  ((select id from products where slug='demo-steel-kettle'),  null, null, null, 4, 'Wistles beautifully', 'Classic design. Holds enough for 4 cups of tea. Induction base works perfectly.', 'Sipho D.', true, true),
-  ((select id from products where slug='demo-dinner-set'),    null, null, null, 5, 'Beautiful plates', 'Elegant matte finish. Chip-resistant after 6 months. Highly recommend.', 'Lerato M.', true, true),
-  ((select id from products where slug='demo-duvet-set'),     null, null, null, 5, 'Sleep has never been better', 'Linen is amazing for hot sleepers like me. The set washes beautifully and gets softer over time.', 'Lerato M.', true, true),
-  ((select id from products where slug='demo-throw-blanket'), null, null, null, 5, 'Cosy and beautiful', 'Heavy but in a good way. Perfect for SA winter evenings.', 'Thandi N.', true, true),
-  ((select id from products where slug='demo-memory-pillow'), null, null, null, 4, 'Good for neck pain', 'Took a few nights to adjust but now I sleep much better. Cooling gel works.', 'Pieter V.', true, true),
-  ((select id from products where slug='demo-towel-set'),     null, null, null, 5, 'Hotel quality at home', 'Plush and absorbent. Worth the price.', 'Nomsa K.', true, true),
-  ((select id from products where slug='demo-bath-mat'),      null, null, null, 4, 'Sturdy and stylish', 'Bamboo looks great in our bathroom. Anti-slip feet work well.', 'Kgomotso M.', true, true),
-  ((select id from products where slug='demo-aroma-diffuser'), null, null, null, 5, 'So relaxing', 'Quiet and the scents are lovely. Use it every night.', 'Ayanda T.', true, true),
-  ((select id from products where slug='demo-sneaker'),      null, null, null, 5, 'Classic and comfortable', 'Wore them in for a day and they are my go-to now. Quality canvas.', 'Maria S.', true, true),
-  ((select id from products where slug='demo-sandal'),       null, null, null, 4, 'Perfect summer sandal', 'Lightweight and comfy. Good arch support for the price.', 'Sipho D.', true, true),
-  ((select id from products where slug='demo-vase-set'),     null, null, null, 5, 'Elegant', 'Beautiful craftsmanship. Both vases are different heights which works well for a vignette.', 'Lerato M.', true, true),
-  ((select id from products where slug='demo-led-candles'),   null, null, null, 4, 'Realistic flicker', 'Almost like real candles. Timer is a great feature.', 'Thandi N.', true, true),
-  ((select id from products where slug='demo-botanical-print'), null, null, null, 5, 'Beautiful art', 'Love the SA flora series. Frame quality is solid.', 'Pieter V.', true, true),
-  ((select id from products where slug='demo-crossbody-bag'), null, null, null, 5, 'Genuine leather, worth the price', 'Develops a beautiful patina. Hardware is solid. Strap length is perfect for crossbody wear.', 'Nomsa K.', true, true),
-  ((select id from products where slug='demo-tote-bag'),     null, null, null, 4, 'Fits everything I need', 'Fits 15 inch laptop, gym clothes, water bottle. Sturdy canvas.', 'Ayanda T.', true, true),
-  ((select id from products where slug='demo-backpack'),     null, null, null, 5, 'Great for daily commute', 'Padded straps make it comfy even when fully loaded. Waxed canvas looks great.', 'Kgomotso M.', true, true),
-  ((select id from products where slug='demo-blackout-curtain'), null, null, null, 5, 'Blocks 99% of light as advertised', 'SA summer mornings are no longer an issue. Quality fabric.', 'Sipho D.', true, true),
-  ((select id from products where slug='demo-sheer-curtain'), null, null, null, 4, 'Softens light beautifully', 'Air and light flow through nicely. Adds warmth to the room.', 'Lerato M.', true, true),
-  ((select id from products where slug='demo-reed-diffuser'), null, null, null, 5, 'Lasts forever', 'Three months and still going strong. Vanilla Cedar is incredible.', 'Thandi N.', true, true),
-  ((select id from products where slug='demo-pencil-set'),   null, null, null, 4, 'Great value starter set', 'All essentials included. Kids love the colours.', 'Maria S.', true, true),
-  ((select id from products where slug='demo-lunch-bag'),    null, null, null, 5, 'Keeps food cold all day', 'Tested in 35C heat and lunch was still cold at 2pm. Worth it.', 'Kgomotso M.', true, true),
-  ((select id from products where slug='demo-water-bottle'), null, null, null, 4, 'Good insulation', 'Water still cold after 8 hours. No leaks.', 'Pieter V.', true, true),
-  ((select id from products where slug='demo-school-bag'),   null, null, null, 5, 'Built to last', 'My son uses it daily, no wear after a year. Ergonomic straps are a plus.', 'Nomsa K.', true, true);
+  ((select id from products where slug='demo-linen-shirt'),  '00000000-0000-0000-0000-000000000001', null, null, 5, 'Best linen shirt I have owned', 'Worth every cent. The fit is perfect and the fabric is high quality. Cool in summer. Highly recommend for SA weather.', 'Lerato M.', true, true),
+  ((select id from products where slug='demo-linen-shirt'),  '00000000-0000-0000-0000-000000000001', null, null, 4, 'Beautiful but a bit sheer', 'Fabric is gorgeous and the fit is generous. Only complaint is the white is slightly see-through in direct sunlight, so wear an undershirt or go for the sand colour.', 'Nomsa K.', true, true),
+  ((select id from products where slug='demo-knit-tank'),     '00000000-0000-0000-0000-000000000001', null, null, 5, 'Perfect summer basic', 'Soft, breathable, holds shape after washing. Bought three colours.', 'Thandi N.', true, true),
+  ((select id from products where slug='demo-cargo-pant'),    '00000000-0000-0000-0000-000000000001', null, null, 4, 'Comfortable and stylish', 'Love the tapered leg. Drawstring waist is a nice touch. Runs slightly large so size down.', 'Sipho D.', true, true),
+  ((select id from products where slug='demo-crew-sweater'),   '00000000-0000-0000-0000-000000000001', null, null, 5, 'Worth the price', 'Soft merino, not itchy at all. Wears well. Worth the investment for SA winters.', 'Pieter V.', true, true),
+  ((select id from products where slug='demo-mom-jeans'),      '00000000-0000-0000-0000-000000000001', null, null, 4, 'Perfect fit', 'These are the only jeans that fit my hips and waist. Vintage wash is gorgeous.', 'Ayanda T.', true, true),
+  ((select id from products where slug='demo-dutch-oven'),  '00000000-0000-0000-0000-000000000001', null, null, 5, 'Made my potjiekos perfect', 'Heat distribution is even. Heavy but worth it. Easy to clean enamel.', 'Maria S.', true, true),
+  ((select id from products where slug='demo-cutting-board'),  '00000000-0000-0000-0000-000000000001', null, null, 4, 'Solid set', 'All three sizes used daily. Bamboo is gentle on knives. Stained slightly after 6 months but that is normal.', 'Kgomotso M.', true, true),
+  ((select id from products where slug='demo-steel-kettle'),  '00000000-0000-0000-0000-000000000001', null, null, 4, 'Wistles beautifully', 'Classic design. Holds enough for 4 cups of tea. Induction base works perfectly.', 'Sipho D.', true, true),
+  ((select id from products where slug='demo-dinner-set'),  '00000000-0000-0000-0000-000000000001', null, null, 5, 'Beautiful plates', 'Elegant matte finish. Chip-resistant after 6 months. Highly recommend.', 'Lerato M.', true, true),
+  ((select id from products where slug='demo-duvet-set'),  '00000000-0000-0000-0000-000000000001', null, null, 5, 'Sleep has never been better', 'Linen is amazing for hot sleepers like me. The set washes beautifully and gets softer over time.', 'Lerato M.', true, true),
+  ((select id from products where slug='demo-throw-blanket'),  '00000000-0000-0000-0000-000000000001', null, null, 5, 'Cosy and beautiful', 'Heavy but in a good way. Perfect for SA winter evenings.', 'Thandi N.', true, true),
+  ((select id from products where slug='demo-memory-pillow'),  '00000000-0000-0000-0000-000000000001', null, null, 4, 'Good for neck pain', 'Took a few nights to adjust but now I sleep much better. Cooling gel works.', 'Pieter V.', true, true),
+  ((select id from products where slug='demo-towel-set'),  '00000000-0000-0000-0000-000000000001', null, null, 5, 'Hotel quality at home', 'Plush and absorbent. Worth the price.', 'Nomsa K.', true, true),
+  ((select id from products where slug='demo-bath-mat'),  '00000000-0000-0000-0000-000000000001', null, null, 4, 'Sturdy and stylish', 'Bamboo looks great in our bathroom. Anti-slip feet work well.', 'Kgomotso M.', true, true),
+  ((select id from products where slug='demo-aroma-diffuser'),  '00000000-0000-0000-0000-000000000001', null, null, 5, 'So relaxing', 'Quiet and the scents are lovely. Use it every night.', 'Ayanda T.', true, true),
+  ((select id from products where slug='demo-sneaker'),  '00000000-0000-0000-0000-000000000001', null, null, 5, 'Classic and comfortable', 'Wore them in for a day and they are my go-to now. Quality canvas.', 'Maria S.', true, true),
+  ((select id from products where slug='demo-sandal'),  '00000000-0000-0000-0000-000000000001', null, null, 4, 'Perfect summer sandal', 'Lightweight and comfy. Good arch support for the price.', 'Sipho D.', true, true),
+  ((select id from products where slug='demo-vase-set'),  '00000000-0000-0000-0000-000000000001', null, null, 5, 'Elegant', 'Beautiful craftsmanship. Both vases are different heights which works well for a vignette.', 'Lerato M.', true, true),
+  ((select id from products where slug='demo-led-candles'),  '00000000-0000-0000-0000-000000000001', null, null, 4, 'Realistic flicker', 'Almost like real candles. Timer is a great feature.', 'Thandi N.', true, true),
+  ((select id from products where slug='demo-botanical-print'),  '00000000-0000-0000-0000-000000000001', null, null, 5, 'Beautiful art', 'Love the SA flora series. Frame quality is solid.', 'Pieter V.', true, true),
+  ((select id from products where slug='demo-crossbody-bag'),  '00000000-0000-0000-0000-000000000001', null, null, 5, 'Genuine leather, worth the price', 'Develops a beautiful patina. Hardware is solid. Strap length is perfect for crossbody wear.', 'Nomsa K.', true, true),
+  ((select id from products where slug='demo-tote-bag'),  '00000000-0000-0000-0000-000000000001', null, null, 4, 'Fits everything I need', 'Fits 15 inch laptop, gym clothes, water bottle. Sturdy canvas.', 'Ayanda T.', true, true),
+  ((select id from products where slug='demo-backpack'),  '00000000-0000-0000-0000-000000000001', null, null, 5, 'Great for daily commute', 'Padded straps make it comfy even when fully loaded. Waxed canvas looks great.', 'Kgomotso M.', true, true),
+  ((select id from products where slug='demo-blackout-curtain'),  '00000000-0000-0000-0000-000000000001', null, null, 5, 'Blocks 99% of light as advertised', 'SA summer mornings are no longer an issue. Quality fabric.', 'Sipho D.', true, true),
+  ((select id from products where slug='demo-sheer-curtain'),  '00000000-0000-0000-0000-000000000001', null, null, 4, 'Softens light beautifully', 'Air and light flow through nicely. Adds warmth to the room.', 'Lerato M.', true, true),
+  ((select id from products where slug='demo-reed-diffuser'),  '00000000-0000-0000-0000-000000000001', null, null, 5, 'Lasts forever', 'Three months and still going strong. Vanilla Cedar is incredible.', 'Thandi N.', true, true),
+  ((select id from products where slug='demo-pencil-set'),  '00000000-0000-0000-0000-000000000001', null, null, 4, 'Great value starter set', 'All essentials included. Kids love the colours.', 'Maria S.', true, true),
+  ((select id from products where slug='demo-lunch-bag'),  '00000000-0000-0000-0000-000000000001', null, null, 5, 'Keeps food cold all day', 'Tested in 35C heat and lunch was still cold at 2pm. Worth it.', 'Kgomotso M.', true, true),
+  ((select id from products where slug='demo-water-bottle'),  '00000000-0000-0000-0000-000000000001', null, null, 4, 'Good insulation', 'Water still cold after 8 hours. No leaks.', 'Pieter V.', true, true),
+  ((select id from products where slug='demo-school-bag'),  '00000000-0000-0000-0000-000000000001', null, null, 5, 'Built to last', 'My son uses it daily, no wear after a year. Ergonomic straps are a plus.', 'Nomsa K.', true, true);
 
   -- ===========================================================
   -- Recompute review_summary so PDP shows real star ratings
