@@ -13,7 +13,7 @@ export default async function SearchPage({ searchParams }: Props) {
   return (
     <>
       <Header />
-      <main className="mx-auto max-w-6xl px-4 py-6 pb-20 safe-bottom">
+      <main className="mx-auto max-w-6xl min-w-0 overflow-x-hidden px-4 py-6 pb-20 safe-bottom">
         <h1 className="text-2xl font-semibold text-brand-950">
           {q ? `Results for "${q}"` : 'Search'}
         </h1>

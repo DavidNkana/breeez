@@ -7,7 +7,7 @@ export default function CategoriesPage() {
   return (
     <>
       <Header />
-      <main className="mx-auto max-w-6xl px-4 py-6 pb-20 safe-bottom">
+      <main className="mx-auto max-w-6xl min-w-0 overflow-x-hidden px-4 py-6 pb-20 safe-bottom">
         <nav className="text-xs text-brand-500">
           <Link href="/" className="hover:underline">Home</Link>
           <span className="mx-1">/</span>
