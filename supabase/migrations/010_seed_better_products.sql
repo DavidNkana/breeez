@@ -356,6 +356,10 @@ begin
   values ('00000000-0000-0000-0000-000000000001', 'demo-reviews@breeez.internal', _now)
   on conflict (id) do nothing;
 
+  -- Wipe any reviews from prior partial runs (idempotent re-seed)
+  delete from reviews where customer_id = '00000000-0000-0000-0000-000000000001';
+  delete from reviews where product_id in (select id from products where slug like 'demo-%');
+
   insert into reviews (product_id, customer_id, order_id, order_item_id, rating, title, body, reviewer_display_name, is_verified_purchase, is_published) values
   ((select id from products where slug='demo-linen-shirt'),  '00000000-0000-0000-0000-000000000001', null, null, 5, 'Best linen shirt I have owned', 'Worth every cent. The fit is perfect and the fabric is high quality. Cool in summer. Highly recommend for SA weather.', 'Lerato M.', true, true),
   ((select id from products where slug='demo-linen-shirt'),  '00000000-0000-0000-0000-000000000001', null, null, 4, 'Beautiful but a bit sheer', 'Fabric is gorgeous and the fit is generous. Only complaint is the white is slightly see-through in direct sunlight, so wear an undershirt or go for the sand colour.', 'Nomsa K.', true, true),
