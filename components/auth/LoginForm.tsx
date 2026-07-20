@@ -87,7 +87,7 @@ export function LoginForm({ next = '/account' }: { next?: string }) {
         Or email me a magic link
       </button>
       <p className="text-center text-sm text-brand-600">
-        New to Breeez? <Link href="/auth/register" className="text-accent-700 hover:underline">Create an account</Link>
+        New to Trends Day-to-Day? <Link href="/auth/register" className="text-accent-700 hover:underline">Create an account</Link>
       </p>
     </form>
   );

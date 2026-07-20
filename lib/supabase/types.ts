@@ -1,5 +1,5 @@
 // =============================================================================
-// Breeez — Supabase database type definitions
+// Trends Day-to-Day — Supabase database type definitions
 // =============================================================================
 // These mirror the schema in supabase/migrations/001_init.sql.
 // Hand-written for now; we can switch to `supabase gen types typescript --linked`

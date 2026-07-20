@@ -1,11 +1,12 @@
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { InfoHeader } from '@/components/ui/InfoHeader';
+import { brand } from '@/lib/brand';
 
 export const metadata = {
-  title: 'About Breeez — South African multi-category ecommerce',
+  title: `About ${brand.name} — South African multi-category ecommerce`,
   description:
-    'Breeez is a South African curated marketplace for everyday essentials — apparel, home, kitchen, school and more — delivered nationwide.',
+    `${brand.name} is a South African curated marketplace for everyday essentials — apparel, home, kitchen, school and more — delivered nationwide.`,
 };
 
 const VALUES = [
@@ -31,10 +32,10 @@ export default function AboutPage() {
   return (
     <>
       <Header />
-      <InfoHeader title="About Breeez" />
+      <InfoHeader title={`About ${brand.name}`} />
       <main className="mx-auto max-w-3xl px-4 py-10 pb-20 safe-bottom prose prose-sm">
         <p className="text-lg text-brand-700 leading-relaxed">
-          Breeez is a South African curated marketplace for the everyday things
+          {brand.name} is a South African curated marketplace for the everyday things
           that make a house feel like a home.
         </p>
 
@@ -65,7 +66,7 @@ export default function AboutPage() {
 
         <h2 className="mt-10 text-2xl font-semibold text-brand-950">Where we are</h2>
         <p className="mt-3 text-brand-700 leading-relaxed">
-          Founded in Cape Town, Breeez ships nationwide via Pargo (lockers
+          Founded in {brand.about.founded} in {brand.contact.address.line2.split(',')[0].trim()}, {brand.name} ships nationwide via Pargo (lockers
           and pickup points), The Courier Guy (door to door), and Dawn Wing
           (same-day and overnight in major metros).
         </p>
@@ -77,8 +78,8 @@ export default function AboutPage() {
             Drop us a message
           </a>{' '}
           or email{' '}
-          <a href="mailto:hello@breeez.shop" className="text-brand-900 underline hover:text-brand-700">
-            hello@breeez.shop
+          <a href={`mailto:${brand.contact.email}`} className="text-brand-900 underline hover:text-brand-700">
+            {brand.contact.email}
           </a>
           . Real humans (or very polite bots) answer within a day.
         </p>

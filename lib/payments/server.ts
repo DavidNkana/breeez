@@ -55,9 +55,9 @@ async function createPayFastPayment(p: { orderId: string; orderNumber: string; a
     return_url: p.returnUrl,
     cancel_url: p.cancelUrl,
     notify_url: `${process.env.NEXT_PUBLIC_SUPABASE_URL ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).origin : ''}/api/webhooks/payfast`,
-    name: 'Breeez',
+    name: 'Trends Day-to-Day',
     item_name: `Order ${p.orderNumber}`,
-    item_description: `Breeez order ${p.orderNumber}`,
+    item_description: `Trends Day-to-Day order ${p.orderNumber}`,
     amount: (p.amountCents / 100).toFixed(2),
     email: p.customerEmail
   };

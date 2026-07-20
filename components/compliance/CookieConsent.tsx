@@ -91,7 +91,7 @@ export function CookieConsent() {
               We use cookies
             </p>
             <p className="mt-1 text-xs text-brand-600 leading-relaxed">
-              Necessary cookies keep your cart and login working. Optional analytics cookies help us understand how Breeez is used so we can improve it. You can choose what you allow.
+              Necessary cookies keep your cart and login working. Optional analytics cookies help us understand how Trends Day-to-Day is used so we can improve it. You can choose what you allow.
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
               <button
@@ -147,7 +147,7 @@ export function CookieConsent() {
                 <span>
                   <span className="block font-medium text-brand-900">Analytics</span>
                   <span className="block text-xs text-brand-500">
-                    Anonymous usage stats so we can improve Breeez.
+                    Anonymous usage stats so we can improve Trends Day-to-Day.
                   </span>
                 </span>
               </label>

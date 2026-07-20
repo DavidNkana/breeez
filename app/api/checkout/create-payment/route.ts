@@ -63,7 +63,7 @@ export async function POST(req: Request) {
     const totalCents = Math.max(0, subtotalCents + shippingCents - discountCents);
 
     const { count } = (await supabase.from('orders').select('*', { count: 'exact', head: true })) as any;
-    const orderNumber = `BRZ-${new Date().getFullYear()}-${String((count ?? 0) + 1).padStart(5, '0')}`;
+    const orderNumber = `TDTD-${new Date().getFullYear()}-${String((count ?? 0) + 1).padStart(5, '0')}`;
 
     const { data: order, error: orderErr } = (await supabase.from('orders').insert({
       order_number: orderNumber, customer_id: user?.id ?? null, email, status: 'pending_payment',

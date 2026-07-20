@@ -7,7 +7,7 @@ import { useToast } from '@/components/ui/Toast';
 type Variant = 'inline' | 'stacked';
 
 /**
- * Compact newsletter signup — matches Breeez brand colors.
+ * Compact newsletter signup — matches Trends Day-to-Day brand colors.
  * Variant "inline" is for the footer (single row).
  * Variant "stacked" is for a dedicated section (taller form).
  */

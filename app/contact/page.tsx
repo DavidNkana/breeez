@@ -1,6 +1,6 @@
 import { InfoHeader } from '@/components/ui/InfoHeader';
 
-export const metadata = { title: 'Contact Us — Breeez' };
+export const metadata = { title: 'Contact Us — Trends Day-to-Day' };
 
 export default function ContactPage() {
   return (

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 async function handleSend(to: string) {
   const apiKey = process.env.RESEND_API_KEY;
-  const fromEmail = process.env.RESEND_FROM_EMAIL || 'Breeez <onboarding@resend.dev>';
+  const fromEmail = process.env.RESEND_FROM_EMAIL || 'Trends Day-to-Day <onboarding@resend.dev>';
 
   if (!apiKey) {
     return {
@@ -32,7 +32,7 @@ async function handleSend(to: string) {
       body: JSON.stringify({
         from: fromEmail,
         to,
-        subject: 'Breeez — Resend test',
+        subject: 'Trends Day-to-Day — Resend test',
         html: `<!DOCTYPE html><html><body style="font-family:-apple-system,sans-serif;max-width:600px;margin:0 auto;padding:24px"><h2>Resend test ✅</h2><p>This email confirms that Resend is sending correctly from <strong>${fromEmail}</strong>.</p><p style="color:#566c7d">If you got this, transactional emails will work.</p></body></html>`
       })
     });
@@ -79,7 +79,7 @@ export async function POST(req: Request) {
 
 async function handleHtml(to: string) {
   const apiKey = process.env.RESEND_API_KEY;
-  const fromEmail = process.env.RESEND_FROM_EMAIL || 'Breeez <onboarding@resend.dev>';
+  const fromEmail = process.env.RESEND_FROM_EMAIL || 'Trends Day-to-Day <onboarding@resend.dev>';
 
   if (!apiKey) {
     return new Response(htmlPage('Missing env var', `
@@ -90,7 +90,7 @@ async function handleHtml(to: string) {
 
   if (!to) {
     return new Response(htmlPage('Enter email', `
-      <h2>Breeez — Resend test</h2>
+      <h2>Trends Day-to-Day — Resend test</h2>
       <p>Enter your email in the URL: <code>/api/test-email?to=YOUR_EMAIL</code></p>
       <form method="get" action="/api/test-email" style="margin-top:16px">
         <label>Your email: <input name="to" type="email" placeholder="you@example.com" required style="padding:6px;border:1px solid #ccc;border-radius:4px;margin:0 8px"></label>

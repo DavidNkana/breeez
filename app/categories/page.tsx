@@ -14,7 +14,7 @@ export default function CategoriesPage() {
           <span className="text-brand-700">All categories</span>
         </nav>
         <h1 className="mt-2 text-2xl md:text-3xl font-semibold text-brand-950">All categories</h1>
-        <p className="mt-1 text-sm text-brand-600">Browse everything Breeez has to offer.</p>
+        <p className="mt-1 text-sm text-brand-600">Browse everything Trends Day-to-Day has to offer.</p>
         <div className="mt-6">
           <CategoryGrid />
         </div>

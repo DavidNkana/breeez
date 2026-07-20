@@ -27,7 +27,7 @@ export default async function OrderSuccessPage({ params, searchParams }: Props) 
 
         <h1 className="mt-4 text-2xl font-semibold text-brand-950">Order placed!</h1>
         <p className="mt-2 text-sm text-brand-600">
-          Thanks for shopping with Breeez. We&apos;ve sent a confirmation email.
+          Thanks for shopping with Trends Day-to-Day. We&apos;ve sent a confirmation email.
         </p>
 
         {order && (

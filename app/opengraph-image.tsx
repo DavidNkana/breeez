@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'nodejs';
-export const alt = 'Breeez — Shop South Africa';
+export const alt = 'Trends Day-to-Day — Shop Smart, Save Big';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -48,8 +48,8 @@ export default function OpengraphImage() {
           <div style={{ fontSize: 18, color: '#cbd5e1', letterSpacing: 4, textTransform: 'uppercase', marginBottom: 8 }}>
             South African ecommerce
           </div>
-          <div style={{ fontSize: 88, fontWeight: 800, lineHeight: 1.0, marginBottom: 24 }}>
-            Breeez
+          <div style={{ fontSize: 64, fontWeight: 800, lineHeight: 1.0, marginBottom: 24 }}>
+            Trends Day-to-Day
           </div>
           <div style={{ fontSize: 28, color: '#94a3b8', marginBottom: 32 }}>
             Apparel · Home · Kitchen · School

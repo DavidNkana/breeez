@@ -1,6 +1,6 @@
 import { InfoHeader } from '@/components/ui/InfoHeader';
 
-export const metadata = { title: 'Privacy Notice (POPIA) — Breeez' };
+export const metadata = { title: 'Privacy Notice (POPIA) — Trends Day-to-Day' };
 
 export default function PrivacyPage() {
   return (
@@ -9,7 +9,7 @@ export default function PrivacyPage() {
       <main className="mx-auto max-w-3xl px-4 py-10 pb-20 safe-bottom prose prose-sm prose-headings:text-brand-950 prose-a:text-accent-700">
         <h1>Privacy Notice (POPIA)</h1>
         <p className="text-sm text-brand-500">Last updated: 2026-07-15</p>
-        <p>This notice explains how Breeez collects, uses, and protects your personal information in compliance with the <strong>Protection of Personal Information Act 4 of 2013 (POPIA)</strong>.</p>
+        <p>This notice explains how Trends Day-to-Day collects, uses, and protects your personal information in compliance with the <strong>Protection of Personal Information Act 4 of 2013 (POPIA)</strong>.</p>
 
         <h2>1. Information We Collect</h2>
         <ul>
@@ -54,7 +54,7 @@ export default function PrivacyPage() {
         <p>We use PostHog for anonymous product analytics (no PII shared). We do not use advertising cookies.</p>
 
         <h2>8. Information Officer</h2>
-        <p>For POPIA-related queries, contact our Information Officer at <a href="mailto:privacy@breeez.app">privacy@breeez.app</a>.</p>
+        <p>For POPIA-related queries, contact our Information Officer at <a href="mailto:trendsdaytodayonline@gmail.com">trendsdaytodayonline@gmail.com</a>.</p>
       </main>
     </>
   );

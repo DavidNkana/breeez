@@ -16,13 +16,13 @@ type Props = { params: { slug: string } };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getProductBySlug(params.slug);
-  if (!product) return { title: 'Product not found — Breeez' };
+  if (!product) return { title: 'Product not found — Trends Day-to-Day' };
   const SITE = (process.env.NEXT_PUBLIC_SITE_URL || 'https://breeez-lyart.vercel.app').replace(/\/+$/, '');
   const priceCents = product.variants[0]?.price_cents ?? 0;
   const priceRand = `R${(priceCents / 100).toFixed(2)}`;
   return {
-    title: `${product.name} — Breeez`,
-    description: product.description.slice(0, 160) || `Buy ${product.name} on Breeez for ${priceRand}.`,
+    title: `${product.name} — Trends Day-to-Day`,
+    description: product.description.slice(0, 160) || `Buy ${product.name} at Trends Day-to-Day for ${priceRand}.`,
     openGraph: {
       type: 'website',
       title: product.name,

@@ -1,11 +1,11 @@
 'use client';
 
 import Link from 'next/link';
+import { brand } from '@/lib/brand';
 
 /**
  * Sticky mini-header used by legal/info pages.
- * Has the Breeez logo (links home), a back button, and the page title.
- * Server-friendly so it can be rendered anywhere.
+ * Shows the Trends Day-to-Day logo (links home), the page title, and a Home button.
  */
 export function InfoHeader({ title }: { title: string }) {
   return (
@@ -13,13 +13,15 @@ export function InfoHeader({ title }: { title: string }) {
       <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-brand-900 hover:text-accent-600 transition-colors"
-          aria-label="Back to home"
+          className="inline-flex items-center gap-2 hover:opacity-90 transition-opacity"
+          aria-label={`Back to ${brand.name} home`}
         >
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-brand-900 text-white font-bold text-base">
-            B
-          </span>
-          <span className="font-semibold text-base hidden sm:inline">Breeez</span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={brand.logo}
+            alt={`${brand.name} logo`}
+            className="h-7 w-auto"
+          />
         </Link>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-brand-900 truncate">{title}</p>

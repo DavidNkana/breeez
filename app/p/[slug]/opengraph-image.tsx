@@ -2,7 +2,7 @@ import { ImageResponse } from 'next/og';
 import { getProductBySlug } from '@/lib/catalog/queries';
 
 export const runtime = 'nodejs';
-export const alt = 'Breeez product';
+export const alt = 'Trends Day-to-Day product';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -32,7 +32,7 @@ export default async function OpengraphImage({
             fontWeight: 700,
           }}
         >
-          Breeez — Shop South Africa
+          Trends Day-to-Day — Shop Smart, Save Big
         </div>
       ),
       { ...size }
@@ -76,7 +76,7 @@ export default async function OpengraphImage({
               style={{ objectFit: 'cover' }}
             />
           ) : (
-            <div style={{ fontSize: 28, color: '#1a1f26', fontWeight: 700 }}>Breeez</div>
+            <div style={{ fontSize: 24, color: '#1a1f26', fontWeight: 700 }}>Trends Day-to-Day</div>
           )}
         </div>
 
@@ -107,7 +107,7 @@ export default async function OpengraphImage({
             >
               B
             </div>
-            <span style={{ fontSize: 18, fontWeight: 600, color: '#cbd5e1' }}>Breeez</span>
+            <span style={{ fontSize: 18, fontWeight: 600, color: '#cbd5e1' }}>Trends Day-to-Day</span>
           </div>
           <div style={{ fontSize: 22, color: '#94a3b8', marginBottom: 8 }}>
             {product.category?.name ?? 'Product'}

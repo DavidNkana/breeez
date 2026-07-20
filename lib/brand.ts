@@ -80,6 +80,16 @@ export const brand = {
   copyrightLine: '© {year} Trends Day-to-Day. Prices in ZAR. POPIA-compliant.',
   whatsappStoreLink: 'https://api.whatsapp.com/send?phone=27794571253&text=Hi%20Trends%20team%2C%20I%27d%20like%20to%20order%20via%20WhatsApp.',
 
+  // Home hero copy
+  home: {
+    eyebrow: 'Proudly South African since 2010',
+    headline: 'Shop Smart, Save Big — Every Day.',
+    subheadline:
+      'At Trends Day-to-Day, we believe in making everyday essentials accessible without compromising on quality. Since 2010, we’ve been committed to providing unbeatable prices and exceptional value to our community.',
+    primaryCta: { href: '/new', label: 'Shop new arrivals' },
+    secondaryCta: { href: '/c/kitchen', label: 'Browse kitchen' },
+  },
+
   // About page copy (placeholders, refine after they approve wording)
   about: {
     intro:
