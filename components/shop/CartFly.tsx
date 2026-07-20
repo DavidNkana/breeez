@@ -16,9 +16,14 @@ type CartFlyContextValue = {
 
 const CartFlyContext = createContext<CartFlyContextValue | null>(null);
 
-export function useCartFly() {
+export function useCartFly(): CartFlyContextValue {
   const ctx = useContext(CartFlyContext);
-  if (!ctx) throw new Error('useCartFly must be used inside CartFlyProvider');
+  // Null-safe: if context is missing (e.g. error boundary remounts above the provider
+  // during an error, or Pre-rendering without client provider), return a no-op so the
+  // calling component can still render without crashing. Better UX than hard crash.
+  if (!ctx) {
+    return { fly: () => {} };
+  }
   return ctx;
 }
 
