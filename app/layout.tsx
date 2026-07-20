@@ -86,8 +86,15 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 5,
+  // Lock the visual viewport to the layout viewport — prevents iOS Safari
+  // from auto-zooming when something on the page is slightly wider than
+  // the device (long words, tables, code blocks). Auto-zoom makes the
+  // sticky header look "stuck at its layout width" while the page
+  // zooms, which is what Chris was seeing on PDP.
+  maximumScale: 1,
+  userScalable: false,
   themeColor: brand.colors.primary,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
