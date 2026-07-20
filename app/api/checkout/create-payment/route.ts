@@ -87,7 +87,7 @@ export async function POST(req: Request) {
       const v = ci.variant as any;
       const p = v?.product as any;
       const pc = v?.price_cents ?? p?.base_price_cents ?? 0;
-      const ok = await (adminSupabase.rpc('atomic_checkout_stock' as any, {
+      const ok = await adminSupabase.rpc('atomic_checkout_stock' as any, {
         p_variant_id: ci.variant_id,
         p_quantity: ci.quantity,
         p_order_id: order.id,
