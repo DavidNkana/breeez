@@ -14,9 +14,9 @@ export default async function HomePage() {
   return (
     <>
       <Header />
-      <main className="flex-1 min-w-0 overflow-x-hidden pb-12 safe-bottom">
+      <main className="flex-1 pb-12 safe-bottom">
         <section className="bg-gradient-to-br from-brand-50 via-white to-accent-50">
-          <div className="mx-auto max-w-6xl min-w-0 overflow-x-hidden px-4 py-10 md:py-20">
+          <div className="mx-auto max-w-6xl px-4 py-10 md:py-20">
             <p className="text-sm font-medium text-accent-700">{brand.home.eyebrow}</p>
             <h1 className="mt-2 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight text-brand-950 leading-tight">
               {brand.home.headline}
@@ -41,7 +41,7 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-6xl min-w-0 overflow-x-hidden px-4 py-10 md:py-14">
+        <section className="mx-auto max-w-6xl px-4 py-10 md:py-14">
           <div className="flex items-baseline justify-between gap-4">
             <h2 className="text-xl md:text-2xl font-semibold text-brand-950">Shop by category</h2>
             <Link href="/categories" className="text-sm text-brand-600 hover:underline whitespace-nowrap">View all</Link>
@@ -51,7 +51,7 @@ export default async function HomePage() {
 
         {/* Today's picks — newest products (or today's if any added today) */}
         {todaysPicks.length > 0 && (
-          <section className="mx-auto max-w-6xl min-w-0 overflow-x-hidden px-4 py-10 md:py-14">
+          <section className="mx-auto max-w-6xl px-4 py-10 md:py-14">
             <div className="flex items-baseline justify-between gap-4">
               <h2 className="text-xl md:text-2xl font-semibold text-brand-950">Today&apos;s picks</h2>
               <Link href="/new" className="text-sm text-brand-600 hover:underline whitespace-nowrap">View all</Link>
@@ -76,7 +76,7 @@ export default async function HomePage() {
         )}
 
         {featured.length > 0 && (
-          <section className="mx-auto max-w-6xl min-w-0 overflow-x-hidden px-4 py-10 md:py-14">
+          <section className="mx-auto max-w-6xl px-4 py-10 md:py-14">
             <div className="flex items-baseline justify-between gap-4">
               <h2 className="text-xl md:text-2xl font-semibold text-brand-950">Featured</h2>
               <Link href="/new" className="text-sm text-brand-600 hover:underline whitespace-nowrap">Shop all</Link>
@@ -115,7 +115,7 @@ export default async function HomePage() {
         </section>
 
         {/* Recently viewed — only renders after the user has visited any product */}
-        <section className="mx-auto max-w-6xl min-w-0 overflow-x-hidden px-4 pb-4">
+        <section className="mx-auto max-w-6xl px-4 pb-4">
           <RecentlyViewed heading="Continue where you left off" />
         </section>
       </main>

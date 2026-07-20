@@ -12,21 +12,6 @@ html, body {
   color: var(--color-fg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
-  word-break: break-word;
-  -webkit-text-size-adjust: 100%;
-  position: relative;
-  width: 100%;
-}
-
-/* Hard reset for known overflow culprits on iOS:
-   - Tables default to display: table which doesn't shrink. Force them to wrap
-     unless the user explicitly puts them in a scrollable container.
-   - Long URLs, email addresses, and unbreakable strings get a hard break. */
-@layer base {
-  table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  img, video, svg, video { max-width: 100%; height: auto; }
-  pre, code { white-space: pre-wrap; word-break: break-word; }
 }
 
 @layer base {

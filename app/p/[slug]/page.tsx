@@ -117,8 +117,8 @@ export default async function ProductPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(orgLd) }}
       />
       <Header />
-      <main className="mx-auto max-w-6xl min-w-0 overflow-x-hidden px-4 py-6 pb-20 safe-bottom">
-        <nav className="text-xs text-brand-500 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
+      <main className="mx-auto max-w-6xl px-4 py-6 pb-20 safe-bottom">
+        <nav className="text-xs text-brand-500">
           <Link href="/" className="hover:underline">Home</Link>
           {product.category && (
             <>
@@ -130,7 +130,7 @@ export default async function ProductPage({ params }: Props) {
           <span className="text-brand-700">{product.name}</span>
         </nav>
 
-        <div className="mt-4 grid min-w-0 gap-6 md:grid-cols-2">
+        <div className="mt-4 grid gap-6 md:grid-cols-2">
           <ProductGallery images={product.images} />
 
           <div>
