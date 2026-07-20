@@ -118,7 +118,7 @@ export default async function ProductPage({ params }: Props) {
       />
       <Header />
       <main className="mx-auto max-w-6xl px-4 py-6 pb-20 safe-bottom">
-        <nav className="text-xs text-brand-500">
+        <nav className="text-xs text-brand-500 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
           <Link href="/" className="hover:underline">Home</Link>
           {product.category && (
             <>
