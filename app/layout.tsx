@@ -94,7 +94,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en-ZA">
-      <body className="min-h-screen flex flex-col bg-white text-brand-950 font-sans antialiased overflow-x-hidden max-w-[100vw]">
+      <body className="min-h-screen flex flex-col bg-white text-brand-950 font-sans antialiased">
         <StorefrontProviders />
         <Suspense fallback={null}>
           <NavigationLoader />
