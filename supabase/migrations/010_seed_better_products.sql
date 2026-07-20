@@ -76,20 +76,15 @@ declare
     'https://images.unsplash.com/photo-1542293787938-c9e332b85c9c?w=800&h=800&fit=crop',
     'https://images.unsplash.com/photo-1556228720-da4e85a4ba42?w=800&h=800&fit=crop',
     'https://images.unsplash.com/photo-1556228578-90e30a4a5d8f?w=800&h=800&fit=crop',
-    'https://images.unsplash.com/photo-1574180566232-aaad1b5de845?w=800&h=800&fit=crop'
+    'https://images.unsplash.com/photo-1574180566232-aaad1b5de845?w=800&h=800&fit=crop',
+    'https://images.unsplash.com/photo-1542736667-06969b391db0?w=800&h=800&fit=crop',
+    'https://images.unsplash.com/photo-1503602642458-6e1f61866a3e?w=800&h=800&fit=crop',
+    'https://images.unsplash.com/photo-1556909114-44e1f4c5e2c5?w=800&h=800&fit=crop'
   ];
   _img_idx int := 1;
   _imgs_len int := array_length(_imgs, 1);
 begin
-  -- Helper: next image URL
-  create or replace function next_img() returns text language sql as $$
-    select _imgs[1 + (nextval('demo_img_seq')::int % _imgs_len)];
-  $$;
-  -- (Function references sequence/array in the do block; fallback uses literal array below.)
-  drop function if exists next_img();
-  -- Use a simple sequence for cycling images
-  create sequence if not exists demo_img_seq;
-  -- (Actually we won't use the function; we'll pick inline from the array.)
+  -- (We pick images directly inline from the _imgs array via _imgs[N] literals below.)
 
   -- ===========================================================
   -- APPAREL
