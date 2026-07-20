@@ -338,8 +338,8 @@ begin
   -- Real user reviews would use auth.uid() as the customer_id.
   -- ===========================================================
   -- Create a sentinel "demo" customer (idempotent)
-  insert into customers (id, email, display_name, created_at)
-  values ('00000000-0000-0000-0000-000000000001', 'demo-reviews@breeez.internal', 'Demo Reviewer', _now)
+  insert into customers (id, email, created_at)
+  values ('00000000-0000-0000-0000-000000000001', 'demo-reviews@breeez.internal', _now)
   on conflict (id) do nothing;
 
   insert into reviews (product_id, customer_id, order_id, order_item_id, rating, title, body, reviewer_display_name, is_verified_purchase, is_published) values
