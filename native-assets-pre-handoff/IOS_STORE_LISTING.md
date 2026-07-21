@@ -12,7 +12,7 @@ Home, Kitchen & Lifestyle
 
 ## Promotional text (max 170 chars, can be updated without review)
 ```
-South Africa's curated marketplace for everyday essentials. Browse 10 categories, free delivery over R500, secure local checkout.
+South Africa's curated marketplace for everyday essentials. Browse 10 categories, nationwide delivery, secure local checkout.
 ```
 
 ## Description (max 4000 chars)
@@ -33,7 +33,7 @@ Whether you're refreshing your kitchen, restocking bathroom essentials, updating
 
 WHY BREEZ?
 • Real South African essentials, not overseas noise — products chosen for local taste and local prices.
-• Free delivery on orders over R500.
+• Nationwide delivery: Pargo pickup, The Courier Guy, or Dawn Wing same-day metro.
 • Pay how South Africans pay: PayFast, Yoco, Ozow, instant EFT, or card.
 • Trusted SA couriers: Pargo (pickup lockers), The Courier Guy, Dawn Wing — or collect in store.
 • 7-day returns on unused items (customer pays return shipping).
@@ -81,7 +81,7 @@ What's inside:
 • Save items to your wishlist
 • Fast checkout with PayFast, Yoco or Ozow
 • SA couriers: Pargo, The Courier Guy, Dawn Wing
-• Free delivery over R500
+• Nationwide delivery via Pargo, The Courier Guy, or Dawn Wing
 • 7-day returns, request right from your phone
 • Account, addresses, and order history synced across web + mobile
 

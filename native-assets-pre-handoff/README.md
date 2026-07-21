@@ -44,7 +44,7 @@ Fill in this exact text (you can customise later):
 | Field | Value |
 |---|---|
 | App name | Breeez |
-| Short description (80 chars max) | `South African home, kitchen & lifestyle essentials. Free delivery over R500.` |
+| Short description (80 chars max) | `South Africa's everyday essentials marketplace — 10 categories, ZAR.` |
 | Full description (4000 chars max) | See `ANDROID_STORE_LISTING.md` (in this folder) |
 | App icon (512×512 PNG) | Drop final Breeez icon into `play-assets/icon-512.png` (slot) |
 | Feature graphic (1024×500 PNG) | Drop into `play-assets/feature-graphic-1024x500.png` (slot) |
