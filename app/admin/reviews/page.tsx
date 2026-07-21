@@ -1,5 +1,5 @@
 import { requireAdmin } from '@/lib/auth/session';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { ReviewsManager } from '@/components/admin/ReviewsManager';
@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function AdminReviewsPage() {
   await requireAdmin();
-  const supabase = (await createClient()) as any;
+  const supabase = (await createAdminClient()) as any;
 
   // All reviews, newest first. Joins product name/slug for context.
   const { data } = await supabase

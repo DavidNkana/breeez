@@ -1,5 +1,5 @@
 import { requireAdmin } from '@/lib/auth/session';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { EditProductForm } from '@/components/admin/EditProductForm';
@@ -10,7 +10,7 @@ type Props = { params: { id: string } };
 
 export default async function EditProductPage({ params }: Props) {
   await requireAdmin();
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
 
   const { data: product } = await supabase
     .from('products')

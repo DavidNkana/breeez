@@ -1,5 +1,5 @@
 import { requireAdmin } from '@/lib/auth/session';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { ReturnsManager } from '@/components/admin/ReturnsManager';
@@ -8,7 +8,7 @@ import { LogoutButton } from '@/components/auth/LogoutButton';
 
 export default async function AdminReturnsPage() {
   await requireAdmin();
-  const supabase: any = await createClient();
+  const supabase: any = await createAdminClient();
   const { data: returns } = await supabase.from('returns').select('*').order('created_at', { ascending: false }).limit(50);
 
   return (

@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { requireUser } from '@/lib/auth/session';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function AddressesPage() {
   const user = await requireUser();
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
 
   const { data: addresses } = (await supabase
     .from('addresses')

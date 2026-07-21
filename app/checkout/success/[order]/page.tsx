@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import Link from 'next/link';
@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/Badge';
 type Props = { params: { order: string }; searchParams: { ref?: string } };
 
 export default async function OrderSuccessPage({ params, searchParams }: Props) {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   const { data: order } = await supabase
     .from('orders')
     .select('*')

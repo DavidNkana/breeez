@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { requireUser } from '@/lib/auth/session';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
@@ -12,7 +12,7 @@ type Props = { params: { id: string } };
 
 export default async function OrderDetailPage({ params }: Props) {
   const user = await requireUser();
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
 
   const { data: order } = (await supabase
     .from('orders')

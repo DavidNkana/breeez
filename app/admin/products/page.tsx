@@ -1,5 +1,5 @@
 import { requireAdmin } from '@/lib/auth/session';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import Link from 'next/link';
@@ -10,7 +10,7 @@ import { DeleteProductButton } from '@/components/admin/DeleteProductButton';
 
 export default async function AdminProductsPage() {
   await requireAdmin();
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
 
   const { data: products } = (await supabase
     .from('products')

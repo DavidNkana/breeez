@@ -1,5 +1,5 @@
 import { requireAdmin } from '@/lib/auth/session';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import Link from 'next/link';
@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function AdminCustomersPage() {
   await requireAdmin();
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
 
   // customers + their orders count + total spent in one go
   const { data: customers } = await supabase

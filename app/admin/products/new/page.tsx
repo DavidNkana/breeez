@@ -1,5 +1,5 @@
 import { requireAdmin } from '@/lib/auth/session';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { NewProductForm } from '@/components/admin/NewProductForm';
@@ -7,7 +7,7 @@ import Link from 'next/link';
 
 export default async function NewProductPage() {
   await requireAdmin();
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   const { data: categories } = await supabase
     .from('categories')
     .select('id, name, slug')

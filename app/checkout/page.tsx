@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { CheckoutForm } from '@/components/checkout/CheckoutForm';
@@ -7,7 +7,7 @@ import { redirect } from 'next/navigation';
 
 export default async function CheckoutPage() {
   const user = await requireUser();
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
 
   const { data: savedAddresses } = (await supabase
     .from('addresses')

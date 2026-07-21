@@ -1,12 +1,12 @@
 import { requireAdmin } from '@/lib/auth/session';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { LogoutButton } from '@/components/auth/LogoutButton';
 
 export default async function AdminDashboard() {
   await requireAdmin();
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
 
   const { count: productCount } = await supabase.from('products').select('*', { count: 'exact', head: true }).eq('is_active', true);
   const { count: orderCount } = await supabase.from('orders').select('*', { count: 'exact', head: true });
