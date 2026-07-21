@@ -74,6 +74,7 @@ export function CheckoutForm({ user, savedAddresses }: Props) {
           email,
           fullName,
           phone,
+          userId: user?.id,
           shippingMethod,
           paymentMethod,
           shippingAddress: { line1, line2, city, province, postal_code: postalCode },
