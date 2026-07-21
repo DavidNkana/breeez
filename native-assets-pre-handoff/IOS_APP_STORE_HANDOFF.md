@@ -5,7 +5,7 @@
 - [ ] Mac with Xcode 15+ installed
 - [ ] Access to Naz's Apple Developer account (login at developer.apple.com)
 - [ ] This project repo cloned to your Mac
-- [ ] The app icon SVG: `public/brand/app-icon.svg`
+- [ ] The Trends logo at `public/brand/logo.png` (use as the app icon)
 
 ## Step 1 — Clone & Install
 
@@ -18,16 +18,12 @@ npx cap sync ios
 
 ## Step 2 — Create the app icon
 
-The icon SVG is at `public/brand/app-icon.svg` — a white "T" on a Trends red (#C72E28) rounded square.
+The Trends logo is at `public/brand/logo.png` (8.8KB PNG). Use this as the app icon — it's the same logo that appears on the website header.
 
-**Option A — Use Preview (simplest):**
-1. Open `public/brand/app-icon.svg` in Preview
-2. File → Export → PNG → 1024×1024
-3. Save as `AppIcon-1024.png` on your desktop
-
-**Option B — Use Figma/Sketch:**
-1. Import the SVG
-2. Export at 1024×1024 PNG
+1. Open `public/brand/logo.png` in Preview
+2. The logo is already a PNG with transparency. For the app icon you need a solid background:
+   - In Preview: Tools → Adjust Color (nothing needed — just centre it on a red #C72E28 canvas)
+   - Or use Figma/Sketch: place the logo on a 1024×1024 red (#C72E28) rounded square canvas, export as PNG
 
 **Then create ALL required icon sizes.** The Xcode asset catalog needs these exact sizes:
 | Size | Use |
