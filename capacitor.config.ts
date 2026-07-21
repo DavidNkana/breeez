@@ -22,7 +22,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
  */
 const config: CapacitorConfig = {
   appId: 'co.za.breeez.app',
-  appName: 'Breeez',
+  appName: 'Trends Day-to-Day',
   webDir: 'out',
 
   // Production: native app loads the live Vercel deployment.
