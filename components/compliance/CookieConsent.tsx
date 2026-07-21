@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { isNative } from '@/lib/platform';
 
 const KEY = 'breeez:cookie_consent_v1';
 
@@ -54,7 +55,7 @@ export function CookieConsent() {
   const [marketing, setMarketing] = useState(false);
 
   useEffect(() => {
-    if (!isBrowser()) return;
+    if (!isBrowser() || isNative()) return;
     const existing = getConsent();
     if (!existing) {
       // Small delay so it doesn't fight first paint
