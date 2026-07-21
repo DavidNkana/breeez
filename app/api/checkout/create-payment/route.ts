@@ -15,6 +15,7 @@ export async function POST(req: Request) {
     }
 
     const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     const supabase: any = await createClient(); // cast to any to bypass typed-client friction
     const adminSupabase = (await createAdminClient()) as any; // service-role for atomic RPC + writes
 
@@ -66,7 +67,7 @@ export async function POST(req: Request) {
     const orderNumber = `TDTD-${new Date().getFullYear()}-${String((count ?? 0) + 1).padStart(5, '0')}`;
 
     const { data: order, error: orderErr } = (await adminSupabase.from('orders').insert({
-      order_number: orderNumber, customer_id: user?.id ?? null, email, status: 'pending_payment',
+      order_number: orderNumber, customer_id: user.id, email, status: 'pending_payment',
       subtotal_cents: subtotalCents, shipping_cents: shippingCents, discount_cents: discountCents, total_cents: totalCents,
       currency: 'ZAR', shipping_address: shippingAddress, shipping_method: shippingMethod,
       payment_gateway: paymentMethod,

@@ -1,18 +1,17 @@
 {
-  "name": "Breeez",
-  "short_name": "Breeez",
-  "description": "South African multi-category ecommerce",
+  "name": "Trends Day-to-Day",
+  "short_name": "Trends",
+  "description": "South African multi-category marketplace",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#1a1f26",
+  "theme_color": "#C72E28",
   "icons": [
     {
-      "src": "/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
+      "src": "/brand/favicon.png",
+      "sizes": "150x150",
+      "type": "image/png"
     }
   ]
 }
