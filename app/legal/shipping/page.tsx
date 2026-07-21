@@ -22,9 +22,6 @@ export default function ShippingPage() {
       <h3>3. Same-day Metro (Dawn Wing) — R149</h3>
       <p>Order before 11am and get it the same day. Only available in major metros (Johannesburg, Cape Town, Durban, Pretoria). ETA: same day.</p>
 
-      <h2>Free delivery</h2>
-      <p>Orders over <strong>R500</strong> qualify for free standard delivery (Pargo or Door Delivery).</p>
-
       <h2>Delivery times</h2>
       <p>All ETAs are estimates. Public holidays, severe weather, and courier operational issues may cause delays. We&apos;ll keep you informed if your delivery is delayed.</p>
 

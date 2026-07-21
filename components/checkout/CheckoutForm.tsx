@@ -189,9 +189,6 @@ export function CheckoutForm({ user, savedAddresses }: Props) {
                     </div>
                     <div className="text-right">
                       <p className="font-semibold text-brand-950">{formatRand(opt.costCents)}</p>
-                      {subtotal >= 50000 && opt.costCents > 0 && (
-                        <p className="text-xs text-accent-700">7 Day Return</p>
-                      )}
                     </div>
                   </div>
                   <input

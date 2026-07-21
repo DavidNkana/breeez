@@ -48,8 +48,6 @@ const RATES: Record<ShippingMethod, Omit<ShippingQuote, 'method'>> = {
   }
 };
 
-const FREE_DELIVERY_THRESHOLD_CENTS = 50000;
-
 export function isMetroPostalCode(postalCode: string): boolean {
   // Major SA metros: JHB (2000), CPT (8000), DBN (4000), PTA (0001-0187)
   const pc = parseInt(postalCode, 10);
@@ -73,8 +71,7 @@ export function getAllShippingOptions(postalCode?: string): ShippingQuote[] {
   return all;
 }
 
-export function calculateShippingCents(method: ShippingMethod, subtotalCents: number): number {
-  if (subtotalCents >= FREE_DELIVERY_THRESHOLD_CENTS) return 0;
+export function calculateShippingCents(method: ShippingMethod, _subtotalCents: number): number {
   return RATES[method].costCents;
 }
 
