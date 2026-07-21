@@ -62,10 +62,10 @@ export async function POST(req: Request) {
 
     const totalCents = Math.max(0, subtotalCents + shippingCents - discountCents);
 
-    const { count } = (await supabase.from('orders').select('*', { count: 'exact', head: true })) as any;
+    const { count } = (await adminSupabase.from('orders').select('*', { count: 'exact', head: true })) as any;
     const orderNumber = `TDTD-${new Date().getFullYear()}-${String((count ?? 0) + 1).padStart(5, '0')}`;
 
-    const { data: order, error: orderErr } = (await supabase.from('orders').insert({
+    const { data: order, error: orderErr } = (await adminSupabase.from('orders').insert({
       order_number: orderNumber, customer_id: user?.id ?? null, email, status: 'pending_payment',
       subtotal_cents: subtotalCents, shipping_cents: shippingCents, discount_cents: discountCents, total_cents: totalCents,
       currency: 'ZAR', shipping_address: shippingAddress, shipping_method: shippingMethod,
@@ -124,7 +124,7 @@ export async function POST(req: Request) {
     const _d: any = await supabase.from('cart_items').delete().eq('cart_id', cartId);
 
     if (isMockMode()) {
-      const _m: any = await supabase.from('orders').update({ status: 'paid', paid_at: new Date().toISOString() } as any).eq('id', order.id);
+      const _m: any = await adminSupabase.from('orders').update({ status: 'paid', paid_at: new Date().toISOString() } as any).eq('id', order.id);
 
       // Send order confirmation email (silent fail if RESEND_API_KEY not set)
       const itemsList = items.map((ci: any) =>
@@ -141,7 +141,7 @@ export async function POST(req: Request) {
       customerEmail: email, method: paymentMethod,
       returnUrl: `${origin}/checkout/success/${order.id}?ref=${order.order_number}`, cancelUrl: `${origin}/cart`
     });
-    const _p: any = await supabase.from('orders').update({ payment_reference: intent.reference } as any).eq('id', order.id);
+    const _p: any = await adminSupabase.from('orders').update({ payment_reference: intent.reference } as any).eq('id', order.id);
     return NextResponse.json({ orderId: order.id, orderNumber: order.order_number, redirectUrl: intent.redirectUrl });
   } catch (err: any) {
     console.error('[checkout]', err);
