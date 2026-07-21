@@ -1,7 +1,7 @@
 # Breeez App Store Handoff Package
 
 Everything the App Store submission needs is pre-prepared for **both** platforms.
-You (Chris) only need to follow the checklists below — the dev/preflight work is done.
+You (Naz) only need to follow the checklists below — the dev/preflight work is done.
 
 ---
 
@@ -30,7 +30,7 @@ You (Chris) only need to follow the checklists below — the dev/preflight work 
 - ✅ Deep links: `https://breeez-lyart.vercel.app/*` + `breeez://app/*`
 - ✅ Minify + shrink enabled
 
-## Chris — submit checklist (30–60 min)
+## Submit checklist (30–60 min)
 
 ### Step 1 — Create the app in Play Console (browser)
 1. Go to https://play.google.com/console
@@ -119,7 +119,7 @@ Apple requires Xcode for the final archive + upload. Three things happen in that
 2. **Open the project** at `ios/App/App.xcodeproj`
 3. Configure signing → **Archive** → **Distribute to App Store Connect**
 
-## Chris — pre-Mac checklist
+## Pre-Mac checklist
 Before the AnyDesk session, in **App Store Connect** (browser, ~15 min):
 
 1. Go to https://appstoreconnect.apple.com
@@ -135,12 +135,12 @@ Before the AnyDesk session, in **App Store Connect** (browser, ~15 min):
 ## Mac AnyDesk session — step-by-step (give this to your Mac friend)
 
 Once the Mac has Xcode installed + your Apple ID added:
-1. Receive the `breeez` folder from Chris (via AnyDesk file transfer or USB/cloud)
+1. Receive the `breeez` folder from Naz (via AnyDesk file transfer or USB/cloud)
 2. Open Xcode → File → Open → select `breeez/ios/App/App.xcodeproj`
 3. Wait ~30 sec for Xcode to index
 4. Select the **App** target (left sidebar) → **Signing & Capabilities** tab
 5. Tick **Automatically manage signing**
-6. **Team**: drop down → select Chris's Apple Developer Team
+6. **Team**: drop down → select Naz's Apple Developer Team
 7. Bundle Identifier should show `co.za.breeez.app` (already set, don't change)
 8. Verify the 4 capabilities are present (or add them):
    - Push Notifications

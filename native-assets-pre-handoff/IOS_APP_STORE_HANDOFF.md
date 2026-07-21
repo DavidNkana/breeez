@@ -3,7 +3,7 @@
 ## What you need
 
 - [ ] Mac with Xcode 15+ installed
-- [ ] Access to Chris's Apple Developer account (login at developer.apple.com)
+- [ ] Access to Naz's Apple Developer account (login at developer.apple.com)
 - [ ] This project repo cloned to your Mac
 - [ ] The app icon SVG: `public/brand/app-icon.svg`
 
@@ -47,7 +47,7 @@ The icon SVG is at `public/brand/app-icon.svg` — a white "T" on a Trends red (
 1. Open `ios/App/App.xcworkspace` (NOT .xcodeproj) in Xcode
 2. Click the "App" project in the left navigator
 3. Under **Signing & Capabilities**, set:
-   - **Team**: Select Chris's Apple Developer team
+   - **Team**: Select Naz's Apple Developer team
    - **Bundle Identifier**: `co.za.breeez.app`
 4. If Xcode complains about provisioning profiles, check "Automatically manage signing"
 

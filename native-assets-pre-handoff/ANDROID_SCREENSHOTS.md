@@ -29,7 +29,7 @@ Use the Android emulator you already set up OR Chrome DevTools on Windows/Mac/Li
 
 ## BEFORE capturing — add at least 8 real-looking products
 
-Chris, before screenshots look good, you need products in the catalog. 30 minutes:
+Naz, before screenshots look good, you need products in the catalog. 30 minutes:
 1. Go to https://breeez-lyart.vercel.app/admin (after adding your UUID to public.admins in Supabase)
 2. Click "New product" 8+ times, add real-looking products
 3. Use stock images from unsplash.com (no copyright issues)
