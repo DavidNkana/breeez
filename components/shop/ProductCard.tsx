@@ -65,12 +65,12 @@ export function ProductCard({ slug, name, priceCents, compareAtCents, imageUrl, 
       onMouseLeave={onLeave}
     >
       <Link href={`/p/${slug}`} className="block">
-        <div className="relative aspect-square overflow-hidden rounded-md bg-brand-100">
+        <div className="relative aspect-square overflow-clip rounded-md bg-brand-100">
           <img
             src={imageUrl}
             alt={name}
             loading="lazy"
-            className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            className="absolute inset-0 h-full w-full object-cover"
           />
 
           {/* Top-left badges */}

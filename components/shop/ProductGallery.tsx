@@ -61,19 +61,15 @@ export function ProductGallery({ images }: ProductGalleryProps) {
       {/* Main image with hover zoom + click-to-lightbox */}
       <div
         ref={mainRef}
-        className="group relative aspect-square overflow-hidden rounded-lg bg-brand-100 md:cursor-zoom-in"
+        className="group relative aspect-square overflow-clip rounded-lg bg-brand-100 md:cursor-zoom-in"
         onMouseMove={onMainMove}
         onMouseLeave={() => setZoom(null)}
         onTouchStart={() => setZoom(null)}
-        style={{ contain: 'paint' }}
       >
         <img
           src={active.url}
           alt={active.alt_text || 'Product image'}
-          className={clsx(
-            'h-full w-full select-none object-cover transition-transform duration-150 ease-out',
-            zoom ? '' : 'group-hover:scale-105'
-          )}
+            className="h-full w-full select-none object-cover transition-transform duration-150 ease-out"
           style={
             zoom
               ? {
