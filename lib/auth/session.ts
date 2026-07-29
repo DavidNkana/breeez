@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
 import type { Customer } from '@/lib/supabase/types';
 
@@ -28,8 +29,8 @@ export async function getCurrentCustomer(): Promise<Customer | null> {
 
 export async function requireAdmin() {
   const user = await requireUser();
-  const supabase = await createClient();
-  const { data: admin } = await supabase
+  const adminSupabase = await createAdminClient();
+  const { data: admin } = await adminSupabase
     .from('admins')
     .select('user_id')
     .eq('user_id', user.id)
