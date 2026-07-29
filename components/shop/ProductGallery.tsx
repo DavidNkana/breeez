@@ -61,9 +61,11 @@ export function ProductGallery({ images }: ProductGalleryProps) {
       {/* Main image with hover zoom + click-to-lightbox */}
       <div
         ref={mainRef}
-        className="group relative aspect-square overflow-hidden rounded-lg bg-brand-100 cursor-zoom-in"
+        className="group relative aspect-square overflow-hidden rounded-lg bg-brand-100 md:cursor-zoom-in"
         onMouseMove={onMainMove}
         onMouseLeave={() => setZoom(null)}
+        onTouchStart={() => setZoom(null)}
+        style={{ contain: 'paint' }}
       >
         <img
           src={active.url}
