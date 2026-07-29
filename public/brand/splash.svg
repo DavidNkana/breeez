@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2732" height="2732" viewBox="0 0 2732 2732">
+  <rect width="2732" height="2732" fill="white"/>
+  <!-- Trends logo centered — replace with actual logo when exporting -->
+  <image href="../public/brand/logo.png" x="1066" y="1166" width="600" height="400" preserveAspectRatio="xMidYMid"/>
+  <!-- Fallback text if image doesn't resolve -->
+  <text x="1366" y="1400" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="700" font-size="80" fill="#C72E28">Trends Day-to-Day</text>
+</svg>
