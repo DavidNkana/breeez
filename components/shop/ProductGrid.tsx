@@ -18,7 +18,7 @@ export function ProductGrid({ products, loading, error, showPreview = false }: P
     return <EmptyState title="No products yet" description="This category is empty. Check back soon or browse other categories." />;
   }
   return (
-    <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+    <div className="grid grid-cols-2 gap-4 md:grid-cols-4 min-w-0">
       {products.map((p) => (
         <ProductCard
           key={p.id}
@@ -40,7 +40,7 @@ export function ProductGrid({ products, loading, error, showPreview = false }: P
 
 export function ProductGridSkeleton({ count = 8 }: { count?: number }) {
   return (
-    <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+    <div className="grid grid-cols-2 gap-4 md:grid-cols-4 min-w-0">
       {Array.from({ length: count }).map((_, i) => (
         <div key={i}>
           <Skeleton className="aspect-square w-full" />

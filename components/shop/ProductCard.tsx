@@ -60,7 +60,7 @@ export function ProductCard({ slug, name, priceCents, compareAtCents, imageUrl, 
 
   return (
     <div
-      className="group relative"
+      className="group relative max-w-full"
       onMouseEnter={onEnter}
       onMouseLeave={onLeave}
     >

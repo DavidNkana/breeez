@@ -58,7 +58,7 @@ export function ProductActions({ productId, productSlug, productName, basePriceC
         <p className="mt-2 text-sm text-brand-700">
           Selected: <span className="font-medium text-brand-900">{selectedVariant.name}</span>
           {selectedVariant.sku && (
-            <span className="ml-2 text-xs text-brand-400">SKU: {selectedVariant.sku}</span>
+            <span className="ml-2 text-xs text-brand-400 break-all">SKU: {selectedVariant.sku}</span>
           )}
         </p>
       )}
