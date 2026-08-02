@@ -21,7 +21,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
  *   - Android: za.co.breeez
  */
 const config: CapacitorConfig = {
-  appId: 'co.za.breeez.app',
+  appId: 'com.breeez.app',
   appName: 'Trends Day-to-Day',
   webDir: 'out',
 
