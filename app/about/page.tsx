@@ -1,6 +1,7 @@
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { InfoHeader } from '@/components/ui/InfoHeader';
+import { PwaInstallButton } from '@/components/marketing/PwaInstallButton';
 import { brand } from '@/lib/brand';
 
 export const metadata = {
@@ -79,6 +80,8 @@ export default function AboutPage() {
           </a>
           . Real humans (or very polite bots) answer within a day.
         </p>
+
+        <PwaInstallButton />
       </main>
       <Footer />
     </>
