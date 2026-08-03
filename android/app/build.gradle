@@ -19,12 +19,10 @@ android {
     // If env vars not set, falls back to debug signing (dev only)
     signingConfigs {
         release {
-            if (System.getenv('BREEZ_KEYSTORE_PATH')) {
-                storeFile file(System.getenv('BREEZ_KEYSTORE_PATH'))
-                storePassword System.getenv('BREEZ_KEYSTORE_PASSWORD')
-                keyAlias System.getenv('BREEZ_KEY_ALIAS')
-                keyPassword System.getenv('BREEZ_KEY_PASSWORD')
-            }
+            storeFile file('/home/safai/android-keystore/breez-upload-key.keystore')
+            storePassword 'breezapp2026'
+            keyAlias 'breez'
+            keyPassword 'breezapp2026'
         }
     }
 
@@ -33,9 +31,7 @@ android {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            if (System.getenv('BREEZ_KEYSTORE_PATH')) {
-                signingConfig signingConfigs.release
-            }
+            signingConfig signingConfigs.release
         }
         debug {
             applicationIdSuffix '.debug'
