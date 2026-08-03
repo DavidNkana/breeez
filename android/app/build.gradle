@@ -4,7 +4,7 @@ android {
     namespace "co.za.breeez.app"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "co.za.breeez.app"
+        applicationId "com.breeez.app"
         minSdkVersion 23  // Android 6.0+ (matches our webview baseline)
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
