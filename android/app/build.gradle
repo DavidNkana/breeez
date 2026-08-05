@@ -7,7 +7,7 @@ android {
         applicationId "com.breeez.app"
         minSdkVersion 23  // Android 6.0+ (matches our webview baseline)
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 7
+        versionCode 8
         versionName "1.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
