@@ -2,6 +2,7 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { InfoHeader } from '@/components/ui/InfoHeader';
 import { PwaInstallButton } from '@/components/marketing/PwaInstallButton';
+import { PromoBanner } from '@/components/shop/PromoBanner';
 import { brand } from '@/lib/brand';
 
 export const metadata = {
@@ -83,6 +84,18 @@ export default function AboutPage() {
 
         <PwaInstallButton />
       </main>
+
+      {/* Full-bleed promo banner — sits above the footer */}
+      <PromoBanner
+        imageUrl="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=2000&q=70"
+        alt="Real people working behind the scenes at a South African small business"
+        eyebrow="Behind the store"
+        headline="Real humans. Real service."
+        subheadline="WhatsApp, email, or phone — talk to us the way you want. A real person answers within the day."
+        ctaHref="/contact"
+        ctaLabel="Get in touch"
+      />
+
       <Footer />
     </>
   );
