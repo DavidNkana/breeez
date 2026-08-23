@@ -12,6 +12,15 @@ export default function ContactPage() {
   return (
     <>
       <Header />
+      <PromoBanner
+        imageUrl="https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=2000&q=70"
+        alt="A warm, approachable contact moment — phone in hand, ready to help"
+        eyebrow="Fast support"
+        headline="We answer fast."
+        subheadline="WhatsApp usually within minutes. Email same-day. Phone during business hours."
+        ctaHref="/categories"
+        ctaLabel="Shop now"
+      />
       <InfoHeader title="Contact Us" />
       <main className="mx-auto max-w-3xl px-4 py-10 pb-20 safe-bottom">
         <h1 className="text-2xl font-semibold text-brand-950">Get in touch</h1>
@@ -73,17 +82,6 @@ export default function ContactPage() {
           </a>
         </div>
       </main>
-
-      {/* Full-bleed promo banner — sits above the footer */}
-      <PromoBanner
-        imageUrl="https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=2000&q=70"
-        alt="A warm, approachable contact moment — phone in hand, ready to help"
-        eyebrow="Fast support"
-        headline="We answer fast."
-        subheadline="WhatsApp usually within minutes. Email same-day. Phone during business hours."
-        ctaHref="/categories"
-        ctaLabel="Shop now"
-      />
 
       <Footer />
     </>
