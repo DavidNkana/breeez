@@ -4,6 +4,8 @@ import { Footer } from '@/components/layout/Footer';
 import { CategoryGrid } from '@/components/shop/CategoryGrid';
 import { ProductGrid } from '@/components/shop/ProductGrid';
 import { RecentlyViewed } from '@/components/shop/RecentlyViewed';
+import { PromoBanner } from '@/components/shop/PromoBanner';
+import { VideoBanner } from '@/components/shop/VideoBanner';
 import { getTodaysPicks, listProducts } from '@/lib/catalog/queries';
 import { brand } from '@/lib/brand';
 
@@ -22,6 +24,17 @@ export default async function HomePage() {
           </div>
           <CategoryGrid />
         </section>
+
+        {/* Promo banner 1 — full-bleed image, between Categories and Today's picks */}
+        <PromoBanner
+          imageUrl="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=2000&q=70"
+          alt="A warm, naturally lit modern South African living room"
+          eyebrow="Curated for SA homes"
+          headline="Designed for how South Africans actually live"
+          subheadline="Home essentials that look right, last long, and arrive when you need them — nationwide."
+          ctaHref="/c/home-decor"
+          ctaLabel="Shop home"
+        />
 
         {/* Today's picks — newest products (or today's if any added today) */}
         {todaysPicks.length > 0 && (
@@ -61,6 +74,17 @@ export default async function HomePage() {
             </div>
           </section>
         )}
+
+        {/* Promo banner 2 — full-bleed LOOPING VIDEO, before the trust strip */}
+        <VideoBanner
+          videoUrl="https://videos.pexels.com/video-files/3209661/3209661-uhd_2560_1440_24fps.mp4"
+          posterUrl="https://images.unsplash.com/photo-1483985988355-7487280d4d44?auto=format&fit=crop&w=2000&q=70"
+          eyebrow="New season"
+          headline="New wardrobe. Better prices."
+          subheadline="Apparel, shoes, and accessories for SA weather and SA budgets — delivered nationwide."
+          ctaHref="/c/apparel"
+          ctaLabel="Shop apparel"
+        />
 
         <section className="mt-8 border-t border-brand-200 bg-brand-50">
           <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 py-8 md:grid-cols-3 md:gap-8 md:py-10">
