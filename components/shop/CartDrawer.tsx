@@ -25,9 +25,9 @@ export function CartDrawer() {
   return (
     <Drawer open={open} onClose={() => setOpen(false)} title={`Your cart (${items.length})`}>
       {items.length === 0 ? (
-        <div className="p-6 text-center text-sm text-brand-600">
+        <div className="px-6 py-10 text-center text-sm text-brand-600">
           Your cart is empty.
-          <div className="mt-4">
+          <div className="mt-6">
             <Button onClick={() => setOpen(false)} variant="secondary" fullWidth>
               Continue shopping
             </Button>
@@ -35,9 +35,9 @@ export function CartDrawer() {
         </div>
       ) : (
         <div className="flex h-full flex-col">
-          <ul className="flex-1 divide-y divide-brand-100 overflow-y-auto">
+          <ul className="flex-1 divide-y divide-brand-100 overflow-y-auto px-2">
             {items.map((it) => (
-              <li key={it.variantId} className="flex gap-3 p-4">
+              <li key={it.variantId} className="flex gap-3 px-3 py-4">
                 {it.imageUrl ? (
                   <img src={it.imageUrl} alt={it.name} className="h-20 w-20 flex-shrink-0 rounded object-cover" />
                 ) : (
@@ -63,7 +63,7 @@ export function CartDrawer() {
             ))}
           </ul>
 
-          <div className="border-t border-brand-100 p-4 space-y-3">
+          <div className="border-t border-brand-100 px-5 py-5 pb-6 space-y-3 safe-bottom">
             <div className="flex justify-between text-sm">
               <span className="text-brand-700">Subtotal</span>
               <span className="font-semibold text-brand-950">{formatRand(subtotal)}</span>
