@@ -1,6 +1,7 @@
 import { InfoHeader } from '@/components/ui/InfoHeader';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { PromoBanner } from '@/components/shop/PromoBanner';
 import { brand } from '@/lib/brand';
 
 const { contact, social } = brand;
@@ -72,6 +73,18 @@ export default function ContactPage() {
           </a>
         </div>
       </main>
+
+      {/* Full-bleed promo banner — sits above the footer */}
+      <PromoBanner
+        imageUrl="https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=2000&q=70"
+        alt="A warm, approachable contact moment — phone in hand, ready to help"
+        eyebrow="Fast support"
+        headline="We answer fast."
+        subheadline="WhatsApp usually within minutes. Email same-day. Phone during business hours."
+        ctaHref="/categories"
+        ctaLabel="Shop now"
+      />
+
       <Footer />
     </>
   );
