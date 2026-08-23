@@ -38,6 +38,16 @@ export function NavigationLoader() {
       // Without this, clicking a button inside a card Link sets loading=true but
       // e.preventDefault() on the button blocks the actual nav, so loading never resets.
       if (target.closest('button')) return;
+      // Skip: link points to the current page. Next.js makes this a no-op so no
+      // navigation fires, leaving the loader stuck "loading" forever. Covers the
+      // logo on home (clicking it while already on /), current-page nav links,
+      // and any other Link that has nothing to actually navigate to.
+      try {
+        const resolved = new URL(link.href, window.location.href);
+        if (resolved.origin === window.location.origin &&
+            resolved.pathname === window.location.pathname &&
+            resolved.search === window.location.search) return;
+      } catch { /* malformed URL — fall through to setLoading */ }
       setLoading(true);
     }
 
