@@ -34,6 +34,15 @@ export default function AboutPage() {
   return (
     <>
       <Header />
+      <PromoBanner
+        imageUrl="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=2000&q=70"
+        alt="Real people working behind the scenes at a South African small business"
+        eyebrow="Behind the store"
+        headline="Real humans. Real service."
+        subheadline="WhatsApp, email, or phone — talk to us the way you want. A real person answers within the day."
+        ctaHref="/contact"
+        ctaLabel="Get in touch"
+      />
       <InfoHeader title={`About ${brand.name}`} />
       <main className="mx-auto max-w-3xl px-4 py-10 pb-20 safe-bottom prose prose-sm">
         <p className="text-sm font-medium text-accent-700">Proudly South African since {brand.about.founded}</p>
@@ -84,17 +93,6 @@ export default function AboutPage() {
 
         <PwaInstallButton />
       </main>
-
-      {/* Full-bleed promo banner — sits above the footer */}
-      <PromoBanner
-        imageUrl="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=2000&q=70"
-        alt="Real people working behind the scenes at a South African small business"
-        eyebrow="Behind the store"
-        headline="Real humans. Real service."
-        subheadline="WhatsApp, email, or phone — talk to us the way you want. A real person answers within the day."
-        ctaHref="/contact"
-        ctaLabel="Get in touch"
-      />
 
       <Footer />
     </>
