@@ -255,7 +255,7 @@ admins
 | `/auth/reset` | Password reset | Magic link |
 | `/legal/terms` | T&Cs | Static |
 | `/legal/privacy` | POPIA privacy notice | Static |
-| `/legal/returns` | Returns policy | Static — 7-day refund window, customer pays return shipping |
+| `/legal/returns` | Returns policy | Static — 13-day refund window, customer pays return shipping |
 
 ### 4.2 Admin screens (you)
 
@@ -675,7 +675,7 @@ Sign-off: _Chris Naudé, 2026-07-14_
 - Apple Developer account: already paid
 - Google Play Console: already paid
 - First 50 SKUs: Alex builds tooling, Chris uploads as he goes
-- Refund window: 7 days
+- Refund window: 13 days
 
 ---
 
