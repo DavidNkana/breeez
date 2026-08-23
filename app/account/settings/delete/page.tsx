@@ -19,11 +19,11 @@ export default function DeleteAccountPage() {
       <main className="mx-auto max-w-2xl px-4 py-10 pb-20 safe-bottom">
         <h1 className="text-3xl font-semibold text-brand-950">Delete your account</h1>
         <p className="mt-2 text-base text-brand-700">
-          We're sorry to see you go. Here's exactly what gets deleted and how long it takes.
+          We&apos;re sorry to see you go. Here&apos;s exactly what gets deleted and how long it takes.
         </p>
 
         <section className="mt-8 rounded-lg border border-brand-200 bg-white p-6">
-          <h2 className="text-lg font-semibold text-brand-950">What we'll delete</h2>
+          <h2 className="text-lg font-semibold text-brand-950">What we&apos;ll delete</h2>
           <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm text-brand-700">
             <li>Your sign-in account and password</li>
             <li>Your name, email, phone, saved addresses</li>
@@ -43,7 +43,7 @@ export default function DeleteAccountPage() {
             </li>
             <li>
               <strong>Anonymised analytics</strong> — aggregate, non-identifying usage
-              data (e.g. "10,000 users bought kitchenware this month") that we keep for
+              data (e.g. &quot;10,000 users bought kitchenware this month&quot;) that we keep for
               business reporting.
             </li>
           </ul>
@@ -55,19 +55,19 @@ export default function DeleteAccountPage() {
             <li>
               Email <a href={`mailto:${supportEmail}`} className="text-accent-700 underline hover:text-accent-800">{supportEmail}</a> from
               the email address you signed up with. Use the subject line{' '}
-              <strong>"Delete my account"</strong>.
+              <strong>&quot;Delete my account&quot;</strong>.
             </li>
             <li>
               In your email, include the order number of your most recent purchase (if any).
               This helps us find your account quickly. We will never share this with anyone.
             </li>
             <li>
-              We'll reply within <strong>2 business days</strong> to confirm we received
+              We&apos;ll reply within <strong>2 business days</strong> to confirm we received
               the request, and complete the deletion within <strong>7 business days</strong> of
               confirmation.
             </li>
             <li>
-              You'll get a final confirmation email when the deletion is complete. After
+              You&apos;ll get a final confirmation email when the deletion is complete. After
               that, your data is gone from our systems (except the tax records noted above).
             </li>
           </ol>
@@ -115,7 +115,7 @@ export default function DeleteAccountPage() {
         <p className="mt-8 text-xs text-brand-400">
           This page exists to satisfy Apple App Store guideline 5.1.1(v) and
           Google Play User Data Policy. It is reachable from the in-app
-          Settings screen under "Delete my account".
+          Settings screen under &quot;Delete my account&quot;.
         </p>
       </main>
       <Footer />
