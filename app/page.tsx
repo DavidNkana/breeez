@@ -77,8 +77,8 @@ export default async function HomePage() {
 
         {/* Promo banner 2 — full-bleed LOOPING VIDEO, before the trust strip */}
         <VideoBanner
-          videoUrl="https://videos.pexels.com/video-files/3209661/3209661-uhd_2560_1440_24fps.mp4"
-          posterUrl="https://images.unsplash.com/photo-1483985988355-7487280d4d44?auto=format&fit=crop&w=2000&q=70"
+          videoUrl="https://cdn.pixabay.com/video/2015/10/16/1006-142621176_large.mp4"
+          posterUrl="https://cdn.pixabay.com/video/2015/10/16/1006-142621176_tiny.jpg"
           eyebrow="New season"
           headline="New wardrobe. Better prices."
           subheadline="Apparel, shoes, and accessories for SA weather and SA budgets — delivered nationwide."
