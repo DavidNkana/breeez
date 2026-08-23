@@ -33,6 +33,11 @@ export function NavigationLoader() {
           link.hasAttribute('download') || link.getAttribute('target') === '_blank') return;
       // Skip: links that just toggle UI (cart drawer, search, etc.)
       if (href === '#' || link.getAttribute('role') === 'button' || link.hasAttribute('aria-label')) return;
+      // Skip: actual click target is a <button> (e.g. wishlist heart, add-to-cart, etc.)
+      // — the button's own handler controls what happens, not the parent <Link>.
+      // Without this, clicking a button inside a card Link sets loading=true but
+      // e.preventDefault() on the button blocks the actual nav, so loading never resets.
+      if (target.closest('button')) return;
       setLoading(true);
     }
 
