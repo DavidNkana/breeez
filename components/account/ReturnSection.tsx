@@ -15,7 +15,7 @@ type Props = {
 export function ReturnSection({ orderId, orderStatus, orderCreatedAt, existingReturn }: Props) {
   const [showForm, setShowForm] = useState(false);
 
-  // Eligible: paid/shipped/delivered, within 7 days, no existing return
+  // Eligible: paid/shipped/delivered, within 13 days, no existing return
   const eligible = ['paid', 'shipped', 'delivered'].includes(orderStatus) && !existingReturn;
   const createdAt = new Date(orderCreatedAt);
   const daysSince = Math.floor((Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
