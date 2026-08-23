@@ -10,8 +10,8 @@ export default function ReturnsPage() {
         <h1>Returns Policy</h1>
         <p className="text-sm text-brand-500">Last updated: 2026-07-15</p>
 
-        <h2>7-Day Window</h2>
-        <p>You have <strong>7 days</strong> from the date of delivery to return an item for a refund. After 7 days, we can&apos;t offer a refund or exchange.</p>
+        <h2>13-Day Window</h2>
+        <p>You have <strong>13 days</strong> from the date of delivery to return an item for a refund. After 13 days, we can&apos;t offer a refund or exchange.</p>
 
         <h2>Eligibility</h2>
         <p>To be eligible for a return:</p>
