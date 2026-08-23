@@ -50,7 +50,7 @@ export function Drawer({ open, onClose, side = 'right', title, children, classNa
         )}
       >
         {title && (
-          <div className="flex items-center justify-between border-b border-brand-100 px-4 py-3">
+          <div className="flex items-center justify-between border-b border-brand-100 px-5 pt-6 pb-4 safe-top">
             <h2 className="text-base font-semibold text-brand-950">{title}</h2>
             <button
               type="button"
