@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en-ZA">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Trends Day-to-Day — Offline</title>
+  <meta name="theme-color" content="#C72E28" />
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, "Helvetica Neue", sans-serif;
+      background: #ffffff;
+      color: #1a1f26;
+      -webkit-font-smoothing: antialiased;
+      -webkit-text-size-adjust: 100%;
+    }
+    body {
+      min-height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 24px;
+      /* Safe area for iOS notch / Android nav bar */
+      padding-top: max(24px, env(safe-area-inset-top));
+      padding-bottom: max(24px, env(safe-area-inset-bottom));
+    }
+    .wrap {
+      width: 100%;
+      max-width: 28rem;
+      text-align: center;
+    }
+    .logo {
+      height: auto;
+      width: 160px;
+      max-width: 60vw;
+    }
+    .icon-circle {
+      margin: 40px auto 0;
+      width: 80px;
+      height: 80px;
+      border-radius: 9999px;
+      background: #fffbeb;
+      box-shadow: inset 0 0 0 1px #fde68a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .icon-circle svg {
+      width: 40px;
+      height: 40px;
+      color: #b45309;
+    }
+    h1 {
+      margin: 32px 0 12px;
+      font-size: 22px;
+      font-weight: 600;
+      line-height: 1.25;
+      color: #1a1f26;
+    }
+    @media (min-width: 640px) {
+      h1 { font-size: 24px; }
+    }
+    p {
+      margin: 0;
+      max-width: 28rem;
+      font-size: 14px;
+      line-height: 1.55;
+      color: #64748b;
+    }
+    @media (min-width: 640px) {
+      p { font-size: 16px; }
+    }
+    .btn {
+      margin-top: 32px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 22px;
+      background: #1a1f26;
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      text-decoration: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn:hover, .btn:focus { background: #0f1318; outline: none; }
+    .btn:focus-visible { outline: 2px solid #C72E28; outline-offset: 2px; }
+    .btn svg { width: 16px; height: 16px; }
+    .footer {
+      margin-top: 40px;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+    /* Subtle pulse on the icon to draw attention without being annoying */
+    @keyframes softPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.04); }
+    }
+    .icon-circle { animation: softPulse 3s ease-in-out infinite; }
+  </style>
+</head>
+<body>
+  <div class="wrap" role="alertdialog" aria-live="assertive" aria-labelledby="offline-headline" aria-describedby="offline-body">
+    <img src="/brand/logo.png" alt="Trends Day-to-Day" class="logo" />
+
+    <div class="icon-circle" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2.25 15a4.5 4.5 0 004.5 4.5H18a3.75 3.75 0 001.332-7.257 3 3 0 00-3.758-3.848 5.25 5.25 0 00-10.233 2.33A4.502 4.502 0 002.25 15z" />
+        <line x1="3" y1="3" x2="21" y2="21" />
+      </svg>
+    </div>
+
+    <h1 id="offline-headline">You are not connected to the internet</h1>
+    <p id="offline-body">We can't reach Trends right now. Check your Wi-Fi or mobile data and try again.</p>
+
+    <button type="button" class="btn" onclick="window.location.reload()" aria-label="Try again">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 12a9 9 0 11-3.46-7.1" />
+        <path d="M21 3v6h-6" />
+      </svg>
+      Try again
+    </button>
+
+    <p class="footer">Trends Day-to-Day &mdash; shop smart, save big</p>
+  </div>
+
+  <noscript>
+    <p style="text-align:center; padding: 24px;">
+      You are offline. Trends Day-to-Day needs an internet connection to load products.
+      Please connect to Wi-Fi or enable mobile data, then tap the back button to return to the app.
+    </p>
+  </noscript>
+</body>
+</html>
