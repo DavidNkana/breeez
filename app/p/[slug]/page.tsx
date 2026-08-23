@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getProductBySlug(params.slug);
   if (!product) return { title: 'Product not found — Trends Day-to-Day' };
   const SITE = (process.env.NEXT_PUBLIC_SITE_URL || 'https://breeez-lyart.vercel.app').replace(/\/+$/, '');
-  const priceCents = product.variants[0]?.price_cents ?? 0;
+  const priceCents = product.variants[0]?.price_cents ?? product.base_price_cents;
   const priceRand = `R${(priceCents / 100).toFixed(2)}`;
   return {
     title: `${product.name} — Trends Day-to-Day`,
@@ -48,7 +48,7 @@ export default async function ProductPage({ params }: Props) {
     ? await getRelatedProducts(product.id, product.category_id, 4)
     : [];
 
-  const priceCents = product.variants[0]?.price_cents ?? 0;
+  const priceCents = product.variants[0]?.price_cents ?? product.base_price_cents;
   const compareAt = product.variants[0]?.compare_at_cents ?? null;
   const inStock = product.variants.some((v) => v.stock > 0);
   const SITE_URL = brand.siteUrl;
@@ -173,7 +173,7 @@ export default async function ProductPage({ params }: Props) {
           name={product.name}
           imageUrl={product.images[0]?.url || '/placeholder.svg'}
           priceCents={
-            product.variants[0]?.price_cents ?? 0
+            product.variants[0]?.price_cents ?? product.base_price_cents
           }
         />
       </main>
