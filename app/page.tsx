@@ -98,8 +98,8 @@ export default async function HomePage() {
             <div className="flex items-start gap-3">
               <div className="flex-shrink-0 h-10 w-10 rounded-full bg-white flex items-center justify-center text-brand-900">↩</div>
               <div>
-                <p className="font-medium text-brand-900">7-day returns</p>
-                <p className="text-sm text-brand-600">Not right? Send it back within 7 days.</p>
+                <p className="font-medium text-brand-900">13-day returns</p>
+                <p className="text-sm text-brand-600">Not right? Send it back within 13 days.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
