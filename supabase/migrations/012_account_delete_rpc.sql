@@ -1,55 +1,70 @@
 -- 012_account_delete_rpc.sql
 --
 -- Apple App Store guideline 5.1.1(v) requires self-service account deletion.
--- This migration adds an atomic RPC that deletes the user and anonymizes the
--- orders that legally must be retained for SA tax (5 years per SARS practice).
 --
--- What this RPC does, atomically inside a transaction:
---   1. Anonymizes orders.email for any order belonging to this customer, so
---      that when auth.users is deleted (cascade -> customers, wishlist,
---      carts, addresses, reviews all gone), the order rows that remain no
---      longer carry the user's email address or any PII linking back.
---      The customer_id on the order is already set to NULL via the existing
---      ON DELETE SET NULL FK from orders -> customers, so no further work
---      is needed there.
---   2. Deletes the auth.users row. Postgres cascades:
---        auth.users -> public.customers (id)         -> addresses, wishlists,
---                                                    carts (customer_id), cart_items
---                                                    (via cart), reviews (customer_id)
---   3. After this returns, the only data left behind for tax purposes is
---      public.orders (and order_items) with:
---        - email = 'redacted-<order_number>@deleted.invalid'
---        - shipping_address (jsonb) is wiped of personal fields: name,
---          phone, line1/line2 are nulled. We keep city + province + postal_code
---          for tax record completeness (SARS does not require the recipient's
---          name or street address on a tax invoice after 5 years, but we
---          err on the side of keeping city for dispute resolution).
---        - customer_id = NULL (cascade already set this)
+-- This migration adds a SQL function that anonymizes order PII. The actual
+-- auth.users deletion is done via the Supabase admin API in the route
+-- handler (`app/api/account/delete/route.ts`), NOT via raw SQL.
 --
--- Security model:
---   - SECURITY DEFINER so it runs as the function owner (a privileged role)
---     and bypasses RLS, otherwise the calling user would be denied for the
---     auth.users delete.
---   - The function checks that auth.uid() returns a valid uuid. We do NOT
---     take a uid parameter — the function only ever operates on the caller.
---     Without this, a logged-in attacker could call
---     rpc('account_delete', { uid: '<victim>' }) and wipe the victim. With
---     the auth.uid()-only design, only the user themselves can delete their
---     own account.
+-- Why split it this way?
+--   The previous version of this function tried to do `delete from auth.users`
+--   directly. That failed at runtime (HTTP 500) because Supabase protects
+--   the auth.users table with internal privileges that even SECURITY DEFINER
+--   bypasses inconsistently. The supported, reliable path is to use
+--   `supabase.auth.admin.deleteUser(uid)` from server-side code, which goes
+--   through the same machinery Supabase uses when an admin deletes a user
+--   from the dashboard.
 --
--- NOTE on cascading to public.orders:
---   orders.customer_id is `references public.customers(id) ON DELETE SET NULL`
---   so when auth.users -> customers deletion cascades, the orders.customer_id
---   is automatically set to NULL. We don't need to touch that FK manually.
+-- What this RPC does:
+--   1. Anonymize every order belonging to the calling user, replacing:
+--        - email            -> 'redacted-<order_number>@deleted.invalid'
+--        - shipping.name    -> null
+--        - shipping.phone   -> null
+--        - shipping.line1   -> null
+--        - shipping.line2   -> null
+--        - shipping.city    -> kept (for tax / dispute context)
+--        - shipping.province -> kept
+--        - shipping.postal_code -> kept
+--        - shipping.country -> kept
+--      We deliberately null the personal fields but keep city/province/postal.
+--      South African tax record-keeping (5-year SARS practice) is satisfied
+--      by retaining the financial fields (subtotal_cents, total_cents, tax,
+--      currency) and the location at the city level. We do NOT keep the
+--      recipient's name, phone, or street address.
+--
+--   2. The actual auth.users deletion is performed by the route handler
+--      AFTER this RPC succeeds, using supabase.auth.admin.deleteUser(uid).
+--      The route handler runs in Node.js with the service-role key, so it
+--      can call the admin API. SQL SECURITY DEFINER cannot call the admin
+--      API (it's not a SQL function), so we split the work.
+--
+-- Why SECURITY DEFINER is still important here:
+--   This function modifies public.orders. Without SECURITY DEFINER, the
+--   calling user (the soon-to-be-deleted user) would be subject to RLS on
+--   public.orders, and their own row update policy might block the
+--   anonymization. SECURITY DEFINER + owner having UPDATE permission on
+--   public.orders makes the anonymization always succeed.
+--
+-- Security:
+--   The function does NOT take a uid parameter. It uses auth.uid() internally.
+--   Without that, a logged-in attacker could call
+--   rpc('account_delete_anonymize_orders', { uid: '<victim>' }) and wipe
+--   the victim's order PII.
+--
+-- Permission:
+--   EXECUTE granted only to authenticated. The function re-checks auth.uid()
+--   is not null. Combined, the caller must be authenticated AND be the owner
+--   of the orders being anonymized.
 
-create or replace function public.account_delete()
-returns void
+create or replace function public.account_delete_anonymize_orders()
+returns integer  -- number of orders anonymized, for logging/UX
 language plpgsql
 security definer
 set search_path = public, auth
 as $$
 declare
   v_uid uuid := auth.uid();
+  v_count integer := 0;
   v_order record;
 begin
   -- Permission check: must be authenticated.
@@ -57,10 +72,8 @@ begin
     raise exception 'Not authenticated' using errcode = '28000';
   end if;
 
-  -- Step 1: anonymize order PII before we delete the user. Iterate every
-  -- order this customer placed and replace the personal fields with
-  -- non-identifying placeholders. We do this BEFORE deleting the auth user
-  -- so the FK link to customer_id is still valid for the WHERE clause.
+  -- Anonymize every order belonging to this user. Iterate so we can use
+  -- the order_number in the redacted email (it's already unique).
   for v_order in
     select id, order_number
     from public.orders
@@ -81,22 +94,14 @@ begin
         'country',    coalesce(shipping_address->>'country', 'ZA')
       )
     where id = v_order.id;
+    v_count := v_count + 1;
   end loop;
 
-  -- Step 2: delete the auth user. Cascade wipes:
-  --   auth.users -> public.customers -> addresses, wishlists, carts,
-  --                  cart_items (via cart), reviews (customer_id)
-  -- orders.customer_id becomes NULL automatically via the FK rule.
-  delete from auth.users where id = v_uid;
+  return v_count;
 end;
 $$;
 
--- Lock down who can call this RPC. SECURITY DEFINER makes it run as the
--- function owner (a Postgres role), but the EXECUTE permission still gates
--- who can issue the call. We grant EXECUTE only to authenticated users.
--- The function internally re-checks auth.uid() so a user can only ever
--- delete themselves.
-grant execute on function public.account_delete() to authenticated;
+grant execute on function public.account_delete_anonymize_orders() to authenticated;
 
-comment on function public.account_delete() is
-  'Self-service account deletion for Apple App Store 5.1.1(v) compliance. Deletes the auth user, cascades to customers/wishlist/carts/reviews, and anonymizes order PII (email, name, phone, address) while preserving tax-required fields (city, province, postal_code, order_number, amounts). Caller must be authenticated; the function only ever operates on auth.uid().';
+comment on function public.account_delete_anonymize_orders() is
+  'Apple App Store 5.1.1(v) self-service deletion step 1: anonymizes the calling user orders (PII fields: email, name, phone, address line1/line2 -> null/redacted; retains city/province/postal_code + financial fields for tax). The auth.users deletion itself is done via Supabase admin API in app/api/account/delete/route.ts. Caller must be authenticated; uses auth.uid() internally so it cannot be used against another user.';
