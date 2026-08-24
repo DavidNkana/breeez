@@ -86,19 +86,24 @@ export default function DeleteAccountPage({ initialEmail }: Props) {
     setStage('deleting');
 
     try {
+      // x-debug-delete: 1 makes the route return its underlying error
+      // message in the body. This page is only reachable via the in-app
+      // Settings screen on a known account — exposing server internals
+      // is fine for diagnostic purposes.
       const res = await fetch('/api/account/delete', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-debug-delete': '1' },
         body: JSON.stringify({ email: email.trim(), password }),
         credentials: 'same-origin',
       });
-      const data = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string };
+      const data = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string; debug?: string };
       if (!res.ok || !data?.ok) {
         setStage('form');
-        setError(
-          data?.error ||
-            'We couldn\u2019t complete the deletion. Please try again.'
-        );
+        // Show the user-facing message. If a debug field came back,
+        // surface it under the message so you can read the actual cause
+        // without opening DevTools.
+        const baseMsg = data?.error || 'We couldn\u2019t complete the deletion. Please try again.';
+        setError(data?.debug ? `${baseMsg}\n\n[debug] ${data.debug}` : baseMsg);
         return;
       }
       setStage('done');
