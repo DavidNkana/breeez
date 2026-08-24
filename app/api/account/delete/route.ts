@@ -16,13 +16,12 @@ import { createAdminClient } from '@/lib/supabase/admin';
  *
  * Flow:
  *   1. Verify the body shape and that both fields are non-empty.
- *   2. Sign in with the email + password against the *service-role* aware
- *      client. We do this via a fresh signInWithPassword call so we get an
- *      honest re-auth — even if the caller has a valid cookie, we still
- *      require the password to be re-entered. This protects against
- *      account takeover via stolen session cookies.
- *   3. Call the `public.account_delete()` SQL function via the service-role
- *      client. That function:
+ *   2. Sign in with the email + password against a fresh server client.
+ *      We deliberately sign in even if the caller already has a valid
+ *      session cookie, so account takeover via stolen cookies can't
+ *      trigger deletion.
+ *   3. Call the `public.account_delete()` SQL function via the
+ *      service-role client. That function:
  *        - checks auth.uid() matches the caller
  *        - anonymizes order PII
  *        - deletes auth.users (cascades to customers, wishlist, cart, etc.)
@@ -30,15 +29,10 @@ import { createAdminClient } from '@/lib/supabase/admin';
  *      navigates to a "your account has been deleted" confirmation.
  *
  * We DO NOT call `supabase.auth.signOut()` server-side. The caller is on
- * a different origin/tab than the in-app session, and signing out server-side
- * from a route handler doesn't reliably clear the browser's session cookie
- * (cookies are tied to the route response). Instead, the caller signs out
- * client-side after the RPC succeeds, which is the supported pattern.
- *
- * Why not use the service-role client to delete directly? Because the RPC
- * already encapsulates the PII anonymization + cascade logic atomically.
- * Doing it from JS would split the operation into two queries, which would
- * leave orders un-anonymized for a window if the second query failed.
+ * a different origin/tab than the in-app session, and signing out
+ * server-side from a route handler doesn't reliably clear the browser's
+ * session cookie. Instead, the caller signs out client-side after the
+ * RPC succeeds, which is the supported pattern.
  *
  * Security model:
  *   - Password re-entry required on every call (even for an already-signed-in
@@ -86,11 +80,10 @@ export async function POST(req: Request): Promise<NextResponse<DeleteResponse>> 
   }
 
   // --- 2. Verify password against Supabase ---
-  // Use the per-request server client (anon key + cookies) so we exercise
-  // the real signInWithPassword code path. This signs a new session cookie
-  // on success, but we deliberately don't keep that session — we only used
-  // signIn to verify the credentials.
-  const verify = createClient();
+  // createClient() from lib/supabase/server is ASYNC (it reads cookies via
+  // next/headers). We MUST await it before using the returned client,
+  // otherwise verify is a Promise<SupabaseClient> with no .auth property.
+  const verify = await createClient();
   const { error: signInErr } = await verify.auth.signInWithPassword({ email, password });
   if (signInErr) {
     // Map every error to the same generic message to prevent account
@@ -101,12 +94,10 @@ export async function POST(req: Request): Promise<NextResponse<DeleteResponse>> 
     );
   }
 
-  // Capture the user id BEFORE we run the destructive op. After auth.users
-  // is deleted, auth.uid() will return null and we couldn't echo a useful
-  // value back. (We don't actually use it in the response, but having it in
-  // scope keeps the flow readable.)
+  // Capture the user id for the success log (not used in the response).
   const { data: { user: verifiedUser } } = await verify.auth.getUser();
   if (!verifiedUser) {
+    // Should not happen if signIn succeeded, but be defensive.
     return NextResponse.json(
       { ok: false, error: 'We couldn\u2019t verify those details. Please try again.' },
       { status: 401 }
@@ -114,16 +105,18 @@ export async function POST(req: Request): Promise<NextResponse<DeleteResponse>> 
   }
 
   // --- 3. Run the atomic deletion RPC ---
-  // Use the service-role client. The RPC itself enforces auth.uid() == caller.
+  // Use the service-role client. The RPC itself enforces auth.uid() == caller
+  // so this cannot be used to delete anyone other than the caller, even
+  // though it bypasses RLS.
   const admin = createAdminClient();
   const { error: rpcErr } = await admin.rpc('account_delete');
 
   if (rpcErr) {
     // If the migration hasn't been run yet, the RPC doesn't exist and
     // Supabase returns a "function not found" error. Surface a clear hint
-    // so the operator can self-diagnose rather than guess.
+    // so the operator can self-diagnose.
     const msg = String(rpcErr.message || '');
-    if (/function .* does not exist/i.test(msg) || /account_delete/i.test(msg) && /not found/i.test(msg)) {
+    if (/function .* does not exist/i.test(msg)) {
       return NextResponse.json(
         {
           ok: false,
@@ -146,8 +139,7 @@ export async function POST(req: Request): Promise<NextResponse<DeleteResponse>> 
 
   // --- 4. Success. The caller will sign out client-side and show a
   //         confirmation. We deliberately do NOT redirect here because the
-  //         page is on a different origin than the in-app session that we
-  //         just verified — server-side redirects wouldn't reliably clear
-  //         the user's session cookies.
+  //         page is on a different origin than the in-app session — server
+  //         redirects wouldn't reliably clear the user's session cookies.
   return NextResponse.json({ ok: true }, { status: 200 });
 }
