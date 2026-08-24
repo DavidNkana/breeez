@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 /**
- * Breeez Capacitor config.
+ * Breeez — Capacitor 6 + Android (and iOS, when added) main activity config.
  *
  * Approach: The native app is a webview wrapping the live Vercel deployment
  * (breeez-lyart.vercel.app). This means:
@@ -47,8 +47,19 @@ const config: CapacitorConfig = {
   },
 
   plugins: {
+    // Capacitor's default splash screen was the Capacitor template image
+    // (a blue background with the white "C" logo), which shipped with the
+    // original `npx cap add android` and was never replaced. We disable it
+    // here so users go straight from the launcher-icon splash (your Trends
+    // branded one in mipmap-*/ic_launcher.png) to the WebView, which
+    // shows the white-background AppSplash.tsx React component with the
+    // real Trends logo for ~5 seconds.
+    //
+    // To restore a native splash: replace the splash.png files in
+    // android/app/src/main/res/drawable-{density}/ and revert the
+    // launchShowDuration back to a positive number.
     SplashScreen: {
-      launchShowDuration: 5000,
+      launchShowDuration: 0,
       launchAutoHide: true,
       backgroundColor: '#ffffff',
       androidSplashResourceName: 'splash',
