@@ -59,9 +59,14 @@ export const brand = {
     website: 'https://www.trendsdaytoday.co.za',
   },
 
-  // URLs used in OG/canonical/legal — environment-overridable
+  // URLs used in OG/canonical/legal — environment-overridable.
+  // The fallback is the Vercel deployment URL — the actually-live, actually-resolving URL.
+  // Previously this defaulted to https://trends.day-to-day.app which is NOT a registered
+  // domain (placeholder), which broke the Apple-required account-deletion button and any
+  // other code that uses brand.siteUrl. If you ever wire up a real custom domain, set
+  // the NEXT_PUBLIC_SITE_URL env var in Vercel and this getter will use it instead.
   get siteUrl() {
-    return (process.env.NEXT_PUBLIC_SITE_URL || 'https://trends.day-to-day.app').replace(/\/+$/, '');
+    return (process.env.NEXT_PUBLIC_SITE_URL || 'https://breeez-lyart.vercel.app').replace(/\/+$/, '');
   },
 
   // Email subjects (handover to Resend)
