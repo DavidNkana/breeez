@@ -7,147 +7,125 @@ import { createAdminClient } from '@/lib/supabase/admin';
  *
  * Self-service account deletion. Apple App Store 5.1.1(v) compliance.
  *
- * Request body (JSON):
- *   {
- *     "email": "user@example.com",
- *     "password": "..."    // re-authentication; we never trust an existing
- *                          // session cookie for a destructive op
- *   }
- *
  * Flow:
- *   1. Verify the body shape and that both fields are non-empty.
- *   2. Sign in with the email + password against a fresh server client.
- *      We deliberately sign in even if the caller already has a valid
- *      session cookie, so account takeover via stolen cookies can't
- *      trigger deletion.
- *   3. Call the `account_delete_anonymize_orders()` RPC. That function:
- *        - checks auth.uid() matches the caller
- *        - anonymizes order PII (email, name, phone, address line1/line2;
- *          keeps city/province/postal + financial fields for tax)
- *   4. Then call `auth.admin.deleteUser(uid)` via the SERVICE ROLE client.
- *      This goes through Supabase's own admin machinery (same as deleting
- *      a user from the dashboard) and properly cascades to customers,
- *      wishlists, carts, reviews, addresses. We use the admin API instead
- *      of raw `delete from auth.users` because raw DELETE against auth.users
- *      is protected by Supabase internals and is the cause of the prior
- *      500 — auth.admin.deleteUser() is the supported, reliable path.
- *   5. Return success. The caller (the React page) clears local state
- *      and navigates to the "your account has been deleted" confirmation.
+ *   1. Validate body shape (email + password required).
+ *   2. Re-auth via signInWithPassword (even if caller has a valid cookie).
+ *   3. Call account_delete_anonymize_orders() RPC (anonymizes order PII).
+ *   4. Call admin.auth.admin.deleteUser(userId) via service-role client.
+ *      Supabase cascades to customers, wishlists, carts, reviews, addresses.
  *
- * We DO NOT call `supabase.auth.signOut()` server-side. The caller is on
- * a different origin/tab than the in-app session, and signing out
- * server-side from a route handler doesn't reliably clear the browser's
- * session cookie. Instead, the caller signs out client-side after the
- * RPC succeeds, which is the supported pattern.
- *
- * Security model:
- *   - Password re-entry required on every call (even for an already-signed-in
- *     user). Standard defense against session-cookie theft.
- *   - We never accept a uid from the client — auth.uid() comes from the JWT.
- *   - The SQL function re-checks auth.uid() internally.
- *   - All errors are mapped to generic messages; we don't reveal whether
- *     the email exists or the password is wrong (anti-enumeration).
+ * Debug mode (DEV ONLY):
+ *   Pass header `x-debug-delete: 1` to receive the underlying error message
+ *   in the response. NEVER enable in production — it leaks server internals.
+ *   Used for diagnosing 500s. The middleware / app sets this header in dev.
  */
 
-export const runtime = 'nodejs'; // need service-role env vars
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 type DeleteBody = { email?: unknown; password?: unknown };
-type DeleteResponse = { ok: true } | { ok: false; error: string };
+type DeleteResponse = { ok: true } | { ok: false; error: string; debug?: string };
+
+function err(req: Request, status: number, user: string, debug?: string): NextResponse<DeleteResponse> {
+  const isDebug = req.headers.get('x-debug-delete') === '1';
+  return NextResponse.json<DeleteResponse>(
+    isDebug ? { ok: false, error: user, debug } : { ok: false, error: user },
+    { status }
+  );
+}
 
 export async function POST(req: Request): Promise<NextResponse<DeleteResponse>> {
-  // --- 1. Parse and validate body ---
+  // --- 1. Parse body ---
   let body: DeleteBody;
   try {
     body = (await req.json()) as DeleteBody;
   } catch {
-    return NextResponse.json({ ok: false, error: 'Invalid request' }, { status: 400 });
+    return err(req, 400, 'Invalid request', 'body parse failed');
   }
 
   const email = typeof body.email === 'string' ? body.email.trim() : '';
   const password = typeof body.password === 'string' ? body.password : '';
 
   if (!email || !password) {
-    return NextResponse.json(
-      { ok: false, error: 'Email and password are required.' },
-      { status: 400 }
-    );
+    return err(req, 400, 'Email and password are required.', 'missing email or password');
   }
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return NextResponse.json(
-      { ok: false, error: 'That email doesn\u2019t look right.' },
-      { status: 400 }
-    );
+    return err(req, 400, 'That email doesn\u2019t look right.', 'bad email shape');
   }
 
-  // --- 2. Verify password against Supabase ---
-  // createClient() from lib/supabase/server is ASYNC (reads cookies via
-  // next/headers, which is async in Next 14+). MUST await before use.
-  const verify = await createClient();
-  const { data: signInData, error: signInErr } = await verify.auth.signInWithPassword({
-    email,
-    password,
-  });
-  if (signInErr || !signInData?.user) {
-    // Map every error to the same generic message to prevent account
-    // enumeration via timing or wording differences.
-    return NextResponse.json(
-      { ok: false, error: 'We couldn\u2019t verify those details. Please try again.' },
-      { status: 401 }
-    );
+  // --- 2. Re-auth ---
+  let verify;
+  try {
+    verify = await createClient();
+  } catch (e) {
+    return err(req, 500, 'Service unavailable.', `createClient failed: ${(e as Error)?.message ?? String(e)}`);
+  }
+
+  let signInData;
+  try {
+    const result = await verify.auth.signInWithPassword({ email, password });
+    signInData = result.data;
+    if (result.error || !signInData?.user) {
+      return err(req, 401, 'We couldn\u2019t verify those details. Please try again.',
+        `signIn error: ${result.error?.message ?? 'no user returned'}`);
+    }
+  } catch (e) {
+    return err(req, 500, 'We couldn\u2019t verify those details.', `signIn threw: ${(e as Error)?.message ?? String(e)}`);
   }
 
   const userId = signInData.user.id;
 
-  // --- 3. Anonymize order PII via the SECURITY DEFINER RPC ---
-  // Uses auth.uid() internally — only operates on the caller's orders.
-  const { error: rpcErr } = await verify.rpc('account_delete_anonymize_orders');
-
-  if (rpcErr) {
-    const msg = String(rpcErr.message || '');
-    // Function-not-installed hint for operators who haven't run the migration.
-    if (/function .* does not exist/i.test(msg)) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error:
-            'The account_delete_anonymize_orders function is not installed. ' +
-            'Run supabase/migrations/012_account_delete_rpc.sql in Supabase Studio.',
-        },
-        { status: 500 }
-      );
+  // --- 3. Anonymize order PII ---
+  try {
+    const { error: rpcErr } = await verify.rpc('account_delete_anonymize_orders');
+    if (rpcErr) {
+      const msg = String(rpcErr.message || '');
+      const debug = `rpc error: code=${rpcErr.code ?? 'n/a'} message="${msg}"`;
+      if (/function .* does not exist/i.test(msg)) {
+        return err(req, 500,
+          'The account_delete_anonymize_orders function is not installed. Run supabase/migrations/012_account_delete_rpc.sql in Supabase Studio.',
+          debug);
+      }
+      return err(req, 500, 'We couldn\u2019t complete the deletion right now. Please try again.', debug);
     }
-    return NextResponse.json(
-      {
-        ok: false,
-        error:
-          'We couldn\u2019t complete the deletion right now. Please try again.',
-      },
-      { status: 500 }
-    );
+  } catch (e) {
+    return err(req, 500, 'We couldn\u2019t complete the deletion right now. Please try again.',
+      `rpc threw: ${(e as Error)?.message ?? String(e)}`);
   }
 
-  // --- 4. Delete the auth.users row via the admin API ---
-  // Uses the service-role client (createAdminClient). This bypasses RLS and
-  // uses Supabase's own admin machinery — the same call that runs when an
-  // admin deletes a user from the dashboard. It cascades to customers,
-  // wishlists, carts, reviews, addresses via the FK rules. Order rows are
-  // NOT deleted — they remain (with anonymized PII) for tax.
-  const admin = createAdminClient();
-  const { error: deleteErr } = await admin.auth.admin.deleteUser(userId);
-
-  if (deleteErr) {
-    return NextResponse.json(
-      {
-        ok: false,
-        error:
-          'We anonymized your order history, but couldn\u2019t complete the account deletion. Please contact support so we can finish it manually.',
-      },
-      { status: 500 }
-    );
+  // --- 4. Delete the auth user via service-role admin API ---
+  // Defensive: check the env var exists before constructing the client.
+  // Without this, createAdminClient throws an opaque "Invalid API key"
+  // error inside @supabase/supabase-js which doesn't make it clear that
+  // the env var is missing.
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return err(req, 500,
+      'Server misconfiguration: SUPABASE_SERVICE_ROLE_KEY is not set.',
+      'env var missing — set it in Vercel Settings → Environment Variables');
   }
 
-  // --- 5. Success. The caller will sign out client-side. ---
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch (e) {
+    return err(req, 500, 'Service unavailable.',
+      `createAdminClient failed: ${(e as Error)?.message ?? String(e)}`);
+  }
+
+  try {
+    const { error: deleteErr } = await admin.auth.admin.deleteUser(userId);
+    if (deleteErr) {
+      return err(req, 500,
+        'We anonymized your order history, but couldn\u2019t complete the account deletion. Please contact support so we can finish it manually.',
+        `admin.deleteUser error: code=${deleteErr.code ?? 'n/a'} status=${deleteErr.status ?? 'n/a'} message="${deleteErr.message ?? ''}"`);
+    }
+  } catch (e) {
+    return err(req, 500,
+      'We anonymized your order history, but couldn\u2019t complete the account deletion.',
+      `admin.deleteUser threw: ${(e as Error)?.message ?? String(e)}`);
+  }
+
+  // --- 5. Success ---
   return NextResponse.json({ ok: true }, { status: 200 });
 }
