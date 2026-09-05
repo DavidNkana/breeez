@@ -54,16 +54,13 @@ The Trends logo is at `public/brand/logo.png` (8.8KB PNG). Use this as the app i
 3. Replace the existing generic Capacitor icon (it's a default blue icon)
 4. Verify all slots are filled
 
-## Step 5 — Update the splash screen (optional)
+## Step 5 — Splash screen
 
-The splash screen currently shows a plain white screen with no branding. To add the logo:
+The iOS native launch screen (`LaunchScreen.storyboard`) is intentionally a plain white view — there is **no `Splash.imageset` to edit and you should not recreate one**. Any previous handoff notes telling you to drop `public/brand/logo.png` into `ios/App/App/Assets.xcassets/Splash.imageset/` are stale and pre-date this change.
 
-1. Open `public/brand/logo.png`
-2. Resize to 2732×2732 (centered, with some padding)
-3. Export as PNG
-4. Replace `ios/App/App/Assets.xcassets/Splash.imageset/splash-2732x2732.png`
+Branding during app open is handled entirely by `components/app/AppSplash.tsx`, which renders the Trends logo on a white background inside the WebView for ~5 seconds on first launch. This keeps the branded splash updateable from web deploys without needing an Xcode rebuild.
 
-Or skip this — a white splash is acceptable for App Store.
+If you ever do want a fully native iOS launch logo, the right approach is to add a new imageset (e.g. `LaunchLogo.imageset`) and reference it from `LaunchScreen.storyboard` — do not recreate the deleted `Splash.imageset` (it would conflict with the Capacitor splash plugin's expectations).
 
 ## Step 6 — Archive & Upload
 

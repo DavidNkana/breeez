@@ -12,15 +12,15 @@ const SPLASH_KEY = 'breeez:splash_shown_v1';
  * Only shows once per browser session.
  */
 export function AppSplash() {
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    return !sessionStorage.getItem(SPLASH_KEY);
+  });
 
   useEffect(() => {
-    // Don't show if already seen this session
-    if (sessionStorage.getItem(SPLASH_KEY)) return;
-    sessionStorage.setItem(SPLASH_KEY, '1');
+    if (!visible) return;
 
-    // Brief delay so the first paint happens, then show
-    const showTimer = setTimeout(() => setVisible(true), 50);
+    sessionStorage.setItem(SPLASH_KEY, '1');
 
     // Auto-hide after 5 seconds
     const hideTimer = setTimeout(() => {
@@ -28,10 +28,9 @@ export function AppSplash() {
     }, 5000);
 
     return () => {
-      clearTimeout(showTimer);
       clearTimeout(hideTimer);
     };
-  }, []);
+  }, [visible]);
 
   if (!visible) return null;
 
