@@ -16,6 +16,7 @@ export type Category = {
   image_url: string | null;
   parent_id: string | null;
   sort_order: number;
+  show_on_home: boolean;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -186,8 +187,9 @@ export type Return = {
 };
 
 // Row shapes for inserts
-export type CategoryInsert = Omit<Category, 'id' | 'created_at' | 'updated_at'> & {
+export type CategoryInsert = Omit<Category, 'id' | 'created_at' | 'updated_at' | 'show_on_home'> & {
   id?: string;
+  show_on_home?: boolean;
 };
 export type ProductInsert = Omit<Product, 'id' | 'created_at' | 'updated_at'> & {
   id?: string;

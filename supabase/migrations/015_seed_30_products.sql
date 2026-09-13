@@ -1,4 +1,5 @@
--- 011_seed_30_products.sql — Self-contained, robust seed for the Trends meeting.
+-- Migration 015: seed_30_products.sql
+-- Self-contained, robust seed for the Trends meeting.
 -- Idempotent: cleans up demo/dummy first, then re-inserts 30 products + variants + images.
 
 -- =====================================================================
@@ -58,11 +59,11 @@ on conflict (id) do nothing;
 -- =====================================================================
 do $$
 declare
-  _app uuid := (select id from categories where slug = 'apparel');
+  _app uuid := (select id from categories where slug = 'women');
   _sho uuid := (select id from categories where slug = 'shoes');
   _kit uuid := (select id from categories where slug = 'kitchen');
-  _bed uuid := (select id from categories where slug = 'bedroom');
-  _bat uuid := (select id from categories where slug = 'bathroom');
+  _bed uuid := (select id from categories where slug = 'bed-bath');
+  _bat uuid := (select id from categories where slug = 'bed-bath');
   _dec uuid := (select id from categories where slug = 'home-decor');
   _bag uuid := (select id from categories where slug = 'bags');
   _cur uuid := (select id from categories where slug = 'curtains');

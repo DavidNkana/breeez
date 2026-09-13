@@ -8,13 +8,19 @@
 
 ## 1. Product & Scope (one-page summary)
 
-**Breeez** is a South African single-brand ecommerce store that sells across 10 categories (Apparel, Bags, Bathroom, Bedroom, Curtains, Everyday Essentials, Home Decor, Kitchen, Shoes, Back-to-School). It runs as a web app at a Vercel-hosted URL, as an Apple App Store app, and as a Google Play Store app — all from **one Next.js codebase wrapped with Capacitor**.
+**Breeez** is a South African single-brand ecommerce store that sells across 14 categories. It runs as a web app at a Vercel-hosted URL, as an Apple App Store app, and as a Google Play Store app — all from **one Next.js codebase wrapped with Capacitor**.
 
 **Reference flow:** Trends Day to Day (trendsdaytoday.co.za) — verified by scraping their home + PLP + PDP. **Industry-standard ecommerce layout patterns** (category tile grid, PLP with sidebar filters + grid + sort, PDP with variants + "Select options", slide-out cart drawer, account drawer, wishlist, compare) — these are universal patterns used by every modern ecommerce site and are not copyrightable. **Original Breeez visual design** — own typography, colour palette, copy voice, photography style. Explicitly NOT a clone of Trends' UI.
 
 **Out of scope for v1:** seller/marketplace features, multi-currency, multi-language, loyalty programme, subscriptions, B2B/wholesale.
 
 ---
+
+### Taxonomy
+
+The eight hero categories shown on the home page are: Women, Men, Kids, Shoes, Bags, Home Decor, Kitchen, and Bed & Bath.
+
+The full Shop page also includes: Curtains, Everyday Essentials, Back to School, Plus Size, and Babywear. Apparel remains as a hidden legacy category for backwards compatibility.
 
 ## 2. Personas
 

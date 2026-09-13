@@ -139,7 +139,7 @@
 │   ├── config.toml                     # DONE
 │   └── migrations/
 │       ├── 001_init.sql                # DONE — full schema + RLS + place_order RPC
-│       └── 002_seed_categories.sql     # DONE — 10 categories
+│       └── 002_seed_categories.sql     # DONE — legacy category seed (v2 taxonomy in 013)
 ├── public/                             # static assets (favicon, OG image, etc.)
 ├── android/                            # Capacitor-generated (Task 23)
 ├── ios/                                # Capacitor-generated (Task 24)

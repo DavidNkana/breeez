@@ -59,11 +59,11 @@ export async function GET(req: NextRequest) {
 function getPopularCategories() {
   // Static list — fast, no DB hit. These are the categories the home page shows.
   return [
-    { id: 'apparel', slug: 'apparel', name: 'Apparel' },
+    { id: 'women', slug: 'women', name: 'Women' },
     { id: 'kitchen', slug: 'kitchen', name: 'Kitchen' },
     { id: 'home-decor', slug: 'home-decor', name: 'Home Decor' },
-    { id: 'bathroom', slug: 'bathroom', name: 'Bathroom' },
-    { id: 'bedroom', slug: 'bedroom', name: 'Bedroom' },
-    { id: 'back-to-school', slug: 'back-to-school', name: 'Back to School' },
+    { id: 'bed-bath', slug: 'bed-bath', name: 'Bed & Bath' },
+    { id: 'shoes', slug: 'shoes', name: 'Shoes' },
+    { id: 'bags', slug: 'bags', name: 'Bags' },
   ];
 }

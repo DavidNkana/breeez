@@ -1,4 +1,5 @@
--- 010_seed_better_products.sql — Better product seed for the Trends meeting.
+-- Migration 014: seed_better_products.sql
+-- Better product seed for the Trends meeting.
 -- Replaces the old dummy products with ones that have:
 --   1. Working Unsplash images (guaranteed active photo IDs)
 --   2. Multiple variants (size, colour, etc.)
@@ -41,11 +42,11 @@ delete from products
 
 do $$
 declare
-  _app uuid := (select id from categories where slug = 'apparel');
+  _app uuid := (select id from categories where slug = 'women');
   _sho uuid := (select id from categories where slug = 'shoes');
   _kit uuid := (select id from categories where slug = 'kitchen');
-  _bed uuid := (select id from categories where slug = 'bedroom');
-  _bat uuid := (select id from categories where slug = 'bathroom');
+  _bed uuid := (select id from categories where slug = 'bed-bath');
+  _bat uuid := (select id from categories where slug = 'bed-bath');
   _dec uuid := (select id from categories where slug = 'home-decor');
   _bag uuid := (select id from categories where slug = 'bags');
   _cur uuid := (select id from categories where slug = 'curtains');

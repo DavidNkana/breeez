@@ -95,7 +95,7 @@ Go to https://appstoreconnect.apple.com and fill in:
 
 **Promotional text:**
 ```
-South Africa's curated marketplace for everyday essentials. Browse 10 categories, nationwide delivery, secure local checkout.
+South Africa's curated marketplace for everyday essentials. Browse 14 categories, nationwide delivery, secure local checkout.
 ```
 
 ## Step 8 — Screenshots

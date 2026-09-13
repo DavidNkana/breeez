@@ -10,8 +10,8 @@ export default function CategoriesPage() {
           <span className="mx-1">/</span>
           <span className="text-brand-700">All categories</span>
         </nav>
-        <h1 className="mt-2 text-2xl md:text-3xl font-semibold text-brand-950">All categories</h1>
-        <p className="mt-1 text-sm text-brand-600">Browse everything Evasale has to offer.</p>
+        <h1 className="mt-2 text-2xl md:text-3xl font-semibold text-brand-950">Shop</h1>
+        <p className="mt-1 text-sm text-brand-600">Browse all categories and find what you need.</p>
         <div className="mt-6">
           <CategoryGrid />
         </div>

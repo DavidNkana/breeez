@@ -19,7 +19,7 @@ export default async function HomePage() {
             <h2 className="text-xl md:text-2xl font-semibold text-brand-950 dark:text-brand-50">Shop by category</h2>
             <Link href="/categories" className="text-sm text-brand-600 dark:text-brand-300 hover:underline whitespace-nowrap">View all</Link>
           </div>
-          <CategoryGrid />
+          <CategoryGrid homeOnly />
         </section>
 
         {/* Promo banner 1 — full-bleed image, between Categories and Today's picks */}
@@ -78,9 +78,9 @@ export default async function HomePage() {
           posterUrl="https://cdn.pixabay.com/video/2015/10/16/1006-142621176_tiny.jpg"
           eyebrow="New season"
           headline="New wardrobe. Better prices."
-          subheadline="Apparel, shoes, and accessories for SA weather and SA budgets — delivered nationwide."
-          ctaHref="/c/apparel"
-          ctaLabel="Shop apparel"
+          subheadline="Women, men, kids, shoes and bags — for SA weather and SA budgets. Delivered nationwide."
+          ctaHref="/c/women"
+          ctaLabel="Shop women"
         />
 
         <div className="mx-auto mt-4 max-w-6xl px-4"><div className="rounded-lg bg-accent-500 px-4 py-3 text-center text-sm font-semibold text-white">App-only: Free shipping on orders over R650</div></div>

@@ -22,6 +22,40 @@ export async function getCategories(): Promise<Category[]> {
   return data ?? [];
 }
 
+export type CategoryListItem = {
+  id: string;
+  slug: string;
+  name: string;
+  imageUrl: string | null;
+  parentId: string | null;
+  showOnHome: boolean;
+};
+
+export async function listCategories(opts: { homeOnly?: boolean; parentId?: string | null } = {}): Promise<CategoryListItem[]> {
+  const supabase = await createClient();
+  let query = (supabase
+    .from('categories')
+    .select('id, slug, name, image_url, parent_id, show_on_home')
+    .eq('is_active', true)
+    .order('sort_order', { ascending: true })
+    .order('name', { ascending: true })) as any;
+
+  if (opts.homeOnly) query = query.eq('show_on_home', true);
+  if (opts.parentId === null) query = query.is('parent_id', null);
+  else if (opts.parentId) query = query.eq('parent_id', opts.parentId);
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return (data ?? []).map((category: any) => ({
+    id: category.id,
+    slug: category.slug,
+    name: category.name,
+    imageUrl: category.image_url ?? null,
+    parentId: category.parent_id ?? null,
+    showOnHome: category.show_on_home ?? false,
+  }));
+}
+
 export async function getCategoryBySlug(slug: string): Promise<Category | null> {
   const supabase = await createClient();
   const { data, error } = (await supabase

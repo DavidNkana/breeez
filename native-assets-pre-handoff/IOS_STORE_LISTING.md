@@ -12,24 +12,28 @@ Home, Kitchen & Lifestyle
 
 ## Promotional text (max 170 chars, can be updated without review)
 ```
-South Africa's curated marketplace for everyday essentials. Browse 10 categories, nationwide delivery, secure local checkout.
+South Africa's curated marketplace for everyday essentials. Browse 14 categories, nationwide delivery, secure local checkout.
 ```
 
 ## Description (max 4000 chars)
 ```
 Welcome to Breeez — South Africa's curated marketplace for the everyday things that make a house feel like home.
 
-Whether you're refreshing your kitchen, restocking bathroom essentials, updating the kids' back-to-school gear, or adding the perfect accent to your living room, Breeez brings together 10 carefully chosen categories:
-- Apparel
-- Bags
-- Bathroom
-- Bedroom
-- Curtains & Blinds
-- Home Décor
-- Kitchen
+Whether you're refreshing your kitchen, restocking bathroom essentials, updating the kids' back-to-school gear, or adding the perfect accent to your living room, Evasale brings together 14 carefully chosen categories:
+- Women
+- Men
+- Kids
+- Babywear
+- Plus Size
 - Shoes
-- Back-to-School
+- Bags
+- Home Decor
+- Kitchen
+- Bed & Bath
+- Curtains
 - Everyday Essentials
+- Back to School
+- Apparel
 
 WHY BREEZ?
 • Real South African essentials, not overseas noise — products chosen for local taste and local prices.
@@ -77,7 +81,7 @@ shopping,home,kitchen,south africa,apparel,lifestyle,delivery,payfast,couriers,e
 Welcome to Breeez — your one-stop shop for kitchen, home & lifestyle essentials.
 
 What's inside:
-• Browse 10 categories: apparel, bags, bathroom, bedroom, curtains & more
+• Browse 14 categories: women, men, kids, shoes, bags, home, kitchen & more
 • Save items to your wishlist
 • Fast checkout with PayFast, Yoco or Ozow
 • SA couriers: Pargo, The Courier Guy, Dawn Wing

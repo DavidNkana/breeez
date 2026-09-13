@@ -44,7 +44,7 @@ Fill in this exact text (you can customise later):
 | Field | Value |
 |---|---|
 | App name | Breeez |
-| Short description (80 chars max) | `South Africa's everyday essentials marketplace — 10 categories, ZAR.` |
+| Short description (80 chars max) | `South Africa's everyday essentials marketplace — 14 categories, ZAR.` |
 | Full description (4000 chars max) | See `ANDROID_STORE_LISTING.md` (in this folder) |
 | App icon (512×512 PNG) | Drop final Breeez icon into `play-assets/icon-512.png` (slot) |
 | Feature graphic (1024×500 PNG) | Drop into `play-assets/feature-graphic-1024x500.png` (slot) |
@@ -78,7 +78,7 @@ Fill in this exact text (you can customise later):
 4. Release notes (drop your own or use these):
    ```
    • Welcome to Breeez — your one-stop shop for kitchen, home & lifestyle essentials.
-   • Browse 10 categories: apparel, bags, bathroom, bedroom, curtains & more.
+   • Browse 14 categories: women, men, kids, shoes, bags, home, kitchen & more.
    • Save your wishlist.
    • Fast checkout with PayFast, Yoco or Ozow.
    • South African couriers: Pargo, The Courier Guy, Dawn Wing.

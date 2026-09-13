@@ -11,7 +11,7 @@ export const metadata = {
 const VALUES = [
   {
     title: 'Made for SA homes',
-    body: 'No global noise. Every product is chosen for how South Africans actually live — bedrooms, kitchens, kids heading back to school.',
+    body: 'No global noise. Every product is chosen for how South Africans actually live — women, men, kids, home decor, and kitchen essentials.',
   },
   {
     title: 'Fair, transparent pricing',
@@ -51,8 +51,8 @@ export default function AboutPage() {
           Big international stores flood South Africa with the same catalogue
           every shop shows. Local alternatives get squeezed out. We thought
           there was room for a South African-first shop that took the
-          everyday categories seriously — apparel, bathroom, bedroom,
-          kitchen, school — and shipped them from local warehouses at prices
+          everyday categories seriously — women, men, kids, home decor,
+          kitchen, bed & bath, school — and shipped them from local warehouses at prices
           that made sense on a ZAR salary.
         </p>
 
