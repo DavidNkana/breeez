@@ -57,15 +57,15 @@
 
 	<!-- Permissions requested by feature use -->
 	<key>NSCameraUsageDescription</key>
-	<string>Breeez uses the camera so you can capture product photos for returns and your profile.</string>
+	<string>Evasale uses the camera so you can capture product photos for returns and your profile.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Breeez needs access to your photos so you can attach pictures to support requests and returns.</string>
+	<string>Evasale needs access to your photos so you can attach pictures to support requests and returns.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Breeez saves receipts and invoices to your photo library.</string>
+	<string>Evasale saves receipts and invoices to your photo library.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Breeez uses your location to show nearest pickup points (Pargo lockers, store locations).</string>
+	<string>Evasale uses your location to show nearest pickup points (Pargo lockers, store locations).</string>
 	<key>NSUserNotificationsUsageDescription</key>
-	<string>Breeez sends order updates, shipping confirmations, and customer support messages.</string>
+	<string>Evasale sends order updates, shipping confirmations, and customer support messages.</string>
 
 	<!-- Background mode for push notifications (order updates) -->
 	<key>UIBackgroundModes</key>

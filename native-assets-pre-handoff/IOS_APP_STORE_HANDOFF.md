@@ -5,7 +5,7 @@
 - [ ] Mac with Xcode 15+ installed
 - [ ] Access to Naz's Apple Developer account (login at developer.apple.com)
 - [ ] This project repo cloned to your Mac
-- [ ] The Evasale logo at `public/brand/evasale-logo.png` (use as the app icon)
+- [ ] The Evasale launcher icon source at `brand-assets/app-launcher.png`
 
 ## Step 1 — Clone & Install
 
@@ -18,25 +18,16 @@ npx cap sync ios
 
 ## Step 2 — Create the app icon
 
-The Evasale logo is at `public/brand/evasale-logo.png`. Use this as the app icon — it's the same logo that appears on the website header.
+The launcher icon source is `brand-assets/app-launcher.png`.
 
-1. Open `public/brand/evasale-logo.png` in Preview
+The generated App Store icon is the 1024×1024 master at `ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png`. Modern Capacitor and Xcode scale this single file to the required device sizes automatically.
+
+1. Open `brand-assets/app-launcher.png` in Preview
 2. The logo is already a PNG with transparency. For the app icon you need a solid background:
    - In Preview: Tools → Adjust Color (nothing needed — just centre it on a red #C72E28 canvas)
    - Or use Figma/Sketch: place the logo on a 1024×1024 red (#C72E28) rounded square canvas, export as PNG
 
-**Then create ALL required icon sizes.** The Xcode asset catalog needs these exact sizes:
-| Size | Use |
-|------|-----|
-| 1024×1024 | App Store submission icon (also goes in App Store Connect) |
-| 180×180 | iPhone 60pt @3x |
-| 120×120 | iPhone 60pt @2x / Settings |
-| 167×167 | iPad Pro |
-| 152×152 | iPad @2x |
-| 76×76 | iPad @1x |
-| 40×40 | Spotlight |
-
-**Quick method:** Resize the 1024×1024 PNG to each size above and drop them into the Xcode asset catalog.
+Do not create per-device PNGs. The asset catalog uses the single 1024×1024 master at `AppIcon-512@2x.png`; modern Capacitor and Xcode scale it automatically.
 
 ## Step 3 — Set the Team in Xcode
 
@@ -50,7 +41,7 @@ The Evasale logo is at `public/brand/evasale-logo.png`. Use this as the app icon
 ## Step 4 — Add app icon to Xcode
 
 1. In the Xcode project navigator, find `App/App/Assets.xcassets/AppIcon`
-2. Drag each PNG file into the correct slot in the asset catalog
+2. Verify `AppIcon-512@2x.png` is present in the asset catalog
 3. Replace the existing generic Capacitor icon (it's a default blue icon)
 4. Verify all slots are filled
 
