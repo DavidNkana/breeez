@@ -31,29 +31,65 @@ export type CategoryListItem = {
   showOnHome: boolean;
 };
 
-export async function listCategories(opts: { homeOnly?: boolean; parentId?: string | null } = {}): Promise<CategoryListItem[]> {
-  const supabase = await createClient();
-  let query = (supabase
-    .from('categories')
-    .select('id, slug, name, image_url, parent_id, show_on_home')
-    .eq('is_active', true)
-    .order('sort_order', { ascending: true })
-    .order('name', { ascending: true })) as any;
+const STATIC_CATEGORY_FALLBACK: Array<Pick<CategoryListItem, 'slug' | 'name' | 'imageUrl' | 'showOnHome'>> = [
+  { slug: 'women', name: 'Women', imageUrl: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=600&h=600&fit=crop&q=80', showOnHome: true },
+  { slug: 'men', name: 'Men', imageUrl: 'https://images.unsplash.com/photo-1617127365659-c47fa864d8bc?w=600&h=600&fit=crop&q=80', showOnHome: true },
+  { slug: 'kids', name: 'Kids', imageUrl: 'https://images.unsplash.com/photo-1503919545889-aef636e10ad4?w=600&h=600&fit=crop&q=80', showOnHome: true },
+  { slug: 'babywear', name: 'Babywear', imageUrl: 'https://images.unsplash.com/photo-1519689680058-324335c77eba?w=600&h=600&fit=crop&q=80', showOnHome: false },
+  { slug: 'plus-size', name: 'Plus Size', imageUrl: 'https://images.unsplash.com/photo-1485968579580-b6d095142e6e?w=600&h=600&fit=crop&q=80', showOnHome: false },
+  { slug: 'shoes', name: 'Shoes', imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&h=600&fit=crop&q=80', showOnHome: true },
+  { slug: 'bags', name: 'Bags', imageUrl: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&h=600&fit=crop&q=80', showOnHome: true },
+  { slug: 'home-decor', name: 'Home Decor', imageUrl: 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=600&h=600&fit=crop&q=80', showOnHome: true },
+  { slug: 'kitchen', name: 'Kitchen', imageUrl: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&h=600&fit=crop&q=80', showOnHome: true },
+  { slug: 'bed-bath', name: 'Bed & Bath', imageUrl: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=600&h=600&fit=crop&q=80', showOnHome: true },
+  { slug: 'curtains', name: 'Curtains', imageUrl: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=600&h=600&fit=crop&q=80', showOnHome: false },
+  { slug: 'everyday-essentials', name: 'Everyday Essentials', imageUrl: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&h=600&fit=crop&q=80', showOnHome: false },
+  { slug: 'back-to-school', name: 'Back to School', imageUrl: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&h=600&fit=crop&q=80', showOnHome: false },
+];
 
-  if (opts.homeOnly) query = query.eq('show_on_home', true);
-  if (opts.parentId === null) query = query.is('parent_id', null);
-  else if (opts.parentId) query = query.eq('parent_id', opts.parentId);
-
-  const { data, error } = await query;
-  if (error) throw error;
-  return (data ?? []).map((category: any) => ({
-    id: category.id,
-    slug: category.slug,
-    name: category.name,
-    imageUrl: category.image_url ?? null,
-    parentId: category.parent_id ?? null,
-    showOnHome: category.show_on_home ?? false,
+export function getCategoriesStaticFallback(): CategoryListItem[] {
+  return STATIC_CATEGORY_FALLBACK.map((category, index) => ({
+    ...category,
+    id: `00000000-0000-0000-0000-${String(index + 1).padStart(12, '0')}`,
+    parentId: null,
   }));
+}
+
+export async function listCategories(opts: { homeOnly?: boolean; parentId?: string | null } = {}): Promise<CategoryListItem[]> {
+  try {
+    const supabase = await createClient();
+    let query = (supabase
+      .from('categories')
+      .select('id, slug, name, image_url, parent_id, show_on_home')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
+      .order('name', { ascending: true })) as any;
+
+    if (opts.homeOnly) query = query.eq('show_on_home', true);
+    if (opts.parentId === null) query = query.is('parent_id', null);
+    else if (opts.parentId) query = query.eq('parent_id', opts.parentId);
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return (data ?? []).map((category: any) => ({
+      id: category.id,
+      slug: category.slug,
+      name: category.name,
+      imageUrl: category.image_url ?? null,
+      parentId: category.parent_id ?? null,
+      showOnHome: category.show_on_home ?? false,
+    }));
+  } catch (error) {
+    logError({
+      message: '[listCategories] fell back to static list',
+      severity: 'warning',
+      extra: { error: error instanceof Error ? error.message : String(error) },
+    });
+    return getCategoriesStaticFallback().filter((category) =>
+      (!opts.homeOnly || category.showOnHome) &&
+      (opts.parentId === undefined || opts.parentId === null),
+    );
+  }
 }
 
 export async function getCategoryBySlug(slug: string): Promise<Category | null> {

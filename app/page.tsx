@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Suspense } from 'react';
 import { CategoryGrid } from '@/components/shop/CategoryGrid';
 import { ProductGrid } from '@/components/shop/ProductGrid';
 import { RecentlyViewed } from '@/components/shop/RecentlyViewed';
@@ -19,7 +20,9 @@ export default async function HomePage() {
             <h2 className="text-xl md:text-2xl font-semibold text-brand-950 dark:text-brand-50">Shop by category</h2>
             <Link href="/categories" className="text-sm text-brand-600 dark:text-brand-300 hover:underline whitespace-nowrap">View all</Link>
           </div>
-          <CategoryGrid homeOnly />
+          <Suspense fallback={null}>
+            <CategoryGrid homeOnly />
+          </Suspense>
         </section>
 
         {/* Promo banner 1 — full-bleed image, between Categories and Today's picks */}

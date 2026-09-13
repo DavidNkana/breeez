@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Suspense } from 'react';
 import { CategoryGrid } from '@/components/shop/CategoryGrid';
 
 export default function CategoriesPage() {
@@ -13,7 +14,9 @@ export default function CategoriesPage() {
         <h1 className="mt-2 text-2xl md:text-3xl font-semibold text-brand-950">Shop</h1>
         <p className="mt-1 text-sm text-brand-600">Browse all categories and find what you need.</p>
         <div className="mt-6">
-          <CategoryGrid />
+          <Suspense fallback={null}>
+            <CategoryGrid />
+          </Suspense>
         </div>
       </main>
     </>

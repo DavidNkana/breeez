@@ -5,12 +5,20 @@ import { useEffect } from 'react';
 /** Keeps native status-bar chrome aligned with the app's dark-only UI. */
 export function NativeChrome() {
   useEffect(() => {
-    void import('@capacitor/status-bar').then(({ StatusBar, Style }) => {
-      void StatusBar.setStyle({ style: Style.Dark });
-      void StatusBar.setBackgroundColor({ color: '#000000' });
-    }).catch(() => {
-      // The Capacitor plugin is unavailable in a regular browser.
-    });
+    let cancelled = false;
+    (async () => {
+      try {
+        const cap = await import('@capacitor/core');
+        if (!cap.Capacitor.isNativePlatform() || cancelled) return;
+        const { StatusBar, Style } = await import('@capacitor/status-bar');
+        if (cancelled) return;
+        await StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
+        await StatusBar.setBackgroundColor({ color: '#000000' }).catch(() => {});
+      } catch {
+        // Web or plugin unavailable — silently ignore.
+      }
+    })();
+    return () => { cancelled = true; };
   }, []);
 
   return null;
