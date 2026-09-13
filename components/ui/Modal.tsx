@@ -31,10 +31,10 @@ export function Modal({ open, onClose, title, children, size = 'md' }: ModalProp
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden="true" />
-      <div className={clsx('relative bg-white rounded-lg shadow-xl w-full', sizeClasses[size])}>
+       <div className={clsx('relative rounded-lg bg-white shadow-xl dark:bg-brand-900 w-full', sizeClasses[size])}>
         {title && (
           <div className="flex items-center justify-between border-b border-brand-100 px-5 py-3">
-            <h2 className="text-lg font-semibold text-brand-950">{title}</h2>
+             <h2 className="text-lg font-semibold text-brand-950 dark:text-white">{title}</h2>
             <button
               type="button"
               onClick={onClose}

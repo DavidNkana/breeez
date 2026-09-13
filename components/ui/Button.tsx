@@ -15,7 +15,7 @@ const base = 'inline-flex items-center justify-center font-medium rounded-md tra
 
 const variantClasses: Record<Variant, string> = {
   primary:   'bg-brand-900 text-white hover:bg-brand-800 active:bg-brand-950',
-  secondary: 'border border-brand-300 bg-white text-brand-900 hover:bg-brand-50 active:bg-brand-100',
+  secondary: 'border border-brand-300 bg-white text-brand-900 hover:bg-brand-50 active:bg-brand-100 dark:bg-brand-900 dark:text-white dark:hover:bg-brand-800 dark:active:bg-brand-950',
   ghost:     'bg-transparent text-brand-700 hover:bg-brand-50 active:bg-brand-100',
   danger:    'bg-danger text-white hover:bg-red-700 active:bg-red-800',
   accent:    'bg-accent-500 text-white hover:bg-accent-600 active:bg-accent-700'

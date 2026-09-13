@@ -54,6 +54,7 @@ export type ProductListItem = Product & {
   total_stock: number;
   avg_rating?: number;
   review_count?: number;
+  variants: ProductVariant[];
 };
 
 export async function listProducts(params: ListProductsParams = {}): Promise<ProductListItem[]> {
@@ -96,8 +97,14 @@ export async function listProducts(params: ListProductsParams = {}): Promise<Pro
 
   const productIds = products.map((p) => p.id);
   const stockMap = new Map<string, number>();
-  const { data: variants } = (await supabase.from('product_variants').select('product_id, stock').in('product_id', productIds).eq('is_active', true)) as any;
-  for (const variant of variants ?? []) stockMap.set(variant.product_id, (stockMap.get(variant.product_id) ?? 0) + Number(variant.stock ?? 0));
+  const variantMap = new Map<string, ProductVariant[]>();
+  const { data: variants } = (await supabase.from('product_variants').select('*').in('product_id', productIds).eq('is_active', true).order('sort_order')) as any;
+  for (const variant of variants ?? []) {
+    stockMap.set(variant.product_id, (stockMap.get(variant.product_id) ?? 0) + Number(variant.stock ?? 0));
+    const list = variantMap.get(variant.product_id) ?? [];
+    list.push(variant as ProductVariant);
+    variantMap.set(variant.product_id, list);
+  }
   let imgMap = new Map<string, ProductImage>();
   if (productIds.length > 0) {
     const { data: imgs } = (await supabase.from('product_images').select('*').in('product_id', productIds).order('sort_order')) as any;
@@ -130,6 +137,7 @@ export async function listProducts(params: ListProductsParams = {}): Promise<Pro
        total_stock: stockMap.get(p.id) ?? 0,
       avg_rating: r?.avg_rating ?? 0,
       review_count: r?.review_count ?? 0,
+      variants: variantMap.get(p.id) ?? [],
     };
   });
 }

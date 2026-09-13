@@ -23,12 +23,12 @@ export default async function AccountPage() {
           <LogoutButton redirectTo="/" />
         </div>
 
-        <div className="mt-6 flex items-center justify-between rounded-lg border border-brand-200 bg-white px-4 py-3">
+         <div className="mt-6 flex items-center justify-between rounded-lg border border-brand-200 bg-white dark:bg-brand-900 px-4 py-3">
           <div>
             <p className="text-sm font-medium text-brand-900">Appearance</p>
             <p className="mt-0.5 text-xs text-brand-600">Choose light, dark, or system theme</p>
           </div>
-          <ThemeToggle />
+           <ThemeToggle />
         </div>
 
         <div className="mt-8 grid gap-3 md:grid-cols-2">
@@ -41,7 +41,7 @@ export default async function AccountPage() {
             <Link
               key={card.href}
               href={card.href}
-              className="rounded-lg border border-brand-200 bg-white p-4 hover:border-brand-400"
+               className="rounded-lg border border-brand-200 bg-white dark:bg-brand-900 p-4 hover:border-brand-400"
             >
               <p className="font-medium text-brand-900">{card.label}</p>
               <p className="mt-1 text-sm text-brand-600">{card.desc}</p>

@@ -24,7 +24,7 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-brand-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 safe-top">
+    <header className="sticky top-0 z-40 border-b border-brand-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:bg-brand-950/95 safe-top">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 sm:gap-4 px-4 py-3">
         <Link href="/" className="flex items-center gap-2 flex-shrink-0">
           <img
@@ -42,7 +42,7 @@ export function Header() {
               className={`relative px-2.5 pb-2 pt-1 text-sm transition-colors ${
                 isActive(l.href)
                   ? 'font-semibold text-accent-600'
-                  : 'text-brand-700 hover:text-brand-950'
+                   : 'text-brand-700 hover:text-brand-950 dark:text-brand-200 dark:hover:text-white'
               }`}
             >
               {l.label}
@@ -62,7 +62,7 @@ export function Header() {
           <Link
             href="/account"
             aria-label="Account"
-            className="rounded-md p-2 text-brand-700 hover:bg-brand-50"
+            className="rounded-md p-2 text-brand-700 hover:bg-brand-50 dark:text-brand-200 dark:hover:bg-brand-900"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
               <circle cx="12" cy="8" r="4" />
@@ -74,7 +74,7 @@ export function Header() {
       </div>
 
       {/* Mobile nav strip */}
-      <nav aria-label="Navigation" className="md:hidden border-t border-brand-100 bg-brand-50 overflow-x-auto no-scrollbar">
+       <nav aria-label="Navigation" className="md:hidden border-t border-brand-100 bg-brand-50 dark:border-brand-800 dark:bg-brand-900 overflow-x-auto no-scrollbar">
         <ul className="flex px-4 py-2.5 text-sm whitespace-nowrap">
           {NAV_LINKS.map((l, i) => (
             <li key={l.href} className="flex items-center">
@@ -83,7 +83,7 @@ export function Header() {
                 className={`px-2 py-1 rounded transition-colors ${
                   isActive(l.href)
                     ? 'font-semibold text-accent-600'
-                    : 'text-brand-700 hover:text-brand-950'
+                     : 'text-brand-700 hover:text-brand-950 dark:text-brand-200 dark:hover:text-white'
                 }`}
               >
                 {l.label}

@@ -195,8 +195,8 @@ export function SearchAutocomplete({ className = '', variant = 'compact' }: Prop
         onKeyDown={onKeyDown}
         className={
           variant === 'wide'
-            ? 'w-full rounded-md border border-brand-300 bg-white px-3 py-1.5 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500'
-            : 'hidden sm:block w-32 md:w-44 lg:w-56 rounded-md border border-brand-300 bg-white px-3 py-1.5 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500'
+            ? 'w-full rounded-md border border-brand-300 bg-white px-3 py-1.5 text-sm dark:border-brand-600 dark:bg-brand-900 dark:text-white focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500'
+            : 'hidden sm:block w-32 md:w-44 lg:w-56 rounded-md border border-brand-300 bg-white px-3 py-1.5 text-sm dark:border-brand-600 dark:bg-brand-900 dark:text-white focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500'
         }
         autoComplete="off"
         aria-label="Search products"
@@ -217,7 +217,7 @@ export function SearchAutocomplete({ className = '', variant = 'compact' }: Prop
 
       {/* Desktop dropdown */}
       {shouldShowDropdown && !isMobileSheet && (
-        <div className="absolute right-0 top-full mt-1 w-96 max-h-[70vh] overflow-y-auto rounded-lg border border-brand-200 bg-white shadow-xl z-50">
+        <div className="absolute right-0 top-full mt-1 w-96 max-h-[70vh] overflow-y-auto rounded-lg border border-brand-200 bg-white dark:border-brand-700 dark:bg-brand-900 shadow-xl z-50">
           {loading && (
             <div className="flex items-center gap-2 p-3 text-sm text-brand-500">
               <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-accent-500" />
@@ -414,7 +414,7 @@ export function SearchAutocomplete({ className = '', variant = 'compact' }: Prop
 
       {/* Mobile sheet — quick port; same data flow, larger targets */}
       {isMobileSheet && (
-        <div className="fixed inset-0 z-50 sm:hidden flex flex-col bg-white">
+        <div className="fixed inset-0 z-50 sm:hidden flex flex-col bg-white dark:bg-brand-950">
           <div className="flex items-center gap-2 border-b border-brand-200 p-3">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-brand-500 flex-shrink-0" aria-hidden="true">
               <circle cx="11" cy="11" r="7" />

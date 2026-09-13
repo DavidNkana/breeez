@@ -103,8 +103,9 @@ export function ProductActions({ productId, productSlug, productName, basePriceC
           productSlug={productSlug}
           productName={productName}
           imageUrl={images[0]?.url}
-          variants={selectedVariant ? [selectedVariant] : []}
-          basePriceCents={priceCents}
+           variants={selectedVariant ? [selectedVariant] : []}
+           basePriceCents={priceCents}
+           size="lg"
         />
       </div>
 

@@ -39,7 +39,7 @@ export default async function OrderSuccessPage({ params, searchParams }: Props) 
         )}
 
         <div className="mt-6 flex gap-2 justify-center">
-          <Link href="/account/orders" className="inline-flex items-center rounded-md border border-brand-300 bg-white px-4 py-2 text-sm font-medium text-brand-900 hover:bg-brand-50">
+           <Link href="/account/orders" className="inline-flex items-center rounded-md border border-brand-300 bg-white px-4 py-2 text-sm font-medium text-brand-900 hover:bg-brand-50 dark:bg-brand-900 dark:text-white dark:hover:bg-brand-800">
             View orders
           </Link>
           <Link href="/" className="inline-flex items-center rounded-md bg-brand-900 px-4 py-2 text-sm font-medium text-white hover:bg-brand-800">

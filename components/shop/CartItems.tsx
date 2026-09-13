@@ -21,7 +21,7 @@ export function CartItems({ drawer = false, onNavigate }: { drawer?: boolean; on
   const setQuantity = useCart((s) => s.setQuantity);
   const remove = useCart((s) => s.remove);
   return <ul className={drawer ? 'flex-1 divide-y divide-brand-100 overflow-y-auto px-2' : 'space-y-3'}>
-    {items.map((it) => <li key={it.variantId} className={drawer ? 'flex gap-3 px-3 py-4' : 'flex gap-3 rounded-lg border border-brand-200 bg-white p-4'}>
+    {items.map((it) => <li key={it.variantId} className={drawer ? 'flex gap-3 px-3 py-4' : 'flex gap-3 rounded-lg border border-brand-200 bg-white dark:bg-brand-900 p-4'}>
       {it.imageUrl ? <img src={it.imageUrl} alt={it.name} className={`${drawer ? 'h-20 w-20' : 'h-24 w-24'} flex-shrink-0 rounded object-cover`} /> : <div className={`${drawer ? 'h-20 w-20' : 'h-24 w-24'} flex-shrink-0 rounded bg-brand-100`} />}
       <div className="min-w-0 flex-1"><Link href={`/p/${it.productSlug}`} onClick={onNavigate} className="font-medium text-brand-900 hover:underline">{it.name}</Link>
         <p className="mt-1 text-sm text-brand-700">{formatRand(it.priceCents)}</p>

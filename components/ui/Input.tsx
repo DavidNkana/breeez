@@ -30,7 +30,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={inputId}
             className={clsx(
-              'w-full rounded-md border bg-white px-3 py-2 text-sm text-brand-950 placeholder:text-brand-400 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500 disabled:bg-brand-50 disabled:cursor-not-allowed',
+              'w-full rounded-md border bg-white px-3 py-2 text-sm text-brand-950 placeholder:text-brand-400 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500 disabled:bg-brand-50 disabled:cursor-not-allowed dark:border-brand-600 dark:bg-brand-900 dark:text-white dark:disabled:bg-brand-800',
               error ? 'border-danger' : 'border-brand-300',
               leftIcon && 'pl-10',
               rightIcon && 'pr-10',

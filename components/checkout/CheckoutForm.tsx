@@ -117,7 +117,7 @@ export function CheckoutForm({ user, savedAddresses }: Props) {
         </ol>
 
         {step === 'email' && (
-          <div className="space-y-4 rounded-lg border border-brand-200 bg-white p-5">
+           <div className="space-y-4 rounded-lg border border-brand-200 bg-white dark:bg-brand-900 p-5">
             <h2 className="text-lg font-semibold text-brand-950">Contact</h2>
             <Input label="Email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
             <Input label="Full name" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
@@ -129,7 +129,7 @@ export function CheckoutForm({ user, savedAddresses }: Props) {
         )}
 
         {step === 'address' && (
-          <div className="space-y-4 rounded-lg border border-brand-200 bg-white p-5">
+           <div className="space-y-4 rounded-lg border border-brand-200 bg-white dark:bg-brand-900 p-5">
             <h2 className="text-lg font-semibold text-brand-950">Delivery address</h2>
             {savedAddresses.length > 0 && (
               <div className="rounded border border-brand-200 bg-brand-50 p-3 text-sm">
@@ -142,7 +142,7 @@ export function CheckoutForm({ user, savedAddresses }: Props) {
                       setLine1(a.line1); setLine2(a.line2 ?? ''); setCity(a.city);
                       setProvince(a.province); setPostalCode(a.postal_code);
                     }}
-                    className="block w-full text-left rounded border border-brand-200 bg-white p-2 mb-1 text-sm hover:border-brand-400"
+                     className="block w-full text-left rounded border border-brand-200 bg-white dark:bg-brand-800 p-2 mb-1 text-sm hover:border-brand-400"
                   >
                     <strong>{a.label}</strong> — {a.line1}, {a.city}, {a.province} {a.postal_code}
                   </button>
@@ -174,7 +174,7 @@ export function CheckoutForm({ user, savedAddresses }: Props) {
         )}
 
         {step === 'shipping' && (
-          <div className="space-y-4 rounded-lg border border-brand-200 bg-white p-5">
+           <div className="space-y-4 rounded-lg border border-brand-200 bg-white dark:bg-brand-900 p-5">
             <h2 className="text-lg font-semibold text-brand-950">Shipping method</h2>
             <div className="space-y-2">
               {shippingOptions.map((opt) => (
@@ -211,7 +211,7 @@ export function CheckoutForm({ user, savedAddresses }: Props) {
         )}
 
         {step === 'payment' && (
-          <div className="space-y-4 rounded-lg border border-brand-200 bg-white p-5">
+           <div className="space-y-4 rounded-lg border border-brand-200 bg-white dark:bg-brand-900 p-5">
             <h2 className="text-lg font-semibold text-brand-950">Payment method</h2>
             {paymentsMock() && (
               <div className="rounded-md border border-warning bg-yellow-50 p-3 text-sm text-yellow-900">
@@ -269,7 +269,7 @@ export function CheckoutForm({ user, savedAddresses }: Props) {
         )}
       </div>
 
-      <aside className="h-fit rounded-lg border border-brand-200 bg-white p-4">
+       <aside className="h-fit rounded-lg border border-brand-200 bg-white dark:bg-brand-900 p-4">
         <h2 className="text-sm font-medium text-brand-900">Order summary</h2>
         <ul className="mt-3 space-y-2 text-sm">
           {items.map((it) => (

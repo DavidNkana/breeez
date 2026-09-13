@@ -15,11 +15,11 @@ function applyTheme(theme: Theme) {
 }
 
 export function useTheme() {
-  const [theme, setThemeState] = useState<Theme>('system');
+  const [theme, setThemeState] = useState<Theme>('dark');
 
   useEffect(() => {
     const saved = window.localStorage.getItem(KEY) as Theme | null;
-    const next = saved === 'light' || saved === 'dark' || saved === 'system' ? saved : 'system';
+    const next = saved === 'light' || saved === 'dark' || saved === 'system' ? saved : 'dark';
     setThemeState(next);
     applyTheme(next);
     const media = window.matchMedia('(prefers-color-scheme: dark)');

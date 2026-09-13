@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import Link from 'next/link';
 import { useWishlist } from '@/lib/wishlist/store';
 import { formatRand, calcDiscountPercent } from '@/lib/format';
@@ -10,6 +10,7 @@ import { StarRating } from './StarRating';
 import type { ProductVariant } from '@/lib/supabase/types';
 import clsx from 'clsx';
 import { LowStockBadge } from './LowStockBadge';
+import { ProductQuickView } from './ProductQuickView';
 
 type ProductCardProps = {
   slug: string;
@@ -31,6 +32,7 @@ export function ProductCard({ slug, name, priceCents, compareAtCents, imageUrl, 
   const discountPct = calcDiscountPercent(priceCents, compareAtCents);
   const [hover, setHover] = useState(false);
   const [previewPinned, setPreviewPinned] = useState(false);
+  const [quickViewOpen, setQuickViewOpen] = useState(false);
   const inWishlist = useWishlist((s) => s.items.some((i) => i.productSlug === slug));
   const toggleWishlist = useWishlist((s) => s.toggle);
   const showToast = useToast((s) => s.show);
@@ -67,7 +69,7 @@ export function ProductCard({ slug, name, priceCents, compareAtCents, imageUrl, 
       onMouseLeave={onLeave}
     >
       <Link href={`/p/${slug}`} className="block">
-        <div className="relative aspect-square overflow-clip rounded-md bg-brand-100">
+          <div className="relative aspect-square overflow-clip rounded-md bg-brand-100">
           <img
             src={imageUrl}
             alt={name}
@@ -85,12 +87,12 @@ export function ProductCard({ slug, name, priceCents, compareAtCents, imageUrl, 
           </div>
 
           {/* Wishlist heart (top-right) — appears on hover */}
-          <button
+           <button
             type="button"
             onClick={onWishlistClick}
             aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
             className={clsx(
-              'absolute top-2 right-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/95 shadow-sm backdrop-blur-sm transition-all',
+              'absolute top-2 right-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/95 shadow-sm backdrop-blur-sm transition-all dark:bg-brand-900/95',
               'md:opacity-0 md:group-hover:opacity-100',
               inWishlist && 'opacity-100'
             )}
@@ -98,7 +100,15 @@ export function ProductCard({ slug, name, priceCents, compareAtCents, imageUrl, 
             <svg width="18" height="18" viewBox="0 0 24 24" fill={inWishlist ? '#dc2626' : 'none'} stroke={inWishlist ? '#dc2626' : 'currentColor'} strokeWidth="2" className={inWishlist ? '' : 'text-brand-700'} aria-hidden="true">
               <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
             </svg>
-          </button>
+           </button>
+           <button
+             type="button"
+             onClick={(e) => { e.preventDefault(); e.stopPropagation(); setQuickViewOpen(true); }}
+             aria-label={`Preview ${name}`}
+             className="absolute bottom-2 left-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/95 text-brand-700 shadow-sm backdrop-blur-sm transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 dark:bg-brand-900/95 dark:text-brand-100 dark:hover:bg-brand-800"
+           >
+             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" /><circle cx="12" cy="12" r="2.5" /></svg>
+           </button>
         </div>
 
         <div className="mt-2 flex items-baseline gap-2">
@@ -121,17 +131,17 @@ export function ProductCard({ slug, name, priceCents, compareAtCents, imageUrl, 
       {/* Hover preview — appears on hover or when pinned (click) */}
       {showPreview && (
         <div
-          className="absolute left-0 right-0 top-0 z-30 mt-1 hidden md:block"
+           className="absolute left-0 right-0 top-0 z-30 mt-1 hidden lg:block"
           // hidden on mobile (md+ only)
         >
-          <div className="rounded-lg border border-brand-200 bg-white p-3 shadow-2xl">
+           <div className="rounded-lg border border-brand-200 bg-white p-3 shadow-2xl dark:border-brand-700 dark:bg-brand-900">
             <div className="flex gap-3">
               <img src={imageUrl} alt="" className="h-20 w-20 flex-shrink-0 rounded object-cover" />
               <div className="flex-1 min-w-0">
                 {categoryName && (
                   <p className="text-[10px] uppercase tracking-wide text-brand-500">{categoryName}</p>
                 )}
-                <p className="text-sm font-semibold text-brand-950 line-clamp-1">{name}</p>
+                 <p className="text-sm font-semibold text-brand-950 dark:text-white line-clamp-1">{name}</p>
                 <p className="mt-0.5 text-sm font-semibold text-brand-900">
                   {formatRand(priceCents)}
                   {onSale && compareAtCents && (
@@ -173,6 +183,7 @@ export function ProductCard({ slug, name, priceCents, compareAtCents, imageUrl, 
           </div>
         </div>
       )}
+      <ProductQuickView open={quickViewOpen} onClose={() => setQuickViewOpen(false)} slug={slug} name={name} priceCents={priceCents} compareAtCents={compareAtCents} imageUrl={imageUrl} description={description} variants={variants ?? []} categoryName={categoryName} stock={stock} />
     </div>
   );
 }

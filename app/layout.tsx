@@ -100,7 +100,10 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en-ZA">
+    <html lang="en-ZA" className="dark">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: "try{if(localStorage.getItem('evasale.theme')!=='light'&&localStorage.getItem('evasale.theme')!=='system')document.documentElement.classList.add('dark');else if(localStorage.getItem('evasale.theme')==='light')document.documentElement.classList.remove('dark');else document.documentElement.classList.toggle('dark',matchMedia('(prefers-color-scheme: dark)').matches)}catch(_){}" }} />
+      </head>
       <body className="min-h-screen flex flex-col bg-white text-brand-950 font-sans antialiased dark:bg-brand-950 dark:text-brand-50">
         <AppSplash />
         <OfflineGate />
@@ -109,7 +112,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <NavigationLoader />
         </Suspense>
         <Header />
-        {children}
+        <div className="flex-1 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">{children}</div>
         <Footer />
         <MobileBottomNav />
       </body>

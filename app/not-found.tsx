@@ -21,13 +21,13 @@ export default function NotFound() {
           </Link>
           <Link
             href="/new"
-            className="inline-flex items-center rounded-md border border-brand-300 bg-white px-4 py-2 text-sm font-medium text-brand-900 hover:bg-brand-50"
+             className="inline-flex items-center rounded-md border border-brand-300 bg-white px-4 py-2 text-sm font-medium text-brand-900 hover:bg-brand-50 dark:bg-brand-900 dark:text-white dark:hover:bg-brand-800"
           >
             New arrivals
           </Link>
           <Link
             href="/categories"
-            className="inline-flex items-center rounded-md border border-brand-300 bg-white px-4 py-2 text-sm font-medium text-brand-900 hover:bg-brand-50"
+             className="inline-flex items-center rounded-md border border-brand-300 bg-white px-4 py-2 text-sm font-medium text-brand-900 hover:bg-brand-50 dark:bg-brand-900 dark:text-white dark:hover:bg-brand-800"
           >
             Browse categories
           </Link>

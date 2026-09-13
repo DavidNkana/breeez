@@ -4,7 +4,6 @@ import { ProductGrid } from '@/components/shop/ProductGrid';
 import { ReviewSection } from '@/components/shop/ReviewSection';
 import { RecentlyViewed } from '@/components/shop/RecentlyViewed';
 import { TrackRecentlyViewed } from '@/components/shop/TrackRecentlyViewed';
-import { StickyPdpCta } from '@/components/shop/StickyPdpCta';
 import { getProductBySlug, getRelatedProducts } from '@/lib/catalog/queries';
 import { brand } from '@/lib/brand';
 import { notFound } from 'next/navigation';
@@ -175,7 +174,6 @@ export default async function ProductPage({ params }: Props) {
           }
         />
       </main>
-      <StickyPdpCta productId={product.id} slug={product.slug} name={product.name} priceCents={priceCents} variants={product.variants} imageUrl={product.images[0]?.url || '/placeholder.svg'} />
     </>
   );
 }
