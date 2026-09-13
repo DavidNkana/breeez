@@ -9,7 +9,7 @@ const links = [
 
 export function Footer() {
   return (
-    <footer className="mt-16 hidden border-t border-brand-200 bg-brand-50 dark:border-brand-800 dark:bg-brand-900 md:block md:mt-24">
+    <footer className="mt-16 border-t border-brand-800 bg-brand-900 md:mt-24">
       <div className="flex justify-center bg-black py-6">
         <img src={brand.logo} alt="Evasale" className="h-10 w-auto" />
       </div>

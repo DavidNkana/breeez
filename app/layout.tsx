@@ -110,8 +110,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <NavigationLoader />
         </Suspense>
         <Header />
-        <div className="flex-1 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">{children}</div>
-        <Footer />
+        <div className="flex-1 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
+          {children}
+          <Footer />
+        </div>
         <MobileBottomNav />
       </body>
     </html>
