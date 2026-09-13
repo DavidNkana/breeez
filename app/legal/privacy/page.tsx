@@ -1,6 +1,6 @@
 import { InfoHeader } from '@/components/ui/InfoHeader';
 
-export const metadata = { title: 'Privacy Notice (POPIA) — Trends Day-to-Day' };
+export const metadata = { title: 'Privacy Notice (POPIA) — Evasale' };
 
 export default function PrivacyPage() {
   return (
@@ -9,7 +9,7 @@ export default function PrivacyPage() {
       <main className="mx-auto max-w-3xl px-4 py-10 pb-20 safe-bottom prose prose-sm prose-headings:text-brand-950 prose-a:text-accent-700">
         <h1>Privacy Notice (POPIA)</h1>
         <p className="text-sm text-brand-500">Last updated: 2026-07-15</p>
-        <p>This notice explains how Trends Day-to-Day collects, uses, and protects your personal information in compliance with the <strong>Protection of Personal Information Act 4 of 2013 (POPIA)</strong>.</p>
+        <p>This notice explains how Evasale collects, uses, and protects your personal information in compliance with the <strong>Protection of Personal Information Act 4 of 2013 (POPIA)</strong>.</p>
 
         <h2>1. Information We Collect</h2>
         <ul>

@@ -10,10 +10,10 @@ type Props = { params: { slug: string }; searchParams: { sort?: string; minPrice
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const category = await getCategoryBySlug(params.slug);
-  if (!category) return { title: 'Category not found — Trends Day-to-Day' };
+  if (!category) return { title: 'Category not found — Evasale' };
   return {
-    title: `${category.name} — Trends Day-to-Day`,
-    description: category.description || `Shop ${category.name} at Trends Day-to-Day. ZAR. SA-wide delivery.`
+    title: `${category.name} — Evasale`,
+    description: category.description || `Shop ${category.name} at Evasale. ZAR. SA-wide delivery.`
   };
 }
 

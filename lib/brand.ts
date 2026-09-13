@@ -4,14 +4,14 @@
  * Every brand-touched string, color, file path, and copy block lives here
  * so rebrands = one-file edits, not find-and-replace through the codebase.
  *
- * Owned by Alex (Portfolio), edited by Chris when Trends assets change.
+ * Owned by Alex (Portfolio), edited by Chris when Evasale assets change.
  */
 
 export const brand = {
   // Identity
-  name: 'Trends Day-to-Day',
-  short: 'Trends',
-  legalName: 'Trends Day-To-Day (Pty) Ltd',
+  name: 'Evasale',
+  short: 'Evasale',
+  legalName: 'Evasale (Pty) Ltd',
   tagline: 'Shop Smart, Save Big — Every Day.',
   shortDescription:
     'South African multi-category marketplace. Everyday essentials at unbeatable prices — delivered nationwide.',
@@ -31,8 +31,8 @@ export const brand = {
   },
 
   // Files (paths are relative to /public so usable in <img src> or CSS url())
-  logo: '/brand/logo.png',
-  favicon: '/brand/favicon.png',
+  logo: '/brand/evasale-logo.svg',
+  favicon: '/brand/evasale-mark.svg',
   ogDefault: '/brand/og-default.png', // we already have opengraph-image.tsx — this is fallback
 
   // Contact — pulled directly from their site footer
@@ -71,24 +71,24 @@ export const brand = {
 
   // Email subjects (handover to Resend)
   email: {
-    fromName: 'Trends Day-to-Day',
+    fromName: 'Evasale',
     // from address comes from RESEND_FROM_EMAIL env
     replyTo: 'trendsdaytodayonline@gmail.com',
-    orderConfirmationSubject: 'Your Trends Day-to-Day order is confirmed',
+    orderConfirmationSubject: 'Your Evasale order is confirmed',
     orderShippedSubject: 'Your order is on its way',
-    newsletterWelcomeSubject: 'Welcome to Trends Day-to-Day',
+    newsletterWelcomeSubject: 'Welcome to Evasale',
     returnUpdateSubject: 'Update on your return',
   },
 
   // Legal
-  privacyOfficer: 'Trends Day-To-Day (Pty) Ltd',
-  copyrightLine: '© {year} Trends Day-to-Day. Prices in ZAR. POPIA-compliant.',
-  whatsappStoreLink: 'https://api.whatsapp.com/send?phone=27794571253&text=Hi%20Trends%20team%2C%20I%27d%20like%20to%20order%20via%20WhatsApp.',
+  privacyOfficer: 'Evasale (Pty) Ltd',
+  copyrightLine: '© {year} Evasale. Prices in ZAR. POPIA-compliant.',
+  whatsappStoreLink: 'https://api.whatsapp.com/send?phone=27794571253&text=Hi%20Evasale%20team%2C%20I%27d%20like%20to%20order%20via%20WhatsApp.',
 
   // Home hero copy (no story here — story lives on the About page)
   home: {
     eyebrow: '',
-    headline: 'Welcome to Trends',
+    headline: 'Welcome to Evasale',
     subheadline: '',
     primaryCta: { href: '/new', label: 'Shop new arrivals' },
     secondaryCta: { href: '/c/kitchen', label: 'Browse kitchen' },
@@ -97,7 +97,7 @@ export const brand = {
   // About page copy (placeholders, refine after they approve wording)
   about: {
     intro:
-      'At Trends Day-to-Day, we believe in making everyday essentials accessible without compromising on quality.',
+      'At Evasale, we believe in making everyday essentials accessible without compromising on quality.',
     founded: 2010,
     mission:
       'Since 2010, we\'ve been committed to providing unbeatable prices and exceptional value to South African homes.',

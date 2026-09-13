@@ -7,7 +7,7 @@ const SPLASH_KEY = 'breeez:splash_shown_v1';
 
 /**
  * Full-screen splash screen shown on app startup.
- * White background with the Trends logo centered.
+ * White background with the Evasale logo centered.
  * Shows for 5 seconds then fades out.
  * Only shows once per browser session.
  */

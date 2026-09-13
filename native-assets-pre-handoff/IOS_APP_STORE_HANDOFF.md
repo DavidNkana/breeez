@@ -5,7 +5,7 @@
 - [ ] Mac with Xcode 15+ installed
 - [ ] Access to Naz's Apple Developer account (login at developer.apple.com)
 - [ ] This project repo cloned to your Mac
-- [ ] The Trends logo at `public/brand/logo.png` (use as the app icon)
+- [ ] The Evasale logo at `public/brand/evasale-logo.svg` (use as the app icon)
 
 ## Step 1 — Clone & Install
 
@@ -18,7 +18,7 @@ npx cap sync ios
 
 ## Step 2 — Create the app icon
 
-The Trends logo is at `public/brand/logo.png` (8.8KB PNG). Use this as the app icon — it's the same logo that appears on the website header.
+The Evasale logo is at `public/brand/evasale-logo.svg`. Use this as the app icon — it's the same logo that appears on the website header.
 
 1. Open `public/brand/logo.png` in Preview
 2. The logo is already a PNG with transparency. For the app icon you need a solid background:
@@ -58,7 +58,7 @@ The Trends logo is at `public/brand/logo.png` (8.8KB PNG). Use this as the app i
 
 The iOS native launch screen (`LaunchScreen.storyboard`) is intentionally a plain white view — there is **no `Splash.imageset` to edit and you should not recreate one**. Any previous handoff notes telling you to drop `public/brand/logo.png` into `ios/App/App/Assets.xcassets/Splash.imageset/` are stale and pre-date this change.
 
-Branding during app open is handled entirely by `components/app/AppSplash.tsx`, which renders the Trends logo on a white background inside the WebView for ~5 seconds on first launch. This keeps the branded splash updateable from web deploys without needing an Xcode rebuild.
+Branding during app open is handled entirely by `components/app/AppSplash.tsx`, which renders the Evasale logo on a white background inside the WebView for ~5 seconds on first launch. This keeps the branded splash updateable from web deploys without needing an Xcode rebuild.
 
 If you ever do want a fully native iOS launch logo, the right approach is to add a new imageset (e.g. `LaunchLogo.imageset`) and reference it from `LaunchScreen.storyboard` — do not recreate the deleted `Splash.imageset` (it would conflict with the Capacitor splash plugin's expectations).
 
@@ -80,7 +80,7 @@ Go to https://appstoreconnect.apple.com and fill in:
 
 | Field | Value |
 |-------|-------|
-| **App name** | `Trends Day-to-Day` |
+| **App name** | `Evasale` |
 | **Subtitle** | `Home, Kitchen & Lifestyle` |
 | **Bundle ID** | `co.za.breeez.app` |
 | **SKU** | `BREEZ001` |
@@ -89,7 +89,7 @@ Go to https://appstoreconnect.apple.com and fill in:
 | **App icon** | Upload your 1024×1024 PNG |
 | **Privacy policy URL** | `https://breeez-lyart.vercel.app/legal/privacy` |
 | **Support URL** | `https://breeez-lyart.vercel.app/contact` |
-| **Copyright** | `© 2026 Trends Day-to-Day` |
+| **Copyright** | `© 2026 Evasale` |
 
 **Full description** — copy from `native-assets-pre-handoff/IOS_STORE_LISTING.md`
 
@@ -127,7 +127,7 @@ App Store requires screenshots for **6.7" iPhone** (1290×2796) — these are th
 ## Notes
 
 - The app is a **Capacitor WebView wrapper** — it loads the live website from `https://breeez-lyart.vercel.app`. All content changes happen on the web, no app updates needed.
-- Bundle ID `co.za.breeez.app` is the internal identifier. The display name "Trends Day-to-Day" is what users see.
+- Bundle ID `co.za.breeez.app` is the internal identifier. The display name "Evasale" is what users see.
 - If Apple rejects for "minimal functionality" (common with WebView apps), we can add native features (push notifications, camera, etc.) that are already configured in the code.
 - The Info.plist has all required privacy descriptions (camera, photos, location, notifications).
 - App Transport Security is configured for HTTPS-only.

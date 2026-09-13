@@ -9,7 +9,7 @@ export default function LoginPage() {
       <Header />
       <main className="mx-auto max-w-md px-4 py-10 pb-20 safe-bottom">
         <h1 className="text-2xl font-semibold text-brand-950">Sign in</h1>
-        <p className="mt-1 text-sm text-brand-600">Welcome back. Sign in to your Trends Day-to-Day account.</p>
+        <p className="mt-1 text-sm text-brand-600">Welcome back. Sign in to your Evasale account.</p>
         <div className="mt-6">
           <LoginForm />
         </div>

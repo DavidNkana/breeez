@@ -31,7 +31,7 @@ type OfflineScreenProps = {
 export function OfflineScreen({
   dismissible = false,
   headline = 'You are not connected to the internet',
-  body = "We can't reach Trends right now. Check your Wi-Fi or mobile data and try again."
+  body = "We can't reach Evasale right now. Check your Wi-Fi or mobile data and try again."
 }: OfflineScreenProps) {
   const [tick, setTick] = useState(0);
 

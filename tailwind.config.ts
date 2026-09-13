@@ -2,8 +2,8 @@ import type { Config } from 'tailwindcss';
 import { brand } from './lib/brand';
 
 /**
- * Brand palette sourced from /lib/brand.ts (Trends Day-to-Day).
- * brand-* stays neutral/warm slate. accent-* is the Trends red (`#C72E28` → 500).
+ * Brand palette sourced from /lib/brand.ts (Evasale).
+ * brand-* stays neutral/warm slate. accent-* is the Evasale red (`#C72E28` → 500).
  *
  * Rename `brand-*` or `accent-*` here ALL THE TIME YOU WANT — search the
  * codebase for those class prefixes.
@@ -35,7 +35,7 @@ const config: Config = {
           900: '#29313c',
           950: '#1a1f26'
         },
-        // Trends primary red (`#C72E28`) — used for CTAs, badges, links
+        // Evasale primary red (`#C72E28`) — used for CTAs, badges, links
         accent: {
           50:  '#fef2f2',
           100: '#fde2e2',
@@ -57,7 +57,7 @@ const config: Config = {
       },
       fontFamily: {
         sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
-        // Display font for headers — League Spartan is Trends's website font
+        // Display font for headers — League Spartan is Evasale's website font
         display: ['"League Spartan"', 'Inter', 'system-ui', 'sans-serif']
       },
       borderRadius: {

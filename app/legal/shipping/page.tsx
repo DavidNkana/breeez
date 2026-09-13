@@ -1,6 +1,6 @@
 import { InfoHeader } from '@/components/ui/InfoHeader';
 
-export const metadata = { title: 'Shipping Policy — Trends Day-to-Day' };
+export const metadata = { title: 'Shipping Policy — Evasale' };
 
 export default function ShippingPage() {
   return (

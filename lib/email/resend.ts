@@ -1,5 +1,5 @@
 /**
- * Trends Day-to-Day transactional email via Resend.
+ * Evasale transactional email via Resend.
  *
  * If RESEND_API_KEY env var is set, sends real emails. If not, logs
  * to console (dev/test compatibility).

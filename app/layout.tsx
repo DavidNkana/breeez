@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   description: DESCRIPTION,
   applicationName: SITE_NAME,
   keywords: [
-    'Trends Day-to-Day',
+    SITE_NAME,
     'South Africa',
     'online shopping SA',
     'household essentials',

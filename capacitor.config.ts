@@ -22,7 +22,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
  */
 const config: CapacitorConfig = {
   appId: 'com.breeez.app',
-  appName: 'Trends Day-to-Day',
+  appName: 'Evasale',
   webDir: 'out',
 
   // Production: native app loads the live Vercel deployment.
@@ -50,10 +50,10 @@ const config: CapacitorConfig = {
     // Capacitor's default splash screen was the Capacitor template image
     // (a blue background with the white "C" logo), which shipped with the
     // original `npx cap add android` and was never replaced. We disable it
-    // here so users go straight from the launcher-icon splash (your Trends
+    // here so users go straight from the launcher-icon splash (your Evasale
     // branded one in mipmap-*/ic_launcher.png) to the WebView, which
     // shows the white-background AppSplash.tsx React component with the
-    // real Trends logo for ~5 seconds.
+    // real Evasale logo for ~5 seconds.
     //
     // To restore a native splash: replace the splash.png files in
     // android/app/src/main/res/drawable-{density}/ and revert the

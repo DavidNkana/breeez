@@ -1,6 +1,6 @@
 import { InfoHeader } from '@/components/ui/InfoHeader';
 
-export const metadata = { title: 'Returns Policy — Trends Day-to-Day' };
+export const metadata = { title: 'Returns Policy — Evasale' };
 
 export default function ReturnsPage() {
   return (

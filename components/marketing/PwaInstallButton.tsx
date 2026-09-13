@@ -53,7 +53,7 @@ export function PwaInstallButton() {
   return (
     <div className="mt-8 rounded-lg border border-accent-200 bg-accent-50 p-5 text-center">
       <p className="text-sm font-semibold text-brand-950">
-        Install Trends Day-to-Day on your phone
+        Install Evasale on your phone
       </p>
       <p className="mt-1 text-xs text-brand-600">
         Add to your home screen for quick access — no app store needed.

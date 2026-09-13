@@ -1,5 +1,5 @@
 /**
- * Trends Day-to-Day formatting helpers.
+ * Evasale formatting helpers.
  * Money is stored as integer cents (ZAR × 100). All timestamps are UTC.
  */
 

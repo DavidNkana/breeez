@@ -1,5 +1,5 @@
 /**
- * Trends Day-to-Day shipping adapters.
+ * Evasale shipping adapters.
  *
  * Three SA couriers: Pargo (pickup points), The Courier Guy (door delivery),
  * Dawn Wing (same-day metro only).

@@ -6,8 +6,8 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'New Arrivals — Trends Day-to-Day',
-  description: 'The newest products at Trends Day-to-Day. All categories, latest first.'
+  title: 'New Arrivals — Evasale',
+  description: 'The newest products at Evasale. All categories, latest first.'
 };
 
 type Props = { searchParams: { sort?: string } };

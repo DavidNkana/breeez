@@ -5,7 +5,7 @@ import { brand } from '@/lib/brand';
 
 /**
  * Sticky mini-header used by legal/info pages.
- * Shows the Trends Day-to-Day logo (links home), the page title, and a Home button.
+ * Shows the Evasale logo (links home), the page title, and a Home button.
  */
 export function InfoHeader({ title }: { title: string }) {
   return (
