@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { brand } from '@/lib/brand';
 
 type OfflineScreenProps = {
@@ -33,24 +34,24 @@ export function OfflineScreen({
   headline = 'You are not connected to the internet',
   body = "We can't reach Evasale right now. Check your Wi-Fi or mobile data and try again."
 }: OfflineScreenProps) {
-  const [tick, setTick] = useState(0);
+  const router = useRouter();
 
   // Auto-retry every 5 seconds while the screen is showing. If the user
   // comes back online, the parent (use-network-status) will unmount us.
   useEffect(() => {
-    const interval = setInterval(() => setTick((t) => t + 1), 5000);
-    return () => clearInterval(interval);
-  }, []);
+    const retry = () => router.refresh();
+    window.addEventListener('online', retry);
+    return () => window.removeEventListener('online', retry);
+  }, [router]);
 
   function handleRetry() {
-    // tick change forces a re-render, but for a hard retry we reload.
-    if (typeof window !== 'undefined') window.location.reload();
+    router.refresh();
   }
 
   function handleDismiss() {
     // If parent passed dismissible, just reload the page; otherwise they
     // can tap retry. Reloading is the safest "leave the offline state" action.
-    if (typeof window !== 'undefined') window.location.reload();
+    router.refresh();
   }
 
   return (
@@ -60,7 +61,6 @@ export function OfflineScreen({
       aria-live="assertive"
       aria-labelledby="offline-headline"
       aria-describedby="offline-body"
-      data-retry-tick={tick}
     >
       <img
         src={brand.logo}
@@ -123,7 +123,7 @@ export function OfflineScreen({
         </button>
       )}
 
-      <p className="mt-10 text-xs text-brand-400">
+      <p className="mt-10 text-xs text-brand-600">
         {brand.name} — shop smart, save big
       </p>
     </div>

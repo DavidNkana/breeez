@@ -6,6 +6,9 @@ import { NavigationLoader } from '@/components/layout/NavigationLoader';
 import { AppSplash } from '@/components/app/AppSplash';
 import { OfflineGate } from '@/components/app/OfflineGate';
 import { brand } from '@/lib/brand';
+import { Header } from '@/components/layout/Header';
+import { Footer } from '@/components/layout/Footer';
+import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 
 const SITE_URL = brand.siteUrl;
 const SITE_NAME = brand.name;
@@ -98,14 +101,17 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en-ZA">
-      <body className="min-h-screen flex flex-col bg-white text-brand-950 font-sans antialiased">
+      <body className="min-h-screen flex flex-col bg-white text-brand-950 font-sans antialiased dark:bg-brand-950 dark:text-brand-50">
         <AppSplash />
         <OfflineGate />
         <StorefrontProviders />
         <Suspense fallback={null}>
           <NavigationLoader />
         </Suspense>
+        <Header />
         {children}
+        <Footer />
+        <MobileBottomNav />
       </body>
     </html>
   );

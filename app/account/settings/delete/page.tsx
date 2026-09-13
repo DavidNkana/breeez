@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useToast } from '@/components/ui/Toast';
@@ -118,7 +116,6 @@ export default function DeleteAccountPage({ initialEmail }: Props) {
   if (stage === 'done') {
     return (
       <>
-        <Header />
         <main className="mx-auto max-w-2xl px-4 py-10 pb-20 safe-bottom">
           <div className="rounded-lg border border-brand-200 bg-white p-6">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-50">
@@ -155,7 +152,6 @@ export default function DeleteAccountPage({ initialEmail }: Props) {
             </div>
           </div>
         </main>
-        <Footer />
       </>
     );
   }
@@ -164,7 +160,6 @@ export default function DeleteAccountPage({ initialEmail }: Props) {
   if (stage === 'deleting') {
     return (
       <>
-        <Header />
         <main className="mx-auto max-w-2xl px-4 py-10 pb-20 safe-bottom">
           <div className="rounded-lg border border-brand-200 bg-white p-6 text-center">
             <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-brand-200 border-t-brand-700" aria-hidden="true" />
@@ -176,7 +171,6 @@ export default function DeleteAccountPage({ initialEmail }: Props) {
             </p>
           </div>
         </main>
-        <Footer />
       </>
     );
   }
@@ -186,7 +180,6 @@ export default function DeleteAccountPage({ initialEmail }: Props) {
 
   return (
     <>
-      <Header />
       <main className="mx-auto max-w-2xl px-4 py-10 pb-20 safe-bottom">
         <h1 className="text-3xl font-semibold text-brand-950">Delete your account</h1>
         <p className="mt-2 text-base text-brand-700">
@@ -277,7 +270,6 @@ export default function DeleteAccountPage({ initialEmail }: Props) {
           Settings screen under &quot;Delete my account&quot;.
         </p>
       </main>
-      <Footer />
     </>
   );
 }

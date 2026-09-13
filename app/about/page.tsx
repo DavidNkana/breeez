@@ -1,6 +1,3 @@
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
-import { InfoHeader } from '@/components/ui/InfoHeader';
 import { PwaInstallButton } from '@/components/marketing/PwaInstallButton';
 import { PromoBanner } from '@/components/shop/PromoBanner';
 import { brand } from '@/lib/brand';
@@ -33,7 +30,6 @@ const VALUES = [
 export default function AboutPage() {
   return (
     <>
-      <Header />
       <PromoBanner
         imageUrl="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=2000&q=70"
         alt="Real people working behind the scenes at a South African small business"
@@ -43,7 +39,6 @@ export default function AboutPage() {
         ctaHref="/contact"
         ctaLabel="Get in touch"
       />
-      <InfoHeader title={`About ${brand.name}`} />
       <main className="mx-auto max-w-3xl px-4 py-10 pb-20 safe-bottom prose prose-sm">
         <p className="text-sm font-medium text-accent-700">Proudly South African since {brand.about.founded}</p>
         <h1 className="mt-2 text-3xl font-semibold text-brand-950">Shop Smart, Save Big — Every Day.</h1>
@@ -94,7 +89,6 @@ export default function AboutPage() {
         <PwaInstallButton />
       </main>
 
-      <Footer />
     </>
   );
 }

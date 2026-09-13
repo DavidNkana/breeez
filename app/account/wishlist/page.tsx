@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useWishlist, type WishlistItem } from '@/lib/wishlist/store';
 import { formatRand } from '@/lib/format';
@@ -18,7 +16,6 @@ export default function WishlistPage() {
 
   return (
     <>
-      <Header />
       <main className="mx-auto max-w-4xl px-4 py-10 pb-20 safe-bottom">
         <h1 className="text-2xl font-semibold text-brand-950">My wishlist</h1>
         <p className="mt-1 text-sm text-brand-600">
@@ -67,7 +64,6 @@ export default function WishlistPage() {
           )}
         </div>
       </main>
-      <Footer />
     </>
   );
 }

@@ -16,6 +16,7 @@ export const brand = {
   shortDescription:
     'South African multi-category marketplace. Everyday essentials at unbeatable prices — delivered nationwide.',
   founded: 2010,
+  freeShippingThresholdCents: 65000,
 
   // Colors — derived from their actual website (https://www.trendsdaytoday.co.za/)
   colors: {

@@ -1,11 +1,9 @@
-import { InfoHeader } from '@/components/ui/InfoHeader';
 
 export const metadata = { title: 'Privacy Notice (POPIA) — Evasale' };
 
 export default function PrivacyPage() {
   return (
     <>
-      <InfoHeader title="Privacy Notice (POPIA)" />
       <main className="mx-auto max-w-3xl px-4 py-10 pb-20 safe-bottom prose prose-sm prose-headings:text-brand-950 prose-a:text-accent-700">
         <h1>Privacy Notice (POPIA)</h1>
         <p className="text-sm text-brand-500">Last updated: 2026-07-15</p>

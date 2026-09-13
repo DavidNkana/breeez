@@ -1,5 +1,3 @@
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
 
 /**
  * Root loading state — Next.js renders this while the page is
@@ -9,7 +7,6 @@ import { Footer } from '@/components/layout/Footer';
 export default function Loading() {
   return (
     <>
-      <Header />
       <main className="mx-auto max-w-6xl px-4 py-10 pb-20 safe-bottom">
         <div className="animate-pulse space-y-6">
           <div className="h-8 w-48 rounded bg-brand-100" />
@@ -24,7 +21,6 @@ export default function Loading() {
           </div>
         </div>
       </main>
-      <Footer />
     </>
   );
 }

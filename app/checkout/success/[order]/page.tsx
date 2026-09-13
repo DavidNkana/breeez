@@ -1,6 +1,4 @@
 import { createAdminClient } from '@/lib/supabase/admin';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
 import Link from 'next/link';
 import { formatRand } from '@/lib/format';
 import { Badge } from '@/components/ui/Badge';
@@ -17,7 +15,6 @@ export default async function OrderSuccessPage({ params, searchParams }: Props) 
 
   return (
     <>
-      <Header />
       <main className="mx-auto max-w-2xl px-4 py-10 pb-20 safe-bottom text-center">
         <div className="mx-auto h-12 w-12 rounded-full bg-success/10 text-success flex items-center justify-center">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -50,7 +47,6 @@ export default async function OrderSuccessPage({ params, searchParams }: Props) 
           </Link>
         </div>
       </main>
-      <Footer />
     </>
   );
 }

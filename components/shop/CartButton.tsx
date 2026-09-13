@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useCart } from '@/lib/cart/store';
+import { useMounted } from '@/lib/hooks/use-mounted';
 
 /**
  * Cart button in the header — opens the cart drawer.
@@ -14,9 +15,8 @@ import { useCart } from '@/lib/cart/store';
  */
 export function CartButton() {
   const count = useCart((s) => s.itemCount());
-  const [mounted, setMounted] = useState(false);
+  const mounted = useMounted();
   const [pulse, setPulse] = useState(false);
-  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     function onBounce() {

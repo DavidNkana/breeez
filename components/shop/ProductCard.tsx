@@ -9,6 +9,7 @@ import { AddToCartButton } from './AddToCartButton';
 import { StarRating } from './StarRating';
 import type { ProductVariant } from '@/lib/supabase/types';
 import clsx from 'clsx';
+import { LowStockBadge } from './LowStockBadge';
 
 type ProductCardProps = {
   slug: string;
@@ -22,9 +23,10 @@ type ProductCardProps = {
   categoryName?: string;
   avgRating?: number;
   reviewCount?: number;
+  stock?: number;
 };
 
-export function ProductCard({ slug, name, priceCents, compareAtCents, imageUrl, description, variants, categoryName, avgRating, reviewCount }: ProductCardProps) {
+export function ProductCard({ slug, name, priceCents, compareAtCents, imageUrl, description, variants, categoryName, avgRating, reviewCount, stock }: ProductCardProps) {
   const onSale = compareAtCents != null && compareAtCents > priceCents;
   const discountPct = calcDiscountPercent(priceCents, compareAtCents);
   const [hover, setHover] = useState(false);
@@ -108,6 +110,7 @@ export function ProductCard({ slug, name, priceCents, compareAtCents, imageUrl, 
             <span className="text-xs text-brand-500 line-through">{formatRand(compareAtCents)}</span>
           )}
         </div>
+        <LowStockBadge stock={stock} />
         {avgRating != null && reviewCount != null && reviewCount > 0 && (
           <div className="mt-1">
             <StarRating value={avgRating} size="xs" showValue reviewCount={reviewCount} />

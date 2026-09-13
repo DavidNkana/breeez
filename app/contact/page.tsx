@@ -1,6 +1,3 @@
-import { InfoHeader } from '@/components/ui/InfoHeader';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
 import { PromoBanner } from '@/components/shop/PromoBanner';
 import { brand } from '@/lib/brand';
 
@@ -11,7 +8,6 @@ export const metadata = { title: `Contact Us — ${brand.name}` };
 export default function ContactPage() {
   return (
     <>
-      <Header />
       <PromoBanner
         imageUrl="https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=2000&q=70"
         alt="A warm, approachable contact moment — phone in hand, ready to help"
@@ -21,7 +17,6 @@ export default function ContactPage() {
         ctaHref="/categories"
         ctaLabel="Shop now"
       />
-      <InfoHeader title="Contact Us" />
       <main className="mx-auto max-w-3xl px-4 py-10 pb-20 safe-bottom">
         <h1 className="text-2xl font-semibold text-brand-950">Get in touch</h1>
         <p className="mt-1 text-sm text-brand-500">We&apos;re here to help.</p>
@@ -83,7 +78,6 @@ export default function ContactPage() {
         </div>
       </main>
 
-      <Footer />
     </>
   );
 }

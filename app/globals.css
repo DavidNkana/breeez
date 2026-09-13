@@ -7,6 +7,26 @@
   --color-fg: #1a1f26;
 }
 
+.dark {
+  --color-bg: #1a1f26;
+  --color-fg: #f4f6f7;
+}
+
+/* Shared dark surfaces keep the existing semantic utility classes readable. */
+.dark .bg-white { background-color: #29313c; }
+.dark .bg-white\/95 { background-color: rgb(41 49 60 / .95); }
+.dark .bg-white\/80 { background-color: rgb(41 49 60 / .8); }
+.dark .bg-brand-50 { background-color: #2f3a48; }
+.dark .bg-brand-100 { background-color: #374657; }
+.dark .bg-brand-200 { background-color: #42566a; }
+.dark .text-brand-950, .dark .text-brand-900 { color: #f4f6f7; }
+.dark .text-brand-800, .dark .text-brand-700 { color: #e6eaed; }
+.dark .text-brand-600, .dark .text-brand-500 { color: #c9d2d8; }
+.dark .text-brand-400 { color: #a3b1bb; }
+.dark .border-brand-100, .dark .border-brand-200, .dark .border-brand-300 { border-color: #42566a; }
+.dark input, .dark select, .dark textarea { background-color: #29313c; color: #f4f6f7; }
+.dark .ring-offset-2 { --tw-ring-offset-color: #1a1f26; }
+
 html, body {
   background: var(--color-bg);
   color: var(--color-fg);
@@ -94,7 +114,7 @@ input[type="number"] {
 }
 
 /* Focus-visible ring (only show on keyboard nav) */
-:focus-visible {
-  outline: 2px solid #f98212;
+  :focus-visible {
+  outline: 2px solid #C72E28;
   outline-offset: 2px;
 }

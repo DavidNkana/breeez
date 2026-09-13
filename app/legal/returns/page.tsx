@@ -1,11 +1,9 @@
-import { InfoHeader } from '@/components/ui/InfoHeader';
 
 export const metadata = { title: 'Returns Policy — Evasale' };
 
 export default function ReturnsPage() {
   return (
     <>
-      <InfoHeader title="Returns Policy" />
       <main className="mx-auto max-w-3xl px-4 py-10 pb-20 safe-bottom prose prose-sm prose-headings:text-brand-950 prose-a:text-accent-700">
         <h1>Returns Policy</h1>
         <p className="text-sm text-brand-500">Last updated: 2026-07-15</p>

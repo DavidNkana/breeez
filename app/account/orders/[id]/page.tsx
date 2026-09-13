@@ -1,7 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import { requireUser } from '@/lib/auth/session';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/Badge';
 import { ReturnSection } from '@/components/account/ReturnSection';
@@ -33,7 +31,6 @@ export default async function OrderDetailPage({ params }: Props) {
 
   return (
     <>
-      <Header />
       <main className="mx-auto max-w-3xl px-4 py-10 pb-20 safe-bottom">
         <Link href="/account/orders" className="text-sm text-brand-600 hover:underline">← Back to orders</Link>
 
@@ -85,7 +82,6 @@ export default async function OrderDetailPage({ params }: Props) {
           </div>
         </div>
       </main>
-      <Footer />
     </>
   );
 }

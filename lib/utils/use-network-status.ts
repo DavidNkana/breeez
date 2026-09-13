@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useMounted } from '@/lib/hooks/use-mounted';
 
 /**
  * useNetworkStatus — returns true when the browser believes it has internet
@@ -27,6 +28,7 @@ export function useNetworkStatus(): boolean {
   // Default to true on the server (SSR) and on the very first client render
   // before useEffect runs. This avoids a flash of the offline screen during
   // initial hydration.
+  const mounted = useMounted();
   const [online, setOnline] = useState(true);
 
   useEffect(() => {
@@ -76,5 +78,5 @@ export function useNetworkStatus(): boolean {
     };
   }, []);
 
-  return online;
+  return mounted ? online : true;
 }

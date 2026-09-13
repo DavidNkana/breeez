@@ -32,6 +32,7 @@ export function ProductGrid({ products, loading, error, showPreview = false }: P
           categoryName={showPreview ? p.category?.name : undefined}
           avgRating={p.avg_rating}
           reviewCount={p.review_count}
+          stock={p.total_stock}
         />
       ))}
     </div>

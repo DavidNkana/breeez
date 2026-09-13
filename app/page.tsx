@@ -1,6 +1,4 @@
 import Link from 'next/link';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
 import { CategoryGrid } from '@/components/shop/CategoryGrid';
 import { ProductGrid } from '@/components/shop/ProductGrid';
 import { RecentlyViewed } from '@/components/shop/RecentlyViewed';
@@ -15,7 +13,6 @@ export default async function HomePage() {
 
   return (
     <>
-      <Header />
       <main className="flex-1 pb-12 safe-bottom">
         <section className="mx-auto max-w-6xl px-4 py-6 md:py-10">
           <div className="flex items-baseline justify-between gap-4">
@@ -86,24 +83,25 @@ export default async function HomePage() {
           ctaLabel="Shop apparel"
         />
 
+        <div className="mx-auto mt-4 max-w-6xl px-4"><div className="rounded-lg bg-accent-500 px-4 py-3 text-center text-sm font-semibold text-white">App-only: Free shipping on orders over R650</div></div>
         <section className="mt-8 border-t border-brand-200 bg-brand-50">
           <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 py-8 md:grid-cols-3 md:gap-8 md:py-10">
             <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 h-10 w-10 rounded-full bg-white flex items-center justify-center text-brand-900">🚚</div>
+              <div className="flex-shrink-0 h-10 w-10 rounded-full bg-white flex items-center justify-center text-brand-900"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M3 6h11v11H3zM14 10h4l3 3v4h-7zM7 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm11 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" /></svg></div>
               <div>
                 <p className="font-medium text-brand-900">Nationwide delivery</p>
                 <p className="text-sm text-brand-600">Pargo pickup, The Courier Guy, or Dawn Wing same-day.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 h-10 w-10 rounded-full bg-white flex items-center justify-center text-brand-900">↩</div>
+              <div className="flex-shrink-0 h-10 w-10 rounded-full bg-white flex items-center justify-center text-brand-900"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M9 7H4v5M4 12a8 8 0 1 0 2-5" /></svg></div>
               <div>
                 <p className="font-medium text-brand-900">13-day returns</p>
                 <p className="text-sm text-brand-600">Not right? Send it back within 13 days.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 h-10 w-10 rounded-full bg-white flex items-center justify-center text-brand-900">🔒</div>
+              <div className="flex-shrink-0 h-10 w-10 rounded-full bg-white flex items-center justify-center text-brand-900"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg></div>
               <div>
                 <p className="font-medium text-brand-900">Secure payments</p>
                 <p className="text-sm text-brand-600">PayFast, Yoco, Ozow. SA gateways, ZAR.</p>
@@ -117,7 +115,6 @@ export default async function HomePage() {
           <RecentlyViewed heading="Continue where you left off" />
         </section>
       </main>
-      <Footer />
     </>
   );
 }

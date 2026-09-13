@@ -1,5 +1,3 @@
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
 import { ProductGrid } from '@/components/shop/ProductGrid';
 import { getCategoryBySlug, listProducts } from '@/lib/catalog/queries';
 import { notFound } from 'next/navigation';
@@ -39,7 +37,6 @@ export default async function CategoryPage({ params, searchParams }: Props) {
 
   return (
     <>
-      <Header />
       <main className="mx-auto max-w-6xl min-w-0 overflow-x-hidden px-4 py-6 pb-20 safe-bottom">
         <nav className="text-xs text-brand-500">
           <Link href="/" className="hover:underline">Home</Link>
@@ -79,7 +76,6 @@ export default async function CategoryPage({ params, searchParams }: Props) {
           <ProductGrid products={products} />
         </div>
       </main>
-      <Footer />
     </>
   );
 }

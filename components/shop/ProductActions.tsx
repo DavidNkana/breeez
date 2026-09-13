@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import { VariantPicker } from './VariantPicker';
 import { AddToCartButton } from './AddToCartButton';
 import { PriceDisplay } from './PriceDisplay';
-import { LowStockBadge } from './TrackRecentlyViewed';
+import { LowStockBadge } from './LowStockBadge';
 import { SizeGuide } from './SizeGuide';
 import type { ProductVariant } from '@/lib/supabase/types';
 

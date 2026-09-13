@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import type { Category, Product, ProductImage, ProductVariant } from '@/lib/supabase/types';
+import { logError } from '@/lib/utils/error-logger';
 
 /**
  * Catalog queries — read-only data fetching from Supabase.
@@ -81,7 +82,7 @@ export async function listProducts(params: ListProductsParams = {}): Promise<Pro
   if (params.offset) builder = builder.range(params.offset, params.offset + (params.limit ?? 20) - 1);
 
   const { data, error } = await builder;
-  if (error) { console.error('[listProducts]', error.message); return []; }
+  if (error) { logError({ message: `[listProducts] ${error.message}`, severity: 'error' }); return []; }
 
   const products = (data ?? []) as Product[];
   if (products.length === 0) return [];
@@ -94,6 +95,9 @@ export async function listProducts(params: ListProductsParams = {}): Promise<Pro
   }
 
   const productIds = products.map((p) => p.id);
+  const stockMap = new Map<string, number>();
+  const { data: variants } = (await supabase.from('product_variants').select('product_id, stock').in('product_id', productIds).eq('is_active', true)) as any;
+  for (const variant of variants ?? []) stockMap.set(variant.product_id, (stockMap.get(variant.product_id) ?? 0) + Number(variant.stock ?? 0));
   let imgMap = new Map<string, ProductImage>();
   if (productIds.length > 0) {
     const { data: imgs } = (await supabase.from('product_images').select('*').in('product_id', productIds).order('sort_order')) as any;
@@ -123,7 +127,7 @@ export async function listProducts(params: ListProductsParams = {}): Promise<Pro
       primary_image: imgMap.get(p.id) ?? null,
       price_min_cents: p.base_price_cents,
       price_max_cents: p.base_price_cents,
-      total_stock: 0,
+       total_stock: stockMap.get(p.id) ?? 0,
       avg_rating: r?.avg_rating ?? 0,
       review_count: r?.review_count ?? 0,
     };

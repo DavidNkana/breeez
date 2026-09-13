@@ -1,7 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import { requireUser } from '@/lib/auth/session';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -19,7 +17,6 @@ export default async function OrdersPage() {
 
   return (
     <>
-      <Header />
       <main className="mx-auto max-w-3xl px-4 py-10 pb-20 safe-bottom">
         <h1 className="text-2xl font-semibold text-brand-950">My orders</h1>
         <p className="mt-1 text-sm text-brand-600">Track and manage your orders.</p>
@@ -59,7 +56,6 @@ export default async function OrdersPage() {
           )}
         </div>
       </main>
-      <Footer />
     </>
   );
 }

@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { CartButton } from '@/components/shop/CartButton';
 import { SearchAutocomplete } from '@/components/shop/SearchAutocomplete';
 import { WishlistButton } from '@/components/shop/WishlistButton';
+import { ThemeToggle } from '@/components/layout/ThemeToggle';
 import { brand } from '@/lib/brand';
 
 const NAV_LINKS = [
@@ -55,6 +56,9 @@ export function Header() {
         <div className="flex items-center gap-1 sm:gap-2">
           <SearchAutocomplete />
           <WishlistButton />
+          <div className="hidden md:block">
+            <ThemeToggle iconOnly />
+          </div>
           <Link
             href="/account"
             aria-label="Account"

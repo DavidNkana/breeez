@@ -2,8 +2,6 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
 import { logError } from '@/lib/utils/error-logger';
 
 export default function GlobalError({
@@ -26,7 +24,6 @@ export default function GlobalError({
 
   return (
     <>
-      <Header />
       <main className="mx-auto max-w-xl px-4 py-16 pb-20 safe-bottom text-center">
         <p className="text-5xl">⚠️</p>
         <h1 className="mt-3 text-2xl font-semibold text-brand-950">Something went wrong</h1>
@@ -34,7 +31,7 @@ export default function GlobalError({
           We&apos;ve been notified. Please try again, or head back home.
         </p>
         {error.digest && (
-          <p className="mt-2 text-[10px] text-brand-400 font-mono">
+          <p className="mt-2 text-[10px] text-brand-600 font-mono">
             Error reference: {error.digest}
           </p>
         )}
@@ -54,7 +51,6 @@ export default function GlobalError({
           </Link>
         </div>
       </main>
-      <Footer />
     </>
   );
 }

@@ -202,7 +202,7 @@ export function SearchAutocomplete({ className = '', variant = 'compact' }: Prop
         aria-label="Search products"
       />
 
-      {/* Compact mobile FAB (kept identical to old SearchBar so Header layout doesn't shift) */}
+      {/* Compact mobile search button */}
       <button
         type="button"
         onClick={() => setMobileSheet(true)}
@@ -308,7 +308,7 @@ export function SearchAutocomplete({ className = '', variant = 'compact' }: Prop
                           e.stopPropagation();
                           goToCategory(c.slug, query);
                         }}
-                        className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm ${
+                         className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 ${
                           isActive ? 'bg-brand-100 text-brand-900' : 'text-brand-700 hover:bg-brand-50'
                         }`}
                       >
@@ -343,7 +343,7 @@ export function SearchAutocomplete({ className = '', variant = 'compact' }: Prop
                           e.stopPropagation();
                           goToProduct(p.slug, query);
                         }}
-                        className={`flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left text-sm ${
+                         className={`flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 ${
                           isActive ? 'bg-brand-100' : 'hover:bg-brand-50'
                         }`}
                       >

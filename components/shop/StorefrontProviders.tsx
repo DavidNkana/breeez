@@ -10,6 +10,7 @@ import { logError } from '@/lib/utils/error-logger';
 
 export function StorefrontProviders() {
   useEffect(() => {
+    window.dispatchEvent(new Event('evasale:appReady'));
     // Wire global error listeners — send to /api/log/error (error_log table).
     function onError(event: ErrorEvent) {
       logError({

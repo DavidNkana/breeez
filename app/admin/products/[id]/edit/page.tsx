@@ -1,7 +1,5 @@
 import { requireAdmin } from '@/lib/auth/session';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
 import { EditProductForm } from '@/components/admin/EditProductForm';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -40,7 +38,6 @@ export default async function EditProductPage({ params }: Props) {
 
   return (
     <>
-      <Header />
       <main className="mx-auto max-w-4xl px-4 py-10 pb-20 safe-bottom">
         <Link href="/admin/products" className="text-sm text-brand-600 hover:underline">← Back to products</Link>
         <h1 className="mt-2 text-2xl font-semibold text-brand-950">Edit product</h1>
@@ -58,7 +55,6 @@ export default async function EditProductPage({ params }: Props) {
           />
         </div>
       </main>
-      <Footer />
     </>
   );
 }

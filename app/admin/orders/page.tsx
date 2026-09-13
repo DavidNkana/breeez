@@ -1,7 +1,5 @@
 import { requireAdmin } from '@/lib/auth/session';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
 import Link from 'next/link';
 import { formatRand } from '@/lib/format';
 import { Badge } from '@/components/ui/Badge';
@@ -21,7 +19,6 @@ export default async function AdminOrdersPage() {
 
   return (
     <>
-      <Header />
       <main className="mx-auto max-w-6xl min-w-0 overflow-x-hidden px-4 py-10 pb-20 safe-bottom">
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <div>
@@ -78,7 +75,6 @@ export default async function AdminOrdersPage() {
           </table>
         </div>
       </main>
-      <Footer />
     </>
   );
 }

@@ -1,11 +1,8 @@
 import Link from 'next/link';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
 
 export default function NotFound() {
   return (
     <>
-      <Header />
       <main className="mx-auto max-w-xl px-4 py-16 pb-20 safe-bottom text-center">
         <p className="text-6xl font-bold text-brand-900">404</p>
         <h1 className="mt-3 text-2xl font-semibold text-brand-950">
@@ -36,7 +33,6 @@ export default function NotFound() {
           </Link>
         </div>
       </main>
-      <Footer />
     </>
   );
 }

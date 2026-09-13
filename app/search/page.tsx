@@ -1,5 +1,3 @@
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
 import { ProductGrid } from '@/components/shop/ProductGrid';
 import { searchProducts } from '@/lib/catalog/queries';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -12,7 +10,6 @@ export default async function SearchPage({ searchParams }: Props) {
 
   return (
     <>
-      <Header />
       <main className="mx-auto max-w-6xl min-w-0 overflow-x-hidden px-4 py-6 pb-20 safe-bottom">
         <h1 className="text-2xl font-semibold text-brand-950">
           {q ? `Results for "${q}"` : 'Search'}
@@ -33,7 +30,6 @@ export default async function SearchPage({ searchParams }: Props) {
           )}
         </div>
       </main>
-      <Footer />
     </>
   );
 }

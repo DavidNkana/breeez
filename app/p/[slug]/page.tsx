@@ -1,11 +1,10 @@
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
 import { ProductGallery } from '@/components/shop/ProductGallery';
 import { ProductActions } from '@/components/shop/ProductActions';
 import { ProductGrid } from '@/components/shop/ProductGrid';
 import { ReviewSection } from '@/components/shop/ReviewSection';
 import { RecentlyViewed } from '@/components/shop/RecentlyViewed';
 import { TrackRecentlyViewed } from '@/components/shop/TrackRecentlyViewed';
+import { StickyPdpCta } from '@/components/shop/StickyPdpCta';
 import { getProductBySlug, getRelatedProducts } from '@/lib/catalog/queries';
 import { brand } from '@/lib/brand';
 import { notFound } from 'next/navigation';
@@ -116,7 +115,6 @@ export default async function ProductPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(orgLd) }}
       />
-      <Header />
       <main className="mx-auto max-w-6xl px-4 py-6 pb-20 safe-bottom overflow-x-clip max-w-full">
         <nav className="text-xs text-brand-500">
           <Link href="/" className="hover:underline">Home</Link>
@@ -177,7 +175,7 @@ export default async function ProductPage({ params }: Props) {
           }
         />
       </main>
-      <Footer />
+      <StickyPdpCta productId={product.id} slug={product.slug} name={product.name} priceCents={priceCents} variants={product.variants} imageUrl={product.images[0]?.url || '/placeholder.svg'} />
     </>
   );
 }

@@ -8,7 +8,7 @@ const SPLASH_KEY = 'breeez:splash_shown_v1';
 /**
  * Full-screen splash screen shown on app startup.
  * White background with the Evasale logo centered.
- * Shows for 5 seconds then fades out.
+ * Fades out quickly while native splash is controlled by Capacitor.
  * Only shows once per browser session.
  */
 export function AppSplash() {
@@ -22,13 +22,21 @@ export function AppSplash() {
 
     sessionStorage.setItem(SPLASH_KEY, '1');
 
-    // Auto-hide after 5 seconds
-    const hideTimer = setTimeout(() => {
-      setVisible(false);
-    }, 5000);
+    // Keep JS splash short; native splash is controlled independently.
+    const hide = () => setVisible(false);
+    const hideTimer = setTimeout(hide, 650);
+    window.addEventListener('evasale:appReady', hide);
+
+    let nativeHide: (() => void) | undefined;
+    void import('@capacitor/splash-screen').then(({ SplashScreen }) => {
+      nativeHide = () => { void SplashScreen.hide({ fadeOutDuration: 250 }); };
+      nativeHide();
+    }).catch(() => {});
 
     return () => {
       clearTimeout(hideTimer);
+      window.removeEventListener('evasale:appReady', hide);
+      nativeHide?.();
     };
   }, [visible]);
 
@@ -36,7 +44,7 @@ export function AppSplash() {
 
   return (
     <div
-      className="fixed inset-0 z-[99999] flex items-center justify-center bg-white transition-opacity duration-500"
+      className="fixed inset-0 z-[99999] flex items-center justify-center bg-white transition-opacity duration-300"
       aria-hidden="true"
     >
       <img

@@ -1,7 +1,5 @@
 import { requireAdmin } from '@/lib/auth/session';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
 import { LogoutButton } from '@/components/auth/LogoutButton';
 
 export default async function AdminDashboard() {
@@ -20,7 +18,6 @@ export default async function AdminDashboard() {
 
   return (
     <>
-      <Header />
       <main className="mx-auto max-w-6xl min-w-0 overflow-x-hidden px-4 py-10 pb-20 safe-bottom">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold text-brand-950">Admin</h1>
@@ -93,7 +90,6 @@ export default async function AdminDashboard() {
           </div>
         )}
       </main>
-      <Footer />
     </>
   );
 }
