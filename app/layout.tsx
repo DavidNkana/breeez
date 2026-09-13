@@ -9,6 +9,7 @@ import { brand } from '@/lib/brand';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
+import { NativeChrome } from '@/components/app/NativeChrome';
 
 const SITE_URL = brand.siteUrl;
 const SITE_NAME = brand.name;
@@ -100,10 +101,8 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en-ZA" className="dark">
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: "try{if(localStorage.getItem('evasale.theme')!=='light'&&localStorage.getItem('evasale.theme')!=='system')document.documentElement.classList.add('dark');else if(localStorage.getItem('evasale.theme')==='light')document.documentElement.classList.remove('dark');else document.documentElement.classList.toggle('dark',matchMedia('(prefers-color-scheme: dark)').matches)}catch(_){}" }} />
-      </head>
-      <body className="min-h-screen flex flex-col bg-white text-brand-950 font-sans antialiased dark:bg-brand-950 dark:text-brand-50">
+      <body className="min-h-screen flex flex-col bg-black text-white font-sans antialiased dark:bg-brand-950 dark:text-brand-50">
+        <NativeChrome />
         <AppSplash />
         <OfflineGate />
         <StorefrontProviders />

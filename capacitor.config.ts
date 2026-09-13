@@ -37,12 +37,12 @@ const config: CapacitorConfig = {
     allowMixedContent: false,
     captureInput: true,
     webContentsDebuggingEnabled: false,
-    backgroundColor: '#ffffff'
+    backgroundColor: '#000000'
   },
 
   ios: {
     contentInset: 'automatic',
-    backgroundColor: '#ffffff',
+    backgroundColor: '#000000',
     limitsNavigationsToAppBoundDomains: true
   },
 
@@ -52,7 +52,7 @@ const config: CapacitorConfig = {
     // original `npx cap add android` and was never replaced. We disable it
     // here so users go straight from the launcher-icon splash (your Evasale
     // branded one in mipmap-*/ic_launcher.png) to the WebView, which
-    // shows the white-background AppSplash.tsx React component with the
+    // shows the black-background AppSplash.tsx React component with the
     // real Evasale logo for ~5 seconds.
     //
     // To restore a native splash: replace the splash.png files in
@@ -61,7 +61,7 @@ const config: CapacitorConfig = {
     SplashScreen: {
       launchShowDuration: 0,
       launchAutoHide: true,
-      backgroundColor: '#ffffff',
+      backgroundColor: '#000000',
       androidSplashResourceName: 'splash',
       androidScaleType: 'CENTER_CROP',
       showSpinner: false,
@@ -70,8 +70,8 @@ const config: CapacitorConfig = {
       splashImmersive: true
     },
     StatusBar: {
-      style: 'default',
-      backgroundColor: '#ffffff'
+      style: 'dark',
+      backgroundColor: '#000000'
     },
     PushNotifications: {
       presentationOptions: ['badge', 'sound', 'alert']

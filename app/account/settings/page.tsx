@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ThemeToggle } from '@/components/layout/ThemeToggle';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useToast } from '@/components/ui/Toast';
@@ -77,7 +76,6 @@ export default function SettingsPage() {
       <main className="mx-auto max-w-md px-4 py-10 pb-20 safe-bottom">
         <h1 className="text-2xl font-semibold text-brand-950">Settings</h1>
         <p className="mt-1 text-sm text-brand-600">Update your profile information.</p>
-        <div className="mt-4"><ThemeToggle /></div>
 
         <form onSubmit={onSubmit} className="mt-6 space-y-4">
           <Input

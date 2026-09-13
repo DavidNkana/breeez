@@ -1,6 +1,5 @@
 import { requireUser, getCurrentCustomer } from '@/lib/auth/session';
 import { LogoutButton } from '@/components/auth/LogoutButton';
-import { ThemeToggle } from '@/components/layout/ThemeToggle';
 import Link from 'next/link';
 
 export default async function AccountPage() {
@@ -24,14 +23,6 @@ export default async function AccountPage() {
             <p className="mt-1 text-sm text-brand-600">{user.email}</p>
           </div>
           <LogoutButton redirectTo="/" />
-        </div>
-
-         <div className="mt-6 flex items-center justify-between rounded-lg border border-brand-200 bg-white dark:bg-brand-900 px-4 py-3">
-          <div>
-            <p className="text-sm font-medium text-brand-900">Appearance</p>
-            <p className="mt-0.5 text-xs text-brand-600">Choose light, dark, or system theme</p>
-          </div>
-           <ThemeToggle />
         </div>
 
         <div className="mt-8 grid gap-3 md:grid-cols-2">
