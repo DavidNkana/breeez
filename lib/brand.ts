@@ -3,6 +3,7 @@
  *
  * Every brand-touched string, color, file path, and copy block lives here
  * so rebrands = one-file edits, not find-and-replace through the codebase.
+ * The logo and favicon both use the supplied Evasale PNG brand asset.
  *
  * Owned by Alex (Portfolio), edited by Chris when Evasale assets change.
  */
@@ -32,8 +33,8 @@ export const brand = {
   },
 
   // Files (paths are relative to /public so usable in <img src> or CSS url())
-  logo: '/brand/evasale-logo.svg',
-  favicon: '/brand/evasale-mark.svg',
+  logo: '/brand/evasale-logo.png',
+  favicon: '/brand/evasale-logo.png',
   ogDefault: '/brand/og-default.png', // we already have opengraph-image.tsx — this is fallback
 
   // Contact — pulled directly from their site footer

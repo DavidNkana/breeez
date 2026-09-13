@@ -33,7 +33,7 @@ type EmailPayload = {
 function emailTemplate(title: string, body: string) {
   return `
   <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;max-width:600px;margin:0 auto;color:#1a1f26">
-    <div style="padding:16px 0;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:12px">
+     <div style="padding:20px 16px;background:#000000;display:flex;align-items:center;justify-content:center">
       <img src="${brand.logo}" alt="${brand.name}" height="36" style="height:36px;width:auto" />
     </div>
     <h1 style="font-size:22px;margin:24px 0 12px;color:#1a1f26">${title}</h1>

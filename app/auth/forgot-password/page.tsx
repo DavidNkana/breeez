@@ -38,6 +38,9 @@ export default function ForgotPasswordPage() {
 
   return (
     <main className="mx-auto max-w-md px-4 py-10 pb-20 safe-bottom">
+      <div className="-mx-4 -mt-10 flex justify-center bg-black px-4 pb-6 pt-10">
+        <img src="/brand/evasale-logo.png" alt="Evasale" className="h-14 w-auto" />
+      </div>
       <h1 className="text-2xl font-semibold text-brand-950">Reset your password</h1>
       <p className="mt-1 text-sm text-brand-600">
         Enter the email on your account. We&apos;ll send you a link to set a new password.

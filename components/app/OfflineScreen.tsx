@@ -14,7 +14,7 @@ type OfflineScreenProps = {
 };
 
 /**
- * Branded offline screen — full-bleed, white background, brand logo + a clear
+ * Branded offline screen — full-bleed, black background, brand logo + a clear
  * "you are not connected to the internet" message + a retry button.
  *
  * Two ways this component gets shown:
@@ -56,7 +56,7 @@ export function OfflineScreen({
 
   return (
     <div
-      className="fixed inset-0 z-[99998] flex flex-col items-center justify-center bg-white px-6 safe-top safe-bottom"
+      className="fixed inset-0 z-[99998] flex flex-col items-center justify-center bg-black px-6 safe-top safe-bottom"
       role="alertdialog"
       aria-live="assertive"
       aria-labelledby="offline-headline"
@@ -68,7 +68,7 @@ export function OfflineScreen({
         className="h-auto w-40 sm:w-48"
       />
 
-      <div className="mt-10 flex h-20 w-20 items-center justify-center rounded-full bg-amber-50 ring-1 ring-amber-200">
+      <div className="mt-10 flex h-20 w-20 items-center justify-center rounded-full bg-amber-950 ring-1 ring-amber-700">
         {/* Cloud-off icon (lucide-style, inline) */}
         <svg
           width="40"
@@ -79,7 +79,7 @@ export function OfflineScreen({
           strokeWidth="1.75"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="text-amber-700"
+           className="text-amber-300"
           aria-hidden="true"
         >
           <path d="M2.25 15a4.5 4.5 0 004.5 4.5H18a3.75 3.75 0 001.332-7.257 3 3 0 00-3.758-3.848 5.25 5.25 0 00-10.233 2.33A4.502 4.502 0 002.25 15z" />
@@ -89,14 +89,14 @@ export function OfflineScreen({
 
       <h1
         id="offline-headline"
-        className="mt-8 text-center text-xl font-semibold text-brand-950 sm:text-2xl"
+        className="mt-8 text-center text-xl font-semibold text-white sm:text-2xl"
       >
         {headline}
       </h1>
 
       <p
         id="offline-body"
-        className="mt-3 max-w-md text-center text-sm text-brand-600 sm:text-base"
+        className="mt-3 max-w-md text-center text-sm text-brand-300 sm:text-base"
       >
         {body}
       </p>
@@ -123,7 +123,7 @@ export function OfflineScreen({
         </button>
       )}
 
-      <p className="mt-10 text-xs text-brand-600">
+      <p className="mt-10 text-xs text-brand-300">
         {brand.name} — shop smart, save big
       </p>
     </div>

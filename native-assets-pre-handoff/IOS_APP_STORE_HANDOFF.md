@@ -5,7 +5,7 @@
 - [ ] Mac with Xcode 15+ installed
 - [ ] Access to Naz's Apple Developer account (login at developer.apple.com)
 - [ ] This project repo cloned to your Mac
-- [ ] The Evasale logo at `public/brand/evasale-logo.svg` (use as the app icon)
+- [ ] The Evasale logo at `public/brand/evasale-logo.png` (use as the app icon)
 
 ## Step 1 — Clone & Install
 
@@ -18,9 +18,9 @@ npx cap sync ios
 
 ## Step 2 — Create the app icon
 
-The Evasale logo is at `public/brand/evasale-logo.svg`. Use this as the app icon — it's the same logo that appears on the website header.
+The Evasale logo is at `public/brand/evasale-logo.png`. Use this as the app icon — it's the same logo that appears on the website header.
 
-1. Open `public/brand/logo.png` in Preview
+1. Open `public/brand/evasale-logo.png` in Preview
 2. The logo is already a PNG with transparency. For the app icon you need a solid background:
    - In Preview: Tools → Adjust Color (nothing needed — just centre it on a red #C72E28 canvas)
    - Or use Figma/Sketch: place the logo on a 1024×1024 red (#C72E28) rounded square canvas, export as PNG
@@ -56,9 +56,9 @@ The Evasale logo is at `public/brand/evasale-logo.svg`. Use this as the app icon
 
 ## Step 5 — Splash screen
 
-The iOS native launch screen (`LaunchScreen.storyboard`) is intentionally a plain white view — there is **no `Splash.imageset` to edit and you should not recreate one**. Any previous handoff notes telling you to drop `public/brand/logo.png` into `ios/App/App/Assets.xcassets/Splash.imageset/` are stale and pre-date this change.
+The iOS native launch screen (`LaunchScreen.storyboard`) is intentionally a plain white view — there is **no `Splash.imageset` to edit and you should not recreate one**. Any previous handoff notes telling you to drop `public/brand/evasale-logo.png` into `ios/App/App/Assets.xcassets/Splash.imageset/` are stale and pre-date this change.
 
-Branding during app open is handled entirely by `components/app/AppSplash.tsx`, which renders the Evasale logo on a white background inside the WebView for ~5 seconds on first launch. This keeps the branded splash updateable from web deploys without needing an Xcode rebuild.
+Branding during app open is handled entirely by `components/app/AppSplash.tsx`, which renders the Evasale logo on a black background inside the WebView for ~5 seconds on first launch. This keeps the branded splash updateable from web deploys without needing an Xcode rebuild.
 
 If you ever do want a fully native iOS launch logo, the right approach is to add a new imageset (e.g. `LaunchLogo.imageset`) and reference it from `LaunchScreen.storyboard` — do not recreate the deleted `Splash.imageset` (it would conflict with the Capacitor splash plugin's expectations).
 

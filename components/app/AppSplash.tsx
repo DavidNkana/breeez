@@ -7,7 +7,7 @@ const SPLASH_KEY = 'breeez:splash_shown_v1';
 
 /**
  * Full-screen splash screen shown on app startup.
- * White background with the Evasale logo centered.
+ * Black background with the Evasale logo centered.
  * Fades out quickly while native splash is controlled by Capacitor.
  * Only shows once per browser session.
  */
@@ -44,7 +44,7 @@ export function AppSplash() {
 
   return (
     <div
-      className="fixed inset-0 z-[99999] flex items-center justify-center bg-white transition-opacity duration-300"
+      className="fixed inset-0 z-[99999] flex items-center justify-center bg-black transition-opacity duration-300"
       aria-hidden="true"
     >
       <img

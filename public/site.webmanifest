@@ -9,8 +9,7 @@
   "theme_color": "#C72E28",
   "icons": [
     {
-      "src": "/brand/favicon.png",
-      "sizes": "150x150",
+      "src": "/brand/evasale-logo.png",
       "type": "image/png"
     }
   ]
