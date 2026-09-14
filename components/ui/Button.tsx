@@ -14,9 +14,9 @@ type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
 const base = 'inline-flex items-center justify-center font-medium rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
 
 const variantClasses: Record<Variant, string> = {
-  primary:   'bg-brand-900 text-white hover:bg-brand-800 active:bg-brand-950',
+  primary:   'bg-accent-500 text-white hover:bg-accent-600 active:bg-accent-700 shadow-sm',
   secondary: 'border border-brand-300 bg-white text-brand-900 hover:bg-brand-50 active:bg-brand-100 dark:bg-brand-900 dark:text-white dark:hover:bg-brand-800 dark:active:bg-brand-950',
-  ghost:     'bg-transparent text-brand-700 hover:bg-brand-50 active:bg-brand-100',
+  ghost:     'bg-transparent text-brand-700 hover:bg-brand-50 active:bg-brand-100 dark:text-brand-200 dark:hover:bg-brand-800 dark:active:bg-brand-700',
   danger:    'bg-danger text-white hover:bg-red-700 active:bg-red-800',
   accent:    'bg-accent-500 text-white hover:bg-accent-600 active:bg-accent-700'
 };

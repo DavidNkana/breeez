@@ -61,7 +61,7 @@ export function RegisterForm() {
       <Input label="Email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
       <Input label="Password (min 8 characters)" type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" />
       <Button type="submit" loading={loading} fullWidth size="lg">Create account</Button>
-      <p className="text-center text-sm text-brand-600">
+       <p className="text-center text-sm text-brand-600 dark:text-brand-300">
         Already have an account? <Link href="/auth/login" className="text-accent-700 hover:underline">Sign in</Link>
       </p>
     </form>

@@ -72,7 +72,7 @@ export function AddToCartButton({ productId, productSlug, productName, imageUrl,
         <select
           value={selectedId}
           onChange={(e) => setSelectedId(e.target.value)}
-          className="w-full rounded-md border border-brand-300 bg-white px-3 py-2 text-sm text-brand-950 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
+          className="w-full rounded-md border border-brand-300 bg-white px-3 py-2 text-sm text-brand-950 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500 dark:border-brand-600 dark:bg-brand-900 dark:text-white"
           aria-label="Select variant"
         >
           {variants.map((v) => (

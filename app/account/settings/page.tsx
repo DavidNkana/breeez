@@ -104,7 +104,7 @@ export default function SettingsPage() {
             type="button"
             onClick={onDeleteAccount}
             disabled={openingDelete}
-            className="mt-3 inline-flex items-center gap-2 rounded-md border border-brand-300 bg-white px-4 py-2 text-sm font-medium text-brand-700 transition-colors hover:border-danger hover:text-danger focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 disabled:opacity-50"
+            className="mt-3 inline-flex items-center gap-2 rounded-md border border-brand-300 bg-white px-4 py-2 text-sm font-medium text-brand-700 transition-colors hover:border-danger hover:text-danger dark:bg-brand-800 dark:text-brand-200 dark:hover:bg-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 disabled:opacity-50"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />

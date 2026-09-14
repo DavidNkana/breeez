@@ -44,7 +44,7 @@ export function CartDrawer() {
             <Link href="/checkout" onClick={() => setOpen(false)}>
               <Button fullWidth size="lg">Checkout</Button>
             </Link>
-            <button onClick={() => setOpen(false)} className="text-sm text-brand-600 hover:underline w-full text-center">
+            <button onClick={() => setOpen(false)} className="text-sm text-brand-600 hover:underline w-full text-center dark:text-brand-300">
               Continue shopping
             </button>
           </div>

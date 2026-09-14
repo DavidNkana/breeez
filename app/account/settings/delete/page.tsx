@@ -145,7 +145,7 @@ export default function DeleteAccountPage({ initialEmail }: Props) {
             <div className="mt-6 flex gap-2">
               <a
                 href="/"
-                className="inline-flex items-center rounded-md bg-brand-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-800"
+                className="inline-flex items-center rounded-md bg-accent-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-accent-600 active:bg-accent-700"
               >
                 Back to home
               </a>

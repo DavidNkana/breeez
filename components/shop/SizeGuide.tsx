@@ -35,7 +35,7 @@ export function SizeGuide() {
             if (e.currentTarget === e.target) setOpen(false);
           }}
         >
-          <div className="w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto rounded-t-lg sm:rounded-lg bg-white shadow-xl">
+          <div className="w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto rounded-t-lg sm:rounded-lg bg-white shadow-xl dark:bg-brand-900">
             <div className="border-b border-brand-200 px-5 py-3">
               <h2 className="text-base font-semibold text-brand-950">Size guide</h2>
               <p className="text-xs text-brand-500">Standard SA measurements. When in doubt, size up.</p>

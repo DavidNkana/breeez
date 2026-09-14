@@ -56,7 +56,7 @@ export function Drawer({ open, onClose, side = 'right', title, children, classNa
               type="button"
               onClick={onClose}
               aria-label="Close"
-              className="rounded-md p-1 text-brand-500 hover:bg-brand-50 hover:text-brand-900"
+              className="rounded-md p-1 text-brand-500 dark:text-brand-300 hover:bg-brand-50 dark:hover:bg-brand-800 hover:text-brand-900"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M6 6l12 12M6 18L18 6" />

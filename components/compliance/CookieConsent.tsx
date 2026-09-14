@@ -85,7 +85,7 @@ export function CookieConsent() {
       aria-label="Cookie preferences"
       className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-3xl p-3 sm:p-4"
     >
-      <div className="rounded-xl border border-brand-300 bg-white shadow-2xl">
+      <div className="rounded-xl border border-brand-300 bg-white shadow-2xl dark:border-brand-700 dark:bg-brand-900">
         {!showCustom ? (
           <div className="p-5">
             <p className="text-sm font-semibold text-brand-950">
@@ -98,14 +98,14 @@ export function CookieConsent() {
               <button
                 type="button"
                 onClick={acceptAll}
-                className="inline-flex items-center rounded-md bg-brand-900 px-4 py-2 text-sm font-medium text-white hover:bg-brand-800"
+                 className="inline-flex items-center rounded-md bg-accent-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-accent-600 active:bg-accent-700"
               >
                 Accept all
               </button>
               <button
                 type="button"
                 onClick={rejectOptional}
-                className="inline-flex items-center rounded-md border border-brand-300 bg-white px-4 py-2 text-sm font-medium text-brand-900 hover:bg-brand-50"
+                 className="inline-flex items-center rounded-md border border-brand-300 bg-white px-4 py-2 text-sm font-medium text-brand-900 hover:bg-brand-50 dark:border-brand-600 dark:bg-brand-800 dark:text-white dark:hover:bg-brand-700"
               >
                 Reject optional
               </button>
@@ -171,14 +171,14 @@ export function CookieConsent() {
               <button
                 type="button"
                 onClick={saveCustom}
-                className="inline-flex items-center rounded-md bg-brand-900 px-4 py-2 text-sm font-medium text-white hover:bg-brand-800"
+                 className="inline-flex items-center rounded-md bg-accent-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-accent-600 active:bg-accent-700"
               >
                 Save preferences
               </button>
               <button
                 type="button"
                 onClick={() => setShowCustom(false)}
-                className="inline-flex items-center rounded-md border border-brand-300 bg-white px-4 py-2 text-sm font-medium text-brand-900 hover:bg-brand-50"
+                 className="inline-flex items-center rounded-md border border-brand-300 bg-white px-4 py-2 text-sm font-medium text-brand-900 hover:bg-brand-50 dark:border-brand-600 dark:bg-brand-800 dark:text-white dark:hover:bg-brand-700"
               >
                 Back
               </button>

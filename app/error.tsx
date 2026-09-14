@@ -39,13 +39,13 @@ export default function GlobalError({
           <button
             type="button"
             onClick={() => reset()}
-            className="inline-flex items-center rounded-md bg-brand-900 px-4 py-2 text-sm font-medium text-white hover:bg-brand-800"
+            className="inline-flex items-center rounded-md bg-accent-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-accent-600 active:bg-accent-700"
           >
             Try again
           </button>
           <Link
             href="/"
-            className="inline-flex items-center rounded-md border border-brand-300 bg-white px-4 py-2 text-sm font-medium text-brand-900 hover:bg-brand-50"
+            className="inline-flex items-center rounded-md border border-brand-300 bg-white px-4 py-2 text-sm font-medium text-brand-900 hover:bg-brand-50 dark:border-brand-600 dark:bg-brand-900 dark:text-white dark:hover:bg-brand-800"
           >
             Go home
           </Link>

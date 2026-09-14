@@ -155,7 +155,7 @@ export function ImageUploader({ images, onChange, max = 10 }: Props) {
         className={clsx(
           'relative w-full rounded-md border-2 border-dashed transition-colors cursor-pointer',
           'px-4 py-6 sm:py-8 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4',
-          dragOver ? 'border-accent-500 bg-accent-50 text-accent-700' : 'border-brand-300 bg-white hover:border-accent-500 hover:bg-accent-50/30 text-brand-600'
+          dragOver ? 'border-accent-500 bg-accent-50 text-accent-700 dark:bg-brand-800' : 'border-brand-300 bg-white hover:border-accent-500 hover:bg-accent-50/30 text-brand-600 dark:border-brand-600 dark:bg-brand-900 dark:text-brand-200 dark:hover:bg-brand-800'
         )}
         role="button"
         tabIndex={0}
@@ -172,7 +172,7 @@ export function ImageUploader({ images, onChange, max = 10 }: Props) {
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); cameraInputRef.current?.click(); }}
-          className="relative z-10 sm:hidden inline-flex items-center gap-1.5 rounded-md border border-accent-300 bg-white px-3 py-1.5 text-sm font-medium text-accent-700 hover:bg-accent-50"
+          className="relative z-10 sm:hidden inline-flex items-center gap-1.5 rounded-md border border-accent-300 bg-white px-3 py-1.5 text-sm font-medium text-accent-700 hover:bg-accent-50 dark:bg-brand-800 dark:text-accent-300 dark:hover:bg-brand-700"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
             <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
@@ -230,10 +230,10 @@ export function ImageUploader({ images, onChange, max = 10 }: Props) {
                 )}
                 <div className="absolute top-1 right-1 flex gap-1">
                   {idx > 0 && (
-                    <button type="button" onClick={() => moveImage(idx, -1)} className="h-6 w-6 rounded-full bg-white/90 text-brand-900 text-xs hover:bg-white" aria-label="Move left">←</button>
+                    <button type="button" onClick={() => moveImage(idx, -1)} className="h-6 w-6 rounded-full bg-white/90 text-brand-900 text-xs hover:bg-white dark:bg-brand-800/90 dark:text-brand-100 dark:hover:bg-brand-700" aria-label="Move left">←</button>
                   )}
                   {idx < images.length - 1 && (
-                    <button type="button" onClick={() => moveImage(idx, 1)} className="h-6 w-6 rounded-full bg-white/90 text-brand-900 text-xs hover:bg-white" aria-label="Move right">→</button>
+                    <button type="button" onClick={() => moveImage(idx, 1)} className="h-6 w-6 rounded-full bg-white/90 text-brand-900 text-xs hover:bg-white dark:bg-brand-800/90 dark:text-brand-100 dark:hover:bg-brand-700" aria-label="Move right">→</button>
                   )}
                 </div>
                 {idx === 0 && !img.error && (

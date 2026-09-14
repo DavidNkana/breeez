@@ -43,7 +43,7 @@ export function DeleteProductButton({ productId, productName }: Props) {
       <button
         type="button"
         onClick={() => setConfirming(true)}
-        className="inline-flex items-center rounded-md border border-danger bg-white px-3 py-1.5 text-xs font-medium text-danger hover:bg-red-50"
+        className="inline-flex items-center rounded-md border border-danger bg-white px-3 py-1.5 text-xs font-medium text-danger hover:bg-red-50 dark:bg-brand-800 dark:text-danger dark:hover:bg-brand-700"
       >
         Delete
       </button>
@@ -63,7 +63,7 @@ export function DeleteProductButton({ productId, productName }: Props) {
       <button
         type="button"
         onClick={() => setConfirming(false)}
-        className="inline-flex items-center rounded-md border border-brand-300 bg-white px-3 py-1.5 text-xs font-medium text-brand-700 hover:bg-brand-50"
+        className="inline-flex items-center rounded-md border border-brand-300 bg-white px-3 py-1.5 text-xs font-medium text-brand-700 dark:border-brand-600 dark:bg-brand-900 dark:text-brand-200 hover:bg-brand-50 dark:hover:bg-brand-800"
       >
         Cancel
       </button>

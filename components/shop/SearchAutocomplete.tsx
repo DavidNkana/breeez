@@ -206,7 +206,7 @@ export function SearchAutocomplete({ className = '', variant = 'compact' }: Prop
       <button
         type="button"
         onClick={() => setMobileSheet(true)}
-        className="sm:hidden rounded-md p-2 text-brand-700 hover:bg-brand-50"
+         className="sm:hidden rounded-md p-2 text-brand-700 dark:text-brand-200 hover:bg-brand-50 dark:hover:bg-brand-800"
         aria-label="Open search"
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
@@ -254,7 +254,7 @@ export function SearchAutocomplete({ className = '', variant = 'compact' }: Prop
                         setQuery(r);
                         setOpen(true);
                       }}
-                      className="rounded-full bg-brand-50 px-2.5 py-1 text-xs text-brand-700 hover:bg-brand-100"
+                       className="rounded-full bg-brand-50 px-2.5 py-1 text-xs text-brand-700 dark:bg-brand-800 dark:text-brand-200 hover:bg-brand-100 dark:hover:bg-brand-700"
                     >
                       {r}
                     </button>
@@ -279,7 +279,7 @@ export function SearchAutocomplete({ className = '', variant = 'compact' }: Prop
                         e.stopPropagation();
                         goToCategory(c.slug, c.name);
                       }}
-                      className="block w-full rounded-md px-2 py-1.5 text-left text-sm text-brand-700 hover:bg-brand-50"
+                     className="block w-full rounded-md px-2 py-1.5 text-left text-sm text-brand-700 dark:text-brand-200 hover:bg-brand-50 dark:hover:bg-brand-800"
                     >
                       {c.name}
                     </button>
@@ -309,7 +309,7 @@ export function SearchAutocomplete({ className = '', variant = 'compact' }: Prop
                           goToCategory(c.slug, query);
                         }}
                          className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 ${
-                          isActive ? 'bg-brand-100 text-brand-900' : 'text-brand-700 hover:bg-brand-50'
+                           isActive ? 'bg-brand-100 dark:bg-brand-700 text-brand-900 dark:text-brand-50' : 'text-brand-700 dark:text-brand-200 hover:bg-brand-50 dark:hover:bg-brand-800'
                         }`}
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-brand-500" aria-hidden="true">
@@ -344,7 +344,7 @@ export function SearchAutocomplete({ className = '', variant = 'compact' }: Prop
                           goToProduct(p.slug, query);
                         }}
                          className={`flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 ${
-                          isActive ? 'bg-brand-100' : 'hover:bg-brand-50'
+                           isActive ? 'bg-brand-100 dark:bg-brand-700' : 'hover:bg-brand-50 dark:hover:bg-brand-800'
                         }`}
                       >
                         <div className="h-10 w-10 flex-shrink-0 rounded bg-brand-100" />
@@ -403,7 +403,7 @@ export function SearchAutocomplete({ className = '', variant = 'compact' }: Prop
                   e.stopPropagation();
                   goToSearchPage(query);
                 }}
-                className="block w-full rounded-md bg-brand-50 px-3 py-2 text-center text-sm font-medium text-brand-800 hover:bg-brand-100"
+                 className="block w-full rounded-md bg-brand-50 px-3 py-2 text-center text-sm font-medium text-brand-800 dark:bg-brand-800 dark:text-brand-100 hover:bg-brand-100 dark:hover:bg-brand-700"
               >
                 View all results for &ldquo;{query.trim()}&rdquo; →
               </button>
@@ -450,7 +450,7 @@ export function SearchAutocomplete({ className = '', variant = 'compact' }: Prop
                       <button
                         type="button"
                         onClick={() => setQuery(r)}
-                        className="rounded-full bg-brand-50 px-2.5 py-1 text-xs text-brand-700 hover:bg-brand-100"
+                       className="rounded-full bg-brand-50 px-2.5 py-1 text-xs text-brand-700 dark:bg-brand-800 dark:text-brand-200 hover:bg-brand-100 dark:hover:bg-brand-700"
                       >{r}</button>
                     </li>
                   ))}
@@ -464,7 +464,7 @@ export function SearchAutocomplete({ className = '', variant = 'compact' }: Prop
                     <button
                       type="button"
                       onClick={() => { goToCategory(c.slug, c.name); }}
-                      className="block w-full px-4 py-3 text-left text-sm text-brand-700 hover:bg-brand-50"
+                       className="block w-full px-4 py-3 text-left text-sm text-brand-700 dark:text-brand-200 hover:bg-brand-50 dark:hover:bg-brand-800"
                     >
                       Browse {c.name}
                     </button>
@@ -480,7 +480,7 @@ export function SearchAutocomplete({ className = '', variant = 'compact' }: Prop
                     key={c.id}
                     type="button"
                     onClick={() => goToCategory(c.slug, query)}
-                    className="block w-full rounded px-3 py-2 text-left text-sm text-brand-700 hover:bg-brand-50"
+                     className="block w-full rounded px-3 py-2 text-left text-sm text-brand-700 dark:text-brand-200 hover:bg-brand-50 dark:hover:bg-brand-800"
                   >
                     {c.name}
                   </button>
@@ -494,7 +494,7 @@ export function SearchAutocomplete({ className = '', variant = 'compact' }: Prop
                     <button
                       type="button"
                       onClick={() => goToProduct(p.slug, query)}
-                      className="flex items-center gap-3 w-full p-3 text-left hover:bg-brand-50"
+                     className="flex items-center gap-3 w-full p-3 text-left hover:bg-brand-50 dark:hover:bg-brand-800"
                     >
                       <div className="h-12 w-12 flex-shrink-0 rounded bg-brand-100" />
                       <div className="flex-1 min-w-0">
@@ -524,7 +524,7 @@ export function SearchAutocomplete({ className = '', variant = 'compact' }: Prop
                 <button
                   type="button"
                   onClick={() => goToSearchPage(query)}
-                  className="block w-full rounded-md bg-brand-900 px-4 py-2.5 text-center text-sm font-medium text-white hover:bg-brand-800"
+                   className="block w-full rounded-md bg-accent-500 px-4 py-2.5 text-center text-sm font-medium text-white shadow-sm hover:bg-accent-600 active:bg-accent-700"
                 >
                   View all results for &ldquo;{query.trim()}&rdquo; →
                 </button>

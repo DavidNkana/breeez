@@ -124,7 +124,7 @@ export default async function ProductPage({ params }: Props) {
             </>
           )}
           <span className="mx-1">/</span>
-          <span className="text-brand-700">{product.name}</span>
+           <span className="text-brand-700 dark:text-brand-200">{product.name}</span>
         </nav>
 
         <div className="mt-4 grid gap-6 md:grid-cols-2 min-w-0">
@@ -133,10 +133,10 @@ export default async function ProductPage({ params }: Props) {
           </div>
 
           <div className="min-w-0">
-            <h1 className="text-2xl md:text-3xl font-semibold text-brand-950">{product.name}</h1>
+             <h1 className="text-2xl md:text-3xl font-semibold text-brand-950 dark:text-brand-50">{product.name}</h1>
 
             {product.description && (
-              <p className="mt-3 text-sm text-brand-700 whitespace-pre-line break-words">{product.description}</p>
+               <p className="mt-3 text-sm text-brand-700 dark:text-brand-200 whitespace-pre-line break-words">{product.description}</p>
             )}
 
             <ProductActions
@@ -153,7 +153,7 @@ export default async function ProductPage({ params }: Props) {
 
         {related.length > 0 && (
           <section className="mt-12 max-w-full">
-            <h2 className="text-lg font-semibold text-brand-950">You may also like</h2>
+             <h2 className="text-lg font-semibold text-brand-950 dark:text-brand-50">You may also like</h2>
             <div className="mt-4">
               <ProductGrid products={related} />
             </div>

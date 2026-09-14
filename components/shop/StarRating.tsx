@@ -112,7 +112,7 @@ export function StarPicker({
           aria-checked={value === n}
           aria-label={`${n} star${n === 1 ? '' : 's'}`}
           onClick={() => onChange(n)}
-          className="p-1 rounded hover:bg-brand-50 transition-colors"
+          className="p-1 rounded hover:bg-brand-50 dark:hover:bg-brand-800 transition-colors"
         >
           <svg width={s.star} height={s.star} viewBox="0 0 24 24" aria-hidden="true">
             <path

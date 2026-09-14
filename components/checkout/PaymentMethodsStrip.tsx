@@ -204,7 +204,7 @@ export function PaymentMethodsStrip({
           key={m.id}
           title={m.alt}
           aria-label={m.alt}
-          className="inline-flex items-center justify-center rounded border border-brand-200 bg-white px-1.5 py-1 shadow-sm transition hover:border-brand-300 hover:shadow"
+          className="inline-flex items-center justify-center rounded border border-brand-200 bg-white px-1.5 py-1 shadow-sm transition hover:border-brand-300 hover:shadow dark:border-brand-600 dark:bg-brand-800"
           style={{ height: iconHeight + 8 }}
         >
           <m.Logo

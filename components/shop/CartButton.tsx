@@ -34,7 +34,7 @@ export function CartButton() {
       type="button"
       data-cart-icon
       aria-label={`Cart (${displayCount} items)`}
-      className={`relative rounded-md p-2 text-brand-700 hover:bg-brand-50 transition-transform ${
+      className={`relative rounded-md p-2 text-brand-700 dark:text-brand-200 hover:bg-brand-50 dark:hover:bg-brand-800 transition-transform ${
         pulse ? 'scale-125 ring-2 ring-accent-500 ring-offset-2' : ''
       }`}
       onClick={() => {

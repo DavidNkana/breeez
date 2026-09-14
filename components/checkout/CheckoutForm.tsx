@@ -117,8 +117,8 @@ export function CheckoutForm({ user, savedAddresses }: Props) {
         </ol>
 
         {step === 'email' && (
-           <div className="space-y-4 rounded-lg border border-brand-200 bg-white dark:bg-brand-900 p-5">
-            <h2 className="text-lg font-semibold text-brand-950">Contact</h2>
+            <div className="space-y-4 rounded-lg border border-brand-200 bg-brand-50 dark:border-brand-700 dark:bg-brand-800 p-5">
+             <h2 className="text-lg font-semibold text-brand-950 dark:text-brand-50">Contact</h2>
             <Input label="Email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
             <Input label="Full name" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
             <Input label="Phone (for courier)" type="tel" required value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="082 123 4567" />
@@ -129,11 +129,11 @@ export function CheckoutForm({ user, savedAddresses }: Props) {
         )}
 
         {step === 'address' && (
-           <div className="space-y-4 rounded-lg border border-brand-200 bg-white dark:bg-brand-900 p-5">
-            <h2 className="text-lg font-semibold text-brand-950">Delivery address</h2>
+            <div className="space-y-4 rounded-lg border border-brand-200 bg-brand-50 dark:border-brand-700 dark:bg-brand-800 p-5">
+             <h2 className="text-lg font-semibold text-brand-950 dark:text-brand-50">Delivery address</h2>
             {savedAddresses.length > 0 && (
               <div className="rounded border border-brand-200 bg-brand-50 p-3 text-sm">
-                <p className="font-medium text-brand-900 mb-2">Use a saved address</p>
+                 <p className="font-medium text-brand-900 dark:text-brand-50 mb-2">Use a saved address</p>
                 {savedAddresses.map((a) => (
                   <button
                     key={a.id}
@@ -174,22 +174,22 @@ export function CheckoutForm({ user, savedAddresses }: Props) {
         )}
 
         {step === 'shipping' && (
-           <div className="space-y-4 rounded-lg border border-brand-200 bg-white dark:bg-brand-900 p-5">
-            <h2 className="text-lg font-semibold text-brand-950">Shipping method</h2>
+            <div className="space-y-4 rounded-lg border border-brand-200 bg-brand-50 dark:border-brand-700 dark:bg-brand-800 p-5">
+             <h2 className="text-lg font-semibold text-brand-950 dark:text-brand-50">Shipping method</h2>
             <div className="space-y-2">
               {shippingOptions.map((opt) => (
                 <label
                   key={opt.method}
-                  className={`block cursor-pointer rounded-lg border p-4 ${shippingMethod === opt.method ? 'border-brand-900 bg-brand-50' : 'border-brand-200 bg-white'}`}
+                   className={`block cursor-pointer rounded-lg border p-4 ${shippingMethod === opt.method ? 'border-accent-500 bg-accent-50 dark:bg-brand-700' : 'border-brand-200 bg-white dark:border-brand-600 dark:bg-brand-900'}`}
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium text-brand-900">{opt.label}</p>
-                      <p className="text-sm text-brand-600">{opt.description}</p>
-                      <p className="text-xs text-brand-500 mt-1">{opt.estimatedDays}</p>
+                       <p className="font-medium text-brand-900 dark:text-brand-50">{opt.label}</p>
+                       <p className="text-sm text-brand-600 dark:text-brand-300">{opt.description}</p>
+                       <p className="text-xs text-brand-500 dark:text-brand-400 mt-1">{opt.estimatedDays}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-brand-950">{formatRand(opt.costCents)}</p>
+                       <p className="font-semibold text-brand-950 dark:text-brand-50">{formatRand(opt.costCents)}</p>
                     </div>
                   </div>
                   <input
@@ -211,8 +211,8 @@ export function CheckoutForm({ user, savedAddresses }: Props) {
         )}
 
         {step === 'payment' && (
-           <div className="space-y-4 rounded-lg border border-brand-200 bg-white dark:bg-brand-900 p-5">
-            <h2 className="text-lg font-semibold text-brand-950">Payment method</h2>
+            <div className="space-y-4 rounded-lg border border-brand-200 bg-brand-50 dark:border-brand-700 dark:bg-brand-800 p-5">
+             <h2 className="text-lg font-semibold text-brand-950 dark:text-brand-50">Payment method</h2>
             {paymentsMock() && (
               <div className="rounded-md border border-warning bg-yellow-50 p-3 text-sm text-yellow-900">
                 <strong>Mock mode active.</strong> No real payment will be taken. Order will be auto-confirmed.
@@ -234,19 +234,19 @@ export function CheckoutForm({ user, savedAddresses }: Props) {
                   key={g.id}
                   className={`block rounded-lg border p-4 ${
                     (g as any).planned
-                      ? 'cursor-not-allowed border-brand-100 bg-brand-50 opacity-60'
-                      : `cursor-pointer ${paymentMethod === g.id ? 'border-brand-900 bg-brand-50' : 'border-brand-200 bg-white'}`
+                       ? 'cursor-not-allowed border-brand-100 bg-brand-50 dark:border-brand-600 dark:bg-brand-700 opacity-60'
+                       : `cursor-pointer ${paymentMethod === g.id ? 'border-accent-500 bg-accent-50 dark:bg-brand-700' : 'border-brand-200 bg-white dark:border-brand-600 dark:bg-brand-900'}`
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <p className="font-medium text-brand-900">{g.label}</p>
+                     <p className="font-medium text-brand-900 dark:text-brand-50">{g.label}</p>
                     {(g as any).planned && (
                       <span className="rounded-full bg-brand-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-brand-700">
                         Coming soon
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-brand-600">{g.desc}</p>
+                   <p className="text-sm text-brand-600 dark:text-brand-300">{g.desc}</p>
                   <input
                     type="radio"
                     name="payment"
@@ -269,19 +269,19 @@ export function CheckoutForm({ user, savedAddresses }: Props) {
         )}
       </div>
 
-       <aside className="h-fit rounded-lg border border-brand-200 bg-white dark:bg-brand-900 p-4">
-        <h2 className="text-sm font-medium text-brand-900">Order summary</h2>
+        <aside className="h-fit rounded-lg border border-brand-200 bg-brand-50 dark:border-brand-700 dark:bg-brand-800 p-4">
+         <h2 className="text-sm font-medium text-brand-900 dark:text-brand-50">Order summary</h2>
         <ul className="mt-3 space-y-2 text-sm">
           {items.map((it) => (
-            <li key={it.variantId} className="flex justify-between text-brand-700">
+             <li key={it.variantId} className="flex justify-between text-brand-700 dark:text-brand-200">
               <span className="line-clamp-1 pr-2">{it.name} × {it.quantity}</span>
               <span className="flex-shrink-0">{formatRand(it.priceCents * it.quantity)}</span>
             </li>
           ))}
         </ul>
         <dl className="mt-3 border-t border-brand-100 pt-3 space-y-1 text-sm">
-          <div className="flex justify-between text-brand-700"><dt>Subtotal</dt><dd>{formatRand(subtotal)}</dd></div>
-          <div className="flex justify-between text-brand-700"><dt>Shipping</dt><dd>{shippingCents === 0 ? 'Free' : formatRand(shippingCents)}</dd></div>
+           <div className="flex justify-between text-brand-700 dark:text-brand-200"><dt>Subtotal</dt><dd>{formatRand(subtotal)}</dd></div>
+           <div className="flex justify-between text-brand-700 dark:text-brand-200"><dt>Shipping</dt><dd>{shippingCents === 0 ? 'Free' : formatRand(shippingCents)}</dd></div>
           {discountCents > 0 && (
             <div className="flex justify-between text-emerald-700">
               <dt>Discount ({coupon?.code})</dt>
@@ -290,8 +290,8 @@ export function CheckoutForm({ user, savedAddresses }: Props) {
           )}
         </dl>
         <div className="mt-3 border-t border-brand-100 pt-3 flex justify-between font-semibold">
-          <span className="text-brand-950">Total</span>
-          <span className="text-brand-950">{formatRand(totalCents)}</span>
+           <span className="text-brand-950 dark:text-brand-50">Total</span>
+           <span className="text-brand-950 dark:text-brand-50">{formatRand(totalCents)}</span>
         </div>
 
         <CouponCodeInput

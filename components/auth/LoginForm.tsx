@@ -83,10 +83,10 @@ export function LoginForm({ next = '/account' }: { next?: string }) {
         onChange={(e) => setPassword(e.target.value)}
       />
       <Button type="submit" loading={loading} fullWidth size="lg">Sign in</Button>
-      <button type="button" onClick={onMagicLink} className="text-sm text-brand-600 hover:underline w-full text-center">
+       <button type="button" onClick={onMagicLink} className="text-sm text-brand-600 dark:text-brand-300 hover:underline w-full text-center">
         Or email me a magic link
       </button>
-      <p className="text-center text-sm text-brand-600">
+       <p className="text-center text-sm text-brand-600 dark:text-brand-300">
         New to Evasale? <Link href="/auth/register" className="text-accent-700 hover:underline">Create an account</Link>
       </p>
     </form>

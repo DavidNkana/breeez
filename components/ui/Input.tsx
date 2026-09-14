@@ -16,7 +16,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full">
         {label && (
-          <label htmlFor={inputId} className="mb-1 block text-sm font-medium text-brand-900">
+          <label htmlFor={inputId} className="mb-1 block text-sm font-medium text-brand-900 dark:text-brand-50">
             {label}
           </label>
         )}
@@ -30,7 +30,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={inputId}
             className={clsx(
-              'w-full rounded-md border bg-white px-3 py-2 text-sm text-brand-950 placeholder:text-brand-400 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500 disabled:bg-brand-50 disabled:cursor-not-allowed dark:border-brand-600 dark:bg-brand-900 dark:text-white dark:disabled:bg-brand-800',
+            'w-full rounded-md border bg-white px-3 py-2 text-sm text-brand-950 placeholder:text-brand-400 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500 disabled:bg-brand-50 disabled:cursor-not-allowed dark:border-brand-600 dark:bg-brand-900 dark:text-white dark:placeholder:text-brand-500 dark:disabled:bg-brand-800',
               error ? 'border-danger' : 'border-brand-300',
               leftIcon && 'pl-10',
               rightIcon && 'pr-10',

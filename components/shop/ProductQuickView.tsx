@@ -64,15 +64,15 @@ export function ProductQuickView({ open, onClose, slug, name, priceCents, compar
         <div className="grid gap-5 p-5 pt-8 md:grid-cols-2 md:p-6">
           <img src={imageUrl} alt={name} className="aspect-square w-full rounded-xl bg-brand-100 object-cover" />
           <div className="flex min-w-0 flex-col">
-            {categoryName && <p className="text-xs font-medium uppercase tracking-wide text-brand-500">{categoryName}</p>}
+             {categoryName && <p className="text-xs font-medium uppercase tracking-wide text-brand-500 dark:text-brand-400">{categoryName}</p>}
             <h2 id="quick-view-title" className="mt-1 text-xl font-semibold text-brand-950 dark:text-white">{name}</h2>
             <div className="mt-2 flex items-baseline gap-2">
               <span className="text-lg font-semibold text-brand-950 dark:text-white">{formatRand(priceCents)}</span>
-              {discounted && <span className="text-sm text-brand-500 line-through">{formatRand(compareAtCents!)}</span>}
+             {discounted && <span className="text-sm text-brand-500 dark:text-brand-400 line-through">{formatRand(compareAtCents!)}</span>}
             </div>
             {description && <p className="mt-4 max-h-28 overflow-y-auto whitespace-pre-line text-sm leading-6 text-brand-700 dark:text-brand-200">{description}</p>}
             {variants.length > 0 && <div className="mt-4 flex flex-wrap gap-2"><span className="sr-only">Available variants</span>{variants.map((variant) => <span key={variant.id} className="rounded-full border border-brand-200 px-3 py-1 text-xs text-brand-700 dark:border-brand-600 dark:text-brand-100">{variant.name || Object.values(variant.options).join(' / ') || 'Standard'}</span>)}</div>}
-            <p className="mt-4 text-xs text-brand-500">{stock && stock > 0 ? `${stock} in stock` : 'Currently unavailable'}</p>
+             <p className="mt-4 text-xs text-brand-500 dark:text-brand-400">{stock && stock > 0 ? `${stock} in stock` : 'Currently unavailable'}</p>
             <div className="mt-auto pt-5">
               {variants.length > 0 ? <AddToCartButton productId={variants[0].product_id} productSlug={slug} productName={name} imageUrl={imageUrl} variants={variants} basePriceCents={priceCents} size="lg" /> : <p className="rounded-md bg-brand-100 px-4 py-3 text-center text-sm text-brand-600">Currently unavailable</p>}
             </div>

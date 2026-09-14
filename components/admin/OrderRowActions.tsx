@@ -92,7 +92,7 @@ export function OrderRowActions({ order, onChanged }: { order: OrderRow; onChang
           <div>
             <label className="mb-1 block text-xs font-semibold uppercase text-brand-500">Status</label>
             <select
-              className="w-full rounded-md border border-brand-300 bg-white px-3 py-2 text-sm"
+              className="w-full rounded-md border border-brand-300 bg-white px-3 py-2 text-sm dark:border-brand-600 dark:bg-brand-900 dark:text-white"
               value={next}
               onChange={(e) => setNext(e.target.value)}
             >

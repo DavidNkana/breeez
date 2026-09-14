@@ -101,7 +101,7 @@ export function PromoBanner({
             <div className="mt-2">
               <Link
                 href={ctaHref}
-                className="inline-flex items-center gap-2 rounded-md bg-white px-6 py-3 text-sm font-semibold text-brand-950 shadow-md transition-colors hover:bg-brand-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
+        className="inline-flex items-center gap-2 rounded-md bg-white px-6 py-3 text-sm font-semibold text-brand-950 shadow-md transition-colors hover:bg-brand-50 dark:bg-brand-900 dark:text-white dark:hover:bg-brand-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
               >
                 {ctaLabel}
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">

@@ -92,7 +92,7 @@ export function ProductCard({ slug, name, priceCents, compareAtCents, imageUrl, 
             onClick={onWishlistClick}
             aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
             className={clsx(
-              'absolute top-2 right-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/95 shadow-sm backdrop-blur-sm transition-all dark:bg-brand-900/95',
+               'absolute top-2 right-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/95 shadow-sm backdrop-blur-sm transition-all dark:bg-brand-900/95 dark:text-brand-100',
               'md:opacity-0 md:group-hover:opacity-100',
               inWishlist && 'opacity-100'
             )}
@@ -149,7 +149,7 @@ export function ProductCard({ slug, name, priceCents, compareAtCents, imageUrl, 
                   )}
                 </p>
                 {description && (
-                  <p className="mt-1 text-xs text-brand-600 line-clamp-2">{description}</p>
+                 <p className="mt-1 text-xs text-brand-600 dark:text-brand-300 line-clamp-2">{description}</p>
                 )}
                 <div className="mt-2 flex gap-1">
                   {variants && variants.length > 0 && (

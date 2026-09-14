@@ -41,20 +41,20 @@ export default async function CategoryPage({ params, searchParams }: Props) {
         <nav className="text-xs text-brand-500">
           <Link href="/" className="hover:underline">Home</Link>
           <span className="mx-1">/</span>
-          <span className="text-brand-700">{category.name}</span>
+           <span className="text-brand-700 dark:text-brand-200">{category.name}</span>
         </nav>
 
         <div className="mt-2 flex items-baseline justify-between">
-          <h1 className="text-2xl md:text-3xl font-semibold text-brand-950">{category.name}</h1>
-          <p className="text-sm text-brand-600">{products.length} {products.length === 1 ? 'product' : 'products'}</p>
+           <h1 className="text-2xl md:text-3xl font-semibold text-brand-950 dark:text-brand-50">{category.name}</h1>
+           <p className="text-sm text-brand-600 dark:text-brand-300">{products.length} {products.length === 1 ? 'product' : 'products'}</p>
         </div>
 
         {category.description && (
-          <p className="mt-1 text-sm text-brand-600">{category.description}</p>
+           <p className="mt-1 text-sm text-brand-600 dark:text-brand-300">{category.description}</p>
         )}
 
         <div className="mt-6 flex flex-wrap items-center gap-2 border-b border-brand-100 pb-4">
-          <span className="text-sm text-brand-600">Sort:</span>
+           <span className="text-sm text-brand-600 dark:text-brand-300">Sort:</span>
           {(['newest', 'price_asc', 'price_desc', 'popular'] as const).map((s) => {
             const label = s === 'newest' ? 'Newest' : s === 'price_asc' ? 'Price: Low → High' : s === 'price_desc' ? 'Price: High → Low' : 'Popular';
             const isActive = sort === s;
@@ -64,7 +64,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
               <Link
                 key={s}
                 href={href}
-                className={isActive ? 'rounded-full bg-brand-900 px-3 py-1 text-xs font-medium text-white' : 'rounded-full border border-brand-300 bg-white px-3 py-1 text-xs font-medium text-brand-700 hover:border-brand-500'}
+                 className={isActive ? 'rounded-full bg-brand-900 px-3 py-1 text-xs font-medium text-white' : 'rounded-full border border-brand-300 bg-white dark:border-brand-600 dark:bg-brand-900 dark:text-brand-100 px-3 py-1 text-xs font-medium text-brand-700 hover:border-brand-500'}
               >
                 {label}
               </Link>

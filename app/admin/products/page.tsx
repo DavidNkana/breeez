@@ -25,7 +25,7 @@ export default async function AdminProductsPage() {
             <p className="mt-1 text-sm text-brand-600">Manage your Evasale catalogue.</p>
           </div>
           <div className="flex gap-2">
-            <Link href="/admin/products/new" className="inline-flex items-center rounded-md bg-brand-900 px-4 py-2 text-sm font-medium text-white hover:bg-brand-800">
+            <Link href="/admin/products/new" className="inline-flex items-center rounded-md bg-accent-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-accent-600 active:bg-accent-700">
               + New product
             </Link>
             <LogoutButton redirectTo="/" />
@@ -81,7 +81,7 @@ export default async function AdminProductsPage() {
                       <div className="flex items-center justify-end gap-2">
                         <Link
                           href={`/admin/products/${p.id}/edit`}
-                          className="inline-flex items-center rounded-md border border-brand-300 bg-white px-3 py-1.5 text-xs font-medium text-brand-900 hover:bg-brand-50"
+                          className="inline-flex items-center rounded-md border border-brand-300 bg-white px-3 py-1.5 text-xs font-medium text-brand-900 hover:bg-brand-50 dark:border-brand-600 dark:bg-brand-900 dark:text-white dark:hover:bg-brand-800"
                         >
                           Edit
                         </Link>

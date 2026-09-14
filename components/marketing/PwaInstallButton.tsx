@@ -51,7 +51,7 @@ export function PwaInstallButton() {
   if (!visible) return null;
 
   return (
-    <div className="mt-8 rounded-lg border border-accent-200 bg-accent-50 p-5 text-center">
+    <div className="mt-8 rounded-lg border border-accent-200 bg-accent-50 p-5 text-center dark:border-brand-700 dark:bg-brand-900">
       <p className="text-sm font-semibold text-brand-950">
         Install Evasale on your phone
       </p>

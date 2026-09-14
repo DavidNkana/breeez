@@ -105,7 +105,7 @@ export function CouponCodeInput({ subtotalCents, applied, onApplied }: Props) {
 
   return (
     <div className="mt-4">
-      <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-brand-500">
+      <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-brand-500 dark:text-brand-400">
         Coupon code
       </p>
       <div className="flex gap-2">

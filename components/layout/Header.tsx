@@ -47,7 +47,7 @@ export function Header() {
           <Link
             href="/account"
             aria-label="Account"
-            className="rounded-md p-2 text-brand-700 hover:bg-brand-50 dark:text-brand-200 dark:hover:bg-brand-900"
+             className="rounded-md p-2 text-brand-700 hover:bg-brand-50 dark:text-brand-200 dark:hover:bg-brand-900"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
               <circle cx="12" cy="8" r="4" />

@@ -72,8 +72,8 @@ export function VariantPicker({ variants, basePriceCents, selectedOptions, onOpt
                       className={clsx(
                         'rounded-md border px-3 py-1.5 text-sm font-medium transition-colors',
                         !isValid && 'border-brand-200 bg-brand-50 text-brand-400 line-through cursor-not-allowed',
-                        isValid && isSelected && 'border-brand-900 bg-brand-900 text-white',
-                        isValid && !isSelected && 'border-brand-300 bg-white text-brand-900 hover:border-brand-500'
+                        isValid && isSelected && 'border-accent-500 bg-accent-500 text-white',
+                        isValid && !isSelected && 'border-brand-300 bg-white text-brand-900 dark:border-brand-600 dark:bg-brand-900 dark:text-brand-100 hover:border-brand-500'
                       )}
                     >
                       {value}

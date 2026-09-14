@@ -15,24 +15,24 @@ export function QuantityStepper({ value, min = 1, max = 99, onChange, size = 'md
   const textSize = size === 'sm' ? 'text-sm' : 'text-base';
 
   return (
-    <div className={`inline-flex items-stretch ${h} rounded-md border border-brand-300 bg-white shadow-sm`}>
+    <div className={`inline-flex items-stretch ${h} rounded-md border border-brand-300 bg-white shadow-sm dark:border-brand-600 dark:bg-brand-900`}>
       <button
         type="button"
         onClick={() => onChange(Math.max(min, value - 1))}
         disabled={value <= min}
-        className={`${px} flex items-center justify-center text-brand-700 hover:bg-brand-50 disabled:opacity-40 disabled:cursor-not-allowed border-r border-brand-200 select-none`}
+        className={`${px} flex items-center justify-center text-brand-700 dark:text-brand-200 hover:bg-brand-50 dark:hover:bg-brand-800 disabled:opacity-40 disabled:cursor-not-allowed border-r border-brand-200 dark:border-brand-600 select-none`}
         aria-label="Decrease quantity"
       >
         −
       </button>
-      <span className={`${w} flex items-center justify-center ${textSize} font-medium text-brand-950 select-none tabular-nums bg-white`}>
+      <span className={`${w} flex items-center justify-center ${textSize} font-medium text-brand-950 dark:text-brand-50 select-none tabular-nums bg-white dark:bg-brand-900`}>
         {value}
       </span>
       <button
         type="button"
         onClick={() => onChange(Math.min(max, value + 1))}
         disabled={value >= max}
-        className={`${px} flex items-center justify-center text-brand-700 hover:bg-brand-50 disabled:opacity-40 disabled:cursor-not-allowed border-l border-brand-200 select-none`}
+        className={`${px} flex items-center justify-center text-brand-700 dark:text-brand-200 hover:bg-brand-50 dark:hover:bg-brand-800 disabled:opacity-40 disabled:cursor-not-allowed border-l border-brand-200 dark:border-brand-600 select-none`}
         aria-label="Increase quantity"
       >
         +

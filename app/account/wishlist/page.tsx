@@ -45,7 +45,7 @@ export default function WishlistPage() {
                   <button
                     type="button"
                     onClick={() => remove(it.variantId)}
-                    className="absolute top-2 right-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-danger opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white shadow-sm"
+                    className="absolute top-2 right-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-danger opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white shadow-sm dark:bg-brand-800/90 dark:hover:bg-brand-700"
                     aria-label="Remove from wishlist"
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
