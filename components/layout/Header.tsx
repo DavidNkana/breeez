@@ -24,14 +24,20 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-brand-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:border-black dark:bg-black safe-top">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 sm:gap-3 px-4 py-2">
-        <Link href="/" className="flex flex-1 min-w-0 items-center gap-2">
+      <div className="mx-auto flex max-w-6xl items-center gap-2 sm:gap-3 px-4 py-2">
+        <Link href="/" className="flex flex-shrink-0 items-center gap-2">
           <img
             src={brand.headerLogo}
             alt={`${brand.name} logo`}
-            className="h-12 sm:h-16 md:h-24 lg:h-28 w-auto max-w-full"
+            className="h-10 sm:h-12 md:h-16 md:max-h-20 lg:max-h-20 w-auto max-w-full"
           />
         </Link>
+
+        <img
+          src={brand.subtextLogo}
+          alt={`${brand.name} logo with tagline`}
+          className="h-8 sm:h-10 md:h-12 lg:h-14 w-auto max-w-full flex-shrink min-w-0"
+        />
 
         <div className="flex items-center gap-1 sm:gap-2">
           <SearchAutocomplete />
