@@ -33,13 +33,15 @@ export function Header() {
           />
         </Link>
 
-        <img
-          src={brand.subtextLogo}
-          alt={`${brand.name} logo with tagline`}
-          className="h-8 sm:h-10 md:h-12 lg:h-14 w-auto max-w-full flex-shrink min-w-0"
-        />
+        <div className="flex flex-1 items-center justify-center min-w-0">
+          <img
+            src={brand.subtextLogo}
+            alt={`${brand.name} logo with tagline`}
+            className="h-10 sm:h-12 md:h-14 lg:h-16 w-auto max-w-full"
+          />
+        </div>
 
-        <div className="flex items-center gap-1 sm:gap-2">
+        <div className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
           <SearchAutocomplete />
           <WishlistButton />
           <Link
