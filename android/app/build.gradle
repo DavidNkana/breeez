@@ -15,14 +15,15 @@ android {
         }
     }
 
-    // Signing config: reads keystore from environment vars (breeez-android-key)
-    // If env vars not set, falls back to debug signing (dev only)
+    // Signing config: reads keystore path from KEYSTORE_PATH env var (used by CI)
+    // Falls back to the original local dev path if KEYSTORE_PATH is unset.
     signingConfigs {
         release {
-            storeFile file('/home/safai/android-keystore/breez-upload-key.keystore')
-            storePassword 'breezapp2026'
-            keyAlias 'breez'
-            keyPassword 'breezapp2026'
+            def keystorePath = System.getenv("KEYSTORE_PATH") ?: '/home/safai/android-keystore/breez-upload-key.keystore'
+            storeFile file(keystorePath)
+            storePassword System.getenv("KEYSTORE_PASSWORD") ?: 'breezapp2026'
+            keyAlias System.getenv("KEY_ALIAS") ?: 'breez'
+            keyPassword System.getenv("KEY_PASSWORD") ?: 'breezapp2026'
         }
     }
 

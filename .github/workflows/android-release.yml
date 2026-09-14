@@ -1,0 +1,78 @@
+name: Build Android AAB
+
+# Builds the Evasale release AAB and exposes it as a downloadable artifact.
+# Trigger manually via the Actions tab (workflow_dispatch).
+# Once the run finishes, download app-release from the run's Artifacts section.
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_notes:
+        description: 'Release notes (optional, included in commit message)'
+        required: false
+        default: ''
+
+jobs:
+  build-aab:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          android-version: '34'
+          android-components: 'platform-tools,build-tools;34.0.0,platforms;android-34'
+
+      - name: Decode keystore
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEYSTORE_ALIAS }}
+        run: |
+          if [ -z "$KEYSTORE_B64" ]; then
+            echo "::error::ANDROID_KEYSTORE_BASE64 secret is not set. Add it via Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
+          mkdir -p android/app/keystore
+          echo "$KEYSTORE_B64" | base64 -d > android/app/keystore/upload-key.keystore
+          ls -la android/app/keystore/
+
+      - name: Install web dependencies
+        working-directory: .
+        run: npm ci
+
+      - name: Build web (Next.js production)
+        working-directory: .
+        run: npm run build
+
+      - name: Sync Capacitor + Android
+        run: npx cap sync android
+
+      - name: Build release AAB
+        working-directory: android
+        env:
+          KEYSTORE_PATH: ${{ github.workspace }}/android/app/keystore/upload-key.keystore
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEYSTORE_ALIAS }}
+        run: ./gradlew bundleRelease
+
+      - name: Verify AAB exists
+        run: |
+          find android/app/build/outputs/bundle/release -name '*.aab' -ls
+
+      - name: Upload AAB as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 14
