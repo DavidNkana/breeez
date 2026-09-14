@@ -15,6 +15,16 @@ export default async function HomePage() {
   return (
     <>
       <main className="flex-1 pb-12 safe-bottom">
+        <section className="bg-black border-b border-brand-800">
+          <div className="mx-auto flex max-w-6xl items-center justify-center px-4 py-8 md:py-12">
+            <img
+              src={brand.subtextLogo}
+              alt={`${brand.name} logo with tagline`}
+              className="h-16 sm:h-20 md:h-28 lg:h-32 w-auto max-w-full"
+            />
+          </div>
+        </section>
+
         <section className="mx-auto max-w-6xl px-4 py-6 md:py-10">
           <div className="flex items-baseline justify-between gap-4">
             <h2 className="text-xl md:text-2xl font-semibold text-brand-950 dark:text-brand-50">Shop by category</h2>

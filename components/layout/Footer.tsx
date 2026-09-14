@@ -10,8 +10,12 @@ const links = [
 export function Footer() {
   return (
     <footer className="mt-16 border-t border-brand-800 bg-brand-900 md:mt-24">
-      <div className="flex justify-center bg-black py-6">
-        <img src={brand.logo} alt="Evasale" className="h-10 w-auto" />
+      <div className="flex justify-center bg-black py-6 px-4">
+        <img
+          src={brand.subtextLogo}
+          alt={`${brand.name}`}
+          className="h-12 sm:h-14 w-auto max-w-full"
+        />
       </div>
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-5 gap-y-2 px-4 py-7 text-sm text-brand-700">
         {links.map(([label, href]) => <Link key={href} href={href} className="hover:text-accent-600 hover:underline">{label}</Link>)}

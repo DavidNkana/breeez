@@ -47,7 +47,7 @@ Do not create per-device PNGs. The asset catalog uses the single 1024×1024 mast
 
 ## Step 5 — Splash screen
 
-The iOS native launch screen (`LaunchScreen.storyboard`) is intentionally a plain white view — there is **no `Splash.imageset` to edit and you should not recreate one**. Any previous handoff notes telling you to drop `public/brand/evasale-logo.png` into `ios/App/App/Assets.xcassets/Splash.imageset/` are stale and pre-date this change.
+The iOS native launch screen (`LaunchScreen.storyboard`) is intentionally a plain white view — there is **no `Splash.imageset` to edit and you should not recreate one**. Any previous handoff notes telling you to drop a legacy Evasale logo asset into `ios/App/App/Assets.xcassets/Splash.imageset/` are stale and pre-date this change.
 
 Branding during app open is handled entirely by `components/app/AppSplash.tsx`, which renders the Evasale logo on a black background inside the WebView for ~5 seconds on first launch. This keeps the branded splash updateable from web deploys without needing an Xcode rebuild.
 

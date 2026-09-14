@@ -29,7 +29,7 @@ export function Header() {
           <img
             src={brand.headerLogo}
             alt={`${brand.name} logo`}
-            className="h-14 sm:h-20 md:h-28 lg:h-32 w-auto max-w-full"
+            className="h-12 sm:h-16 md:h-24 lg:h-28 w-auto max-w-full"
           />
         </Link>
 

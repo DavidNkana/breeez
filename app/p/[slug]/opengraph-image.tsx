@@ -11,11 +11,11 @@ export const contentType = 'image/png';
 async function getLogoData() {
   let logo: ArrayBuffer | Uint8Array;
   try {
-    const response = await fetch(new URL('../../../public/brand/evasale-logo.png', import.meta.url));
+    const response = await fetch(new URL('../../../public/brand/evasale-solo-logo.png', import.meta.url));
     if (!response.ok) throw new Error(`Logo fetch failed: ${response.status}`);
     logo = await response.arrayBuffer();
   } catch {
-    logo = await readFile(path.join(process.cwd(), 'public/brand/evasale-logo.png'));
+    logo = await readFile(path.join(process.cwd(), 'public/brand/evasale-solo-logo.png'));
   }
   const bytes = logo instanceof ArrayBuffer ? new Uint8Array(logo) : logo;
   return `data:image/png;base64,${Buffer.from(bytes).toString('base64')}`;
