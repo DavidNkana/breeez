@@ -1,20 +1,35 @@
 name: Build Android AAB
 
-# Builds the Evasale release AAB and exposes it as a downloadable artifact.
-# Trigger manually via the Actions tab (workflow_dispatch).
-# Once the run finishes, download app-release from the run's Artifacts section.
+# Builds the Evasale release AAB and attaches it to a GitHub Release so
+# there's a direct download URL ending in .aab.
+#
+# 1. Add the 4 secrets listed in the README (or below) via the repo
+#    Settings -> Secrets and variables -> Actions page.
+# 2. Trigger the workflow via the Actions tab (workflow_dispatch).
+# 3. Once the run finishes, go to the Releases page. Each run attaches a
+#    new prerelease tag like v1.0-build-<run_id>. The .aab is the asset
+#    attached to that release. Direct download URL pattern:
+#      https://github.com/DavidNkana/breeez/releases/download/v1.0-build-<run_id>/app-release.aab
+# 4. Drag the downloaded .aab into Play Console.
+#
+# Required secrets (Settings -> Secrets and variables -> Actions):
+#   ANDROID_KEYSTORE_BASE64    base64 of the upload .jks/.keystore file
+#   ANDROID_KEYSTORE_PASSWORD  keystore password
+#   ANDROID_KEYSTORE_ALIAS     key alias (e.g. "breez")
 
 on:
   workflow_dispatch:
     inputs:
       release_notes:
-        description: 'Release notes (optional, included in commit message)'
+        description: 'Release notes (optional, attached to the GitHub Release)'
         required: false
         default: ''
 
 jobs:
   build-aab:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write   # needed to create a release + upload asset
 
     steps:
       - name: Checkout repo
@@ -47,11 +62,9 @@ jobs:
           ls -la android/app/keystore/
 
       - name: Install web dependencies
-        working-directory: .
         run: npm ci
 
       - name: Build web (Next.js production)
-        working-directory: .
         run: npm run build
 
       - name: Sync Capacitor + Android
@@ -67,12 +80,23 @@ jobs:
 
       - name: Verify AAB exists
         run: |
-          find android/app/build/outputs/bundle/release -name '*.aab' -ls
+          find android/app/build/outputs/bundle/release -name 'app-release.aab' -ls
 
-      - name: Upload AAB as workflow artifact
-        uses: actions/upload-artifact@v4
+      - name: Create GitHub Release with the AAB attached
+        uses: softprops/action-gh-release@v2
         with:
-          name: app-release
-          path: android/app/build/outputs/bundle/release/app-release.aab
-          if-no-files-found: error
-          retention-days: 14
+          tag_name: v1.0-build-${{ github.run_id }}
+          name: Evasale Android AAB (build ${{ github.run_id }})
+          body: |
+            Auto-built Android release AAB for Evasale.
+            ${{ github.event.inputs.release_notes }}
+          prerelease: true
+          generate_release_notes: false
+          files: android/app/build/outputs/bundle/release/app-release.aab
+
+      - name: Print direct download URL
+        run: |
+          TAG="v1.0-build-${{ github.run_id }}"
+          URL="https://github.com/${{ github.repository }}/releases/download/${TAG}/app-release.aab"
+          echo "DOWNLOAD AAB:"
+          echo "$URL"
