@@ -196,7 +196,7 @@ export function SearchAutocomplete({ className = '', variant = 'compact' }: Prop
         className={
           variant === 'wide'
             ? 'w-full rounded-md border border-brand-300 bg-white px-3 py-1.5 text-sm dark:border-brand-600 dark:bg-brand-900 dark:text-white focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500'
-            : 'hidden sm:block w-32 md:w-44 lg:w-56 rounded-md border border-brand-300 bg-white px-3 py-1.5 text-sm dark:border-brand-600 dark:bg-brand-900 dark:text-white focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500'
+            : 'hidden sm:block w-28 md:w-32 lg:w-40 rounded-md border border-brand-300 bg-white px-3 py-1.5 text-sm dark:border-brand-600 dark:bg-brand-900 dark:text-white focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500'
         }
         autoComplete="off"
         aria-label="Search products"

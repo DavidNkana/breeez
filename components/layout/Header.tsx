@@ -24,12 +24,12 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-brand-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:border-black dark:bg-black safe-top">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 sm:gap-4 px-4 py-3">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 sm:gap-3 px-4 py-2">
         <Link href="/" className="flex flex-1 min-w-0 items-center gap-2">
           <img
             src={brand.headerLogo}
             alt={`${brand.name} logo`}
-            className="h-9 sm:h-11 md:h-12 w-auto max-w-full"
+            className="h-14 sm:h-20 md:h-28 lg:h-32 w-auto max-w-full"
           />
         </Link>
 
