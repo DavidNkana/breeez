@@ -25,32 +25,13 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-brand-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:border-black dark:bg-black safe-top">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 sm:gap-4 px-4 py-3">
-        <Link href="/" className="flex items-center gap-2 flex-shrink-0">
+        <Link href="/" className="flex flex-1 min-w-0 items-center gap-2">
           <img
-            src={brand.logo}
+            src={brand.headerLogo}
             alt={`${brand.name} logo`}
-            className="h-8 sm:h-9 w-auto"
+            className="h-9 sm:h-11 md:h-12 w-auto max-w-full"
           />
         </Link>
-
-        <nav className="hidden md:flex items-center">
-          {NAV_LINKS.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              className={`relative px-2.5 pb-2 pt-1 text-sm transition-colors ${
-                isActive(l.href)
-                  ? 'font-semibold text-accent-600'
-                   : 'text-brand-700 hover:text-brand-950 dark:text-brand-200 dark:hover:text-white'
-              }`}
-            >
-              {l.label}
-              {isActive(l.href) && (
-                <span className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full bg-accent-500" />
-              )}
-            </Link>
-          ))}
-        </nav>
 
         <div className="flex items-center gap-1 sm:gap-2">
           <SearchAutocomplete />

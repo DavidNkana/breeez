@@ -34,6 +34,7 @@ export const brand = {
 
   // Files (paths are relative to /public so usable in <img src> or CSS url())
   logo: '/brand/evasale-logo.png',
+  headerLogo: '/brand/evasale-logo-header.png', // wider banner-style logo for the Header
   favicon: '/brand/evasale-logo.png',
   ogDefault: '/brand/og-default.png', // we already have opengraph-image.tsx — this is fallback
 
