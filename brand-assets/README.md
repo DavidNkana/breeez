@@ -7,9 +7,9 @@ required density buckets.
 
 ## Required files
 
-### `app-icon-source.png` (REQUIRED for app icon)
+### `app-launcher.png` (REQUIRED for app icon)
 
-- Format: PNG with transparency (RGBA), square
+- Format: opaque PNG with a black background, square
 - Recommended size: **1024 × 1024 px** (Android adaptive icon safe zone = the center 66% × 66% of the canvas)
 - The icon design should leave **17% padding on every side** so that when Android
   masks the icon (circle, squircle, teardrop on different OEMs), the logo
@@ -36,7 +36,7 @@ running the build.
 
 ## Rebuild flow
 
-When `app-icon-source.png` is added or changed:
+When `app-launcher.png` is added or changed:
 
 1. Run the build script: `bash scripts/rebuild-android-icon.sh`
    (script lives at the repo root, reads from this folder)
