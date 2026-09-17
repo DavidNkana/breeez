@@ -3,21 +3,23 @@ import { formatRand } from '@/lib/format';
 import { Badge } from '@/components/ui/Badge';
 import { OrderRowActions } from '@/components/admin/OrderRowActions';
 import { logError } from '@/lib/utils/error-logger';
+import { requireAdmin } from '@/lib/auth/session';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminOrdersPage() {
+  // requireAdmin throws NEXT_REDIRECT to bounce non-admins to /.
+  // Do NOT wrap this in try/catch — the catch was eating the redirect
+  // signal and leaving users stuck on the page.
+  await requireAdmin();
+
   let orders: any[] = [];
   let errorTitle = 'Failed to load orders';
   let errorDetail: string | null = null;
 
   try {
-    const { requireAdmin } = await import('@/lib/auth/session');
-    const { createAdminClient } = await import('@/lib/supabase/admin');
-
-    await requireAdmin();
     const supabase = await createAdminClient();
-
     const { data, error } = (await supabase
       .from('orders')
       .select('*')
