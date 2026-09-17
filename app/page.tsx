@@ -8,7 +8,7 @@ import { VideoBanner } from '@/components/shop/VideoBanner';
 import { getTodaysPicks, listProducts } from '@/lib/catalog/queries';
 
 export default async function HomePage() {
-  const todaysPicks = await getTodaysPicks(10);
+  const todaysPicks = await getTodaysPicks(12);
   const featured = await listProducts({ featured: true, sort: 'newest', limit: 6 });
 
   return (
