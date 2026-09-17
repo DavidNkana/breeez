@@ -1,45 +1,50 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { brand } from '@/lib/brand';
 
-const SPLASH_KEY = 'breeez:splash_shown_v2';
-const MIN_DISPLAY_MS = 1500;   // at least this long so the brand actually shows
-const MAX_DISPLAY_MS = 5000;   // safety: never stay longer than this
+const SPLASH_KEY = 'breeez:splash_shown_v3';
+const MIN_DISPLAY_MS = 1500;
+const MAX_DISPLAY_MS = 4000;
 
 /**
- * Full-screen splash screen shown on app startup.
- * Shows until either:
- *   - the page has fully loaded AND the minimum display time has elapsed, OR
- *   - the maximum display time has elapsed (safety)
+ * Full-screen splash shown on app startup.
  *
- * Only shows once per browser session.
+ * Hides the DOM node directly (not via React state) so it works even when
+ * the JS thread is busy (e.g. admin pages with heavy queries). A safety
+ * MAX_DISPLAY_MS timeout guarantees the splash can never get stuck.
+ *
+ * Subsequent navigations within the same session skip the splash entirely
+ * via sessionStorage — the DOM node is created but immediately hidden.
  */
 export function AppSplash() {
-  const [visible, setVisible] = useState(() => {
-    if (typeof window === 'undefined') return true;
-    return !sessionStorage.getItem(SPLASH_KEY);
-  });
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!visible) return;
+    const node = ref.current;
+    if (!node) return;
 
-    sessionStorage.setItem(SPLASH_KEY, '1');
-
-    const startedAt = Date.now();
-    let hidden = false;
-
-    const hide = () => {
-      if (hidden) return;
-      hidden = true;
-      setVisible(false);
+    const hideNode = () => {
+      if (node) node.style.display = 'none';
     };
 
-    // Hide once both: page is fully loaded AND min display time has elapsed
+    // Already shown this session? Hide immediately, no animation.
+    try {
+      if (sessionStorage.getItem(SPLASH_KEY)) {
+        hideNode();
+        return;
+      }
+      sessionStorage.setItem(SPLASH_KEY, '1');
+    } catch {
+      // sessionStorage may throw in private browsing — fall through to normal hide
+    }
+
+    const startedAt = Date.now();
+
     const tryHide = () => {
       const elapsed = Date.now() - startedAt;
       const remaining = Math.max(0, MIN_DISPLAY_MS - elapsed);
-      setTimeout(hide, remaining);
+      setTimeout(hideNode, remaining);
     };
 
     if (document.readyState === 'complete') {
@@ -48,10 +53,10 @@ export function AppSplash() {
       window.addEventListener('load', tryHide, { once: true });
     }
 
-    // Safety: never stay longer than MAX_DISPLAY_MS
-    const maxTimer = setTimeout(hide, MAX_DISPLAY_MS);
+    // Safety: never stay longer than MAX_DISPLAY_MS no matter what
+    const maxTimer = setTimeout(hideNode, MAX_DISPLAY_MS);
 
-    // Best-effort hide of the native (Capacitor) splash — silently no-ops on web
+    // Best-effort hide of the native Capacitor splash — no-op on web
     let nativeHide: (() => void) | undefined;
     void import('@capacitor/splash-screen')
       .then(({ SplashScreen }) => {
@@ -65,15 +70,13 @@ export function AppSplash() {
     return () => {
       clearTimeout(maxTimer);
       window.removeEventListener('load', tryHide);
-      nativeHide?.();
     };
-  }, [visible]);
-
-  if (!visible) return null;
+  }, []);
 
   return (
     <div
-      className="fixed inset-0 z-[99999] flex items-center justify-center bg-black transition-opacity duration-300"
+      ref={ref}
+      className="fixed inset-0 z-[99999] flex items-center justify-center bg-black"
       aria-hidden="true"
     >
       <img
