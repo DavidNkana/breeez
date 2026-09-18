@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useToast } from '@/components/ui/Toast';
@@ -37,8 +38,10 @@ const STATUS_OPTIONS = [
 /**
  * Admin order status update. Sets status + tracking number, fires
  * order-shipped email automatically when status transitions to "shipped".
+ * After save, refreshes the server component to show the new state.
  */
-export function OrderRowActions({ order, onChanged }: { order: OrderRow; onChanged: () => void }) {
+export function OrderRowActions({ order }: { order: OrderRow }) {
+  const router = useRouter();
   const showToast = useToast((s) => s.show);
   const [open, setOpen] = useState(false);
   const [next, setNext] = useState(NEXT_STATUS[order.status] ?? order.status);
@@ -61,7 +64,7 @@ export function OrderRowActions({ order, onChanged }: { order: OrderRow; onChang
       showToast(`Order updated → ${next}`, 'success');
       setOpen(false);
       setTracking('');
-      onChanged();
+      router.refresh();
     } catch (e: any) {
       showToast(e?.message ?? 'Network error', 'error');
     } finally {
@@ -121,3 +124,4 @@ export function OrderRowActions({ order, onChanged }: { order: OrderRow; onChang
     </div>
   );
 }
+

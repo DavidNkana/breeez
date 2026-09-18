@@ -101,15 +101,17 @@ export default async function AdminOrdersPage() {
                     <td className="px-4 py-3 text-brand-500 dark:text-brand-400 text-xs">
                       {new Date(o.created_at).toLocaleDateString('en-ZA')}
                     </td>
-                    <td className="px-4 py-3 text-brand-500 dark:text-brand-400 text-xs">
-                      <button
-                        type="button"
-                        disabled
-                        className="text-xs text-brand-400 dark:text-brand-500"
-                        title="Update disabled — debugging client component"
-                      >
-                        Update
-                      </button>
+                    <td className="px-4 py-3">
+                      <OrderRowActions
+                        order={{
+                          id: o.id,
+                          order_number: o.order_number,
+                          email: o.email,
+                          status: o.status,
+                          shipping_method: o.shipping_method,
+                          shipping_address: o.shipping_address,
+                        }}
+                      />
                     </td>
                   </tr>
                 ))}
