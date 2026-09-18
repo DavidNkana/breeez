@@ -82,7 +82,7 @@ export default async function AdminCustomersPage() {
           <div>
             <h1 className="text-2xl font-semibold text-brand-950 dark:text-white">Customers</h1>
             <p className="mt-1 text-sm text-brand-600 dark:text-brand-300">
-              Everyone who's ever ordered, including guest checkouts.
+              Everyone who&apos;s ever ordered, including guest checkouts.
             </p>
           </div>
           <Link
