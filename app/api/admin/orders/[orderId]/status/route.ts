@@ -27,10 +27,13 @@ export async function PATCH(
   }
 
   const admin = await createAdminClient();
-  const update: Record<string, any> = { status, updated_at: new Date().toISOString() };
-  if (tracking_number !== null) update.tracking_number = tracking_number;
-  if (status === 'shipped' && !('shipped_at' in update)) update.shipped_at = new Date().toISOString();
-  if (status === 'delivered' && !('delivered_at' in update)) update.delivered_at = new Date().toISOString();
+  // Note: orders table doesn't have an updated_at column (it has per-state
+  // timestamps: created_at, paid_at, shipped_at, delivered_at). Don't try to
+  // update updated_at here or the query fails with a schema-cache error.
+  const update: Record<string, any> = { status };
+  if (tracking_number !== null) update.shipping_tracking = tracking_number;
+  if (status === 'shipped') update.shipped_at = new Date().toISOString();
+  if (status === 'delivered') update.delivered_at = new Date().toISOString();
 
   const { data: order, error } = await (admin as any)
     .from('orders')
