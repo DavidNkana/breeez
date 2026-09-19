@@ -84,6 +84,40 @@ test('render model keeps inactive options visible, disabled, and crossed out', (
   ]);
 });
 
+test('keeps every size visible while crossing out sold-out and source-inactive variants', () => {
+  const variants: VariantOptionSource[] = [
+    { id: 's', options: { Size: 'S' }, stock: 10, is_active: true },
+    { id: 'm', options: { Size: 'M' }, stock: 0, is_active: true },
+    { id: 'l', options: { Size: 'L' }, stock: 10, is_active: false },
+    { id: 'xl', options: { Size: 'XL' }, stock: 20, is_active: true },
+  ];
+  const model = getVariantOptionRenderModel(variants, { Size: 'S' });
+
+  assert.deepEqual(model[0].options, [
+    { value: 'S', isSelected: true, disabled: false, crossedOut: false },
+    { value: 'M', isSelected: false, disabled: true, crossedOut: true },
+    { value: 'L', isSelected: false, disabled: true, crossedOut: true },
+    { value: 'XL', isSelected: false, disabled: false, crossedOut: false },
+  ]);
+  assert.equal(getVariantForOptions(variants, ['Size'], { Size: 'M' })?.id, 'm');
+  assert.equal(canAddVariantToCart(getVariantForOptions(variants, ['Size'], { Size: 'M' }), 1), false);
+  assert.equal(canAddVariantToCart(getVariantForOptions(variants, ['Size'], { Size: 'XL' }), 1), true);
+});
+
+test('crosses every option and reports no purchasable selection when all stock is zero', () => {
+  const variants: VariantOptionSource[] = [
+    { options: { Size: 'S' }, stock: 0 },
+    { options: { Size: 'M' }, stock: 0 },
+  ];
+  const model = getVariantOptionRenderModel(variants, {});
+
+  assert.deepEqual(model[0].options.map(({ value, disabled, crossedOut }) => ({ value, disabled, crossedOut })), [
+    { value: 'S', disabled: true, crossedOut: true },
+    { value: 'M', disabled: true, crossedOut: true },
+  ]);
+  assert.deepEqual(reconcileSelectedOptions(variants, ['Size'], {}), {});
+});
+
 test('reconciles selections to an in-stock variant and passes its cart values', () => {
   const variants = [
     { id: 'sold-out', options: { Size: 'S' }, price_cents: 900, stock: 0 },

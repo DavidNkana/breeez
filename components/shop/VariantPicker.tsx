@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import clsx from 'clsx';
 import type { ProductVariant } from '@/lib/supabase/types';
-import { getAvailableStock, getVariantOptionGroups, getVariantOptionRenderModel, getVariantOptionValue, isPurchasableVariant } from '@/lib/catalog/variant-options';
+import { getAvailableStock, getVariantForOptions, getVariantOptionGroups, getVariantOptionRenderModel, getVariantOptionValue, isPurchasableVariant } from '@/lib/catalog/variant-options';
 
 type Props = {
   variants: ProductVariant[];
@@ -26,15 +26,13 @@ export function VariantPicker({ variants, basePriceCents, selectedOptions, onOpt
 
   // Find the variant matching ALL selected options
   const selectedVariant = useMemo(() => {
-    return variants.find((v) => isPurchasableVariant(v) &&
-      optionKeys.every((key) => getVariantOptionValue(v, key) === selectedOptions[key])
-    ) ?? null;
+    return getVariantForOptions(variants, optionKeys, selectedOptions);
   }, [variants, optionKeys, selectedOptions]);
 
   // For each option key, find which values have at least one valid variant
   // given the OTHER selected options
   const priceCents = selectedVariant?.price_cents ?? basePriceCents;
-  const stock = selectedVariant ? getAvailableStock(selectedVariant.stock) : variants
+  const stock = selectedVariant ? (isPurchasableVariant(selectedVariant) ? getAvailableStock(selectedVariant.stock) : 0) : variants
     .filter((variant) => optionKeys.every((key) => !selectedOptions[key] || getVariantOptionValue(variant, key) === selectedOptions[key]))
     .filter(isPurchasableVariant)
     .reduce((total, variant) => total + getAvailableStock(variant.stock), 0);

@@ -7,7 +7,7 @@ import { QuantityStepper } from './QuantityStepper';
 import { useToast } from '@/components/ui/Toast';
 import { useCartFly } from './CartFly';
 import type { ProductVariant } from '@/lib/supabase/types';
-import { canAddVariantToCart, getAvailableStock, getVariantDisplayName } from '@/lib/catalog/variant-options';
+import { canAddVariantToCart, getAvailableStock, getVariantDisplayName, isPurchasableVariant } from '@/lib/catalog/variant-options';
 
 type AddToCartButtonProps = {
   productId: string;
@@ -37,7 +37,7 @@ export function AddToCartButton({ productId, productSlug, productName, imageUrl,
   const selected = variants.find((v) => v.id === selectedId);
   const priceCents = selected?.price_cents ?? basePriceCents;
   const stockCap = getAvailableStock(selected?.stock);
-  const isOutOfStock = !selected || stockCap <= 0;
+  const isOutOfStock = !selected || !isPurchasableVariant(selected) || stockCap <= 0;
 
   function handleAdd() {
     if (!selected || stockCap <= 0) return;
@@ -84,9 +84,9 @@ export function AddToCartButton({ productId, productSlug, productName, imageUrl,
           aria-label="Select variant"
         >
           {variants.map((v) => (
-            <option key={v.id} value={v.id} disabled={getAvailableStock(v.stock) <= 0}>
+            <option key={v.id} value={v.id} disabled={!isPurchasableVariant(v)}>
               {getVariantDisplayName(v)}
-              {getAvailableStock(v.stock) <= 0 ? ' (out of stock)' : ` — R${((v.price_cents ?? basePriceCents) / 100).toFixed(2)}`}
+              {!isPurchasableVariant(v) ? ' (unavailable)' : ` — R${((v.price_cents ?? basePriceCents) / 100).toFixed(2)}`}
             </option>
           ))}
         </select>

@@ -1,4 +1,5 @@
 export type VariantOptionSource = {
+  id?: string;
   options?: Record<string, string> | null;
   name?: string | null;
   sku?: string | null;

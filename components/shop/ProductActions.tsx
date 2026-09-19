@@ -7,7 +7,7 @@ import { PriceDisplay } from './PriceDisplay';
 import { LowStockBadge } from './LowStockBadge';
 import { SizeGuide } from './SizeGuide';
 import type { ProductVariant } from '@/lib/supabase/types';
-import { getAvailableStock, getVariantDisplayName, getPurchasableVariantForOptions, getVariantOptionGroups, getVariantOptionValue, isPurchasableVariant, reconcileSelectedOptions } from '@/lib/catalog/variant-options';
+import { getAvailableStock, getVariantDisplayName, getVariantForOptions, getVariantOptionGroups, getVariantOptionValue, isPurchasableVariant, reconcileSelectedOptions } from '@/lib/catalog/variant-options';
 
 type Props = {
   productId: string;
@@ -38,7 +38,7 @@ export function ProductActions({ productId, productSlug, productName, basePriceC
   }, [variants, optionKeys]);
 
   const selectedVariant = useMemo(
-    () => getPurchasableVariantForOptions(variants, optionKeys, selectedOptions),
+    () => getVariantForOptions(variants, optionKeys, selectedOptions),
     [variants, optionKeys, selectedOptions]
   );
 
@@ -55,7 +55,7 @@ export function ProductActions({ productId, productSlug, productName, basePriceC
   return (
     <>
       <PriceDisplay priceCents={priceCents} compareAtCents={variantCompareAt} />
-      <LowStockBadge stock={selectedVariant?.stock} />
+      <LowStockBadge stock={selectedVariant && isPurchasableVariant(selectedVariant) ? selectedVariant.stock : 0} />
 
       {selectedVariant && (
         <p className="mt-2 text-sm text-brand-700">
@@ -88,7 +88,7 @@ export function ProductActions({ productId, productSlug, productName, basePriceC
 
       {selectedVariant && (
         <p className="mt-3 text-sm font-medium text-brand-700 dark:text-brand-200" aria-live="polite">
-          {getAvailableStock(selectedVariant.stock) > 0 ? `${getAvailableStock(selectedVariant.stock)} left in stock` : 'Out of stock'}
+          {isPurchasableVariant(selectedVariant) ? `${getAvailableStock(selectedVariant.stock)} left in stock` : 'Out of stock'}
         </p>
       )}
       {!selectedVariant && optionKeys.length > 0 && (
@@ -103,7 +103,7 @@ export function ProductActions({ productId, productSlug, productName, basePriceC
       )}
 
       {/* Out of stock warning for the selected variant */}
-      {selectedVariant && getAvailableStock(selectedVariant.stock) <= 0 && (
+      {selectedVariant && !isPurchasableVariant(selectedVariant) && (
         <div className="mt-4 rounded-md border border-danger bg-red-50 px-3 py-2 text-sm text-red-800">
           This variant is out of stock. Pick a different option.
         </div>
