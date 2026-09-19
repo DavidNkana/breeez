@@ -10,6 +10,7 @@ import * as cheerio from 'cheerio';
 import type { AnyNode } from 'domhandler';
 import { requireAdmin } from '@/lib/auth/session';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { importedStock } from '@/lib/catalog/importer';
 
 export const runtime = 'nodejs';
 
@@ -29,6 +30,8 @@ export type ScrapedProduct = {
   warnings?: string[];
   brand?: string;
   sku?: string;
+  category?: string;
+  categoryName?: string;
 };
 
 const USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36';
@@ -362,7 +365,7 @@ function productSchemas($: cheerio.CheerioAPI) {
       const values = Array.isArray(value) ? value : [value];
       values.forEach((item) => {
         if (item?.['@graph']) values.push(...item['@graph']);
-        if (item && (item['@type'] === 'Product' || item['@type']?.includes?.('Product'))) products.push(item);
+        if (item && (item['@type'] === 'Product' || item['@type']?.includes?.('Product') || item['@type'] === 'ProductGroup')) products.push(item);
       });
     } catch { /* Ignore malformed JSON-LD and use the next fallback. */ }
   });
@@ -371,18 +374,166 @@ function productSchemas($: cheerio.CheerioAPI) {
 
 function stockFromAvailability(value: unknown, index = 0) {
   const availability = String(value ?? '').toLowerCase();
-  if (availability.includes('outofstock') || availability.includes('soldout') || availability.includes('discontinued')) return 0;
-  if (availability.includes('limited') || availability.includes('lowstock')) return 3;
-  return index === 0 ? 10 : 20;
+  if (availability.includes('limited') || availability.includes('lowstock')) return IMPORT_STOCK_FLOOR;
+  const quantity = typeof value === 'object' && value !== null
+    ? (value as { inventoryLevel?: unknown; stock?: unknown; quantity?: unknown }).inventoryLevel ?? (value as { stock?: unknown }).stock ?? (value as { quantity?: unknown }).quantity
+    : null;
+  if (quantity != null) return importedStock(quantity);
+  return importedStock(index === 0 ? 10 : 20);
+}
+
+const IMPORT_STOCK_FLOOR = 10;
+
+function schemaValues(value: unknown): Record<string, string> {
+  const options: Record<string, string> = {};
+  const add = (key: unknown, val: unknown) => {
+    const name = text(key).replace(/\s+/g, ' ').trim();
+    const option = text(val).replace(/\s+/g, ' ').trim();
+    if (name && option && name.length < 40 && option.length < 100) {
+      const normalizedName = /^size$/i.test(name) ? 'Size' : /^(colou?r)$/i.test(name) ? 'Color' : name;
+      options[normalizedName] = option;
+    }
+  };
+  if (Array.isArray(value)) value.forEach((item) => Object.assign(options, schemaValues(item)));
+  if (value && typeof value === 'object') {
+    const item = value as Record<string, unknown>;
+    if (item.name && (item.value ?? item.propertyValue)) add(item.name, item.value ?? item.propertyValue);
+    ['size', 'Size', 'color', 'Color', 'colour', 'Colour', 'variantSize', 'variantColor', 'colorName', 'colourName'].forEach((key) => {
+      if (item[key] != null) add(key.replace(/^variant/i, ''), item[key]);
+    });
+  }
+  return options;
+}
+
+type SelectorGroup = { name: string; values: string[] };
+
+function selectorLabel($: cheerio.CheerioAPI, node: cheerio.Cheerio<AnyNode>) {
+  const id = node.attr('id');
+  const context = text(node.parent().text()).slice(0, 180);
+  return text(
+    (id ? $(`label[for="${id}"]`).first().text() : '') ||
+    node.attr('data-option-name') || node.attr('data-option') || node.attr('aria-label') ||
+    node.prev('label').text() || node.closest('fieldset').find('legend').first().text() ||
+    node.find('label').first().text() || context.match(/(size|colou?r)\s*:/i)?.[1] || ''
+  ).replace(/:$/, '').trim();
+}
+
+function selectorGroups($: cheerio.CheerioAPI): SelectorGroup[] {
+  const groups: SelectorGroup[] = [];
+  const addGroup = (label: string, values: string[]) => {
+    const name = label.replace(/colour/i, 'Color').trim();
+    const cleaned = Array.from(new Set(values.map((value) => text(value)).filter(Boolean)));
+    if (/size|colou?r/i.test(name) && cleaned.length > 0 && !groups.some((group) => group.name === name && group.values.join('|') === cleaned.join('|'))) {
+      groups.push({ name, values: cleaned });
+    }
+  };
+
+  $('select').each((_, element) => {
+    const node = $(element);
+    addGroup(selectorLabel($, node), node.find('option').toArray().filter((option) => !$(option).prop('disabled')).map((option) => text($(option).text()) || $(option).attr('value') || ''));
+  });
+  $('[role="radiogroup"], .swatches, .swatch-group, [data-option-name], [data-option]').each((_, element) => {
+    const node = $(element);
+    const values = node.find('[data-value], [value], [aria-label]').toArray().map((option) => $(option).attr('data-value') || $(option).attr('value') || $(option).attr('aria-label') || text($(option).text()));
+    addGroup(selectorLabel($, node), values);
+  });
+  return groups;
+}
+
+function selectorCombinations($: cheerio.CheerioAPI) {
+  return selectorGroups($).reduce<Record<string, string>[]>((combinations, group) =>
+    combinations.flatMap((combination) => group.values.map((value) => ({ ...combination, [group.name]: value }))), [{}]);
+}
+
+function variantObjects($: cheerio.CheerioAPI, schema: Record<string, any>) {
+  const values: Record<string, any>[] = [];
+  const visit = (value: unknown) => {
+    if (Array.isArray(value)) return value.forEach(visit);
+    if (!value || typeof value !== 'object') return;
+    const item = value as Record<string, any>;
+    if (item.sku || item.offers || item.itemOffered || item.variation || item.options || item.additionalProperty) values.push(item);
+    if (item.hasVariant) visit(item.hasVariant);
+    if (item.variants) visit(item.variants);
+    if (item.offers && !Array.isArray(item.offers) && typeof item.offers === 'object') visit(item.offers);
+  };
+  visit(schema.hasVariant);
+  // JSON-LD permits Product.offers to be an array of bare Offer objects.
+  // Those objects commonly have only price/currency/availability, so they
+  // need to be treated as variants even without SKU or option fields.
+  const visitOffers = (value: unknown) => {
+    if (Array.isArray(value)) return value.forEach(visitOffers);
+    if (!value || typeof value !== 'object') return;
+    const item = value as Record<string, any>;
+    if (item.price != null || item.priceSpecification || item.availability || item.itemOffered) values.push(item);
+  };
+  visitOffers(schema.offers);
+
+  const excludedContext = (path: string[]) => /recommend|related|cross[-_ ]?sell|upsell|widget|carousel|also[-_ ]?bought/i.test(path.join(' '));
+  const productRoot = (value: unknown, path: string[] = []): unknown[] => {
+    if (!value || typeof value !== 'object' || excludedContext(path)) return [];
+    if (Array.isArray(value)) return value.flatMap((item, index) => productRoot(item, [...path, String(index)]));
+    const item = value as Record<string, any>;
+    const type = Array.isArray(item['@type']) ? item['@type'].join(' ') : String(item['@type'] ?? '');
+    if (/product(group)?/i.test(type)) return [item];
+    const primaryKeys = ['product', 'productData', 'productDetail', 'productDetails', 'primaryProduct'];
+    const roots = primaryKeys.flatMap((key) => productRoot(item[key], [...path, key]));
+    if (roots.length) return roots;
+    if ((item.variants || item.productVariants || item.hasVariant) && (item.name || item.sku || item.id)) return [item];
+    return [];
+  };
+  $('script').each((_, element) => {
+    const type = String($(element).attr('type') ?? '').toLowerCase();
+    if (!type.includes('json') && !$(element).attr('id')?.match(/product|variant|next/i)) return;
+    const visitEmbedded = (value: unknown, path: string[] = []) => {
+      if (excludedContext(path)) return;
+      if (Array.isArray(value)) return value.forEach((item) => visitEmbedded(item, path));
+      if (!value || typeof value !== 'object') return;
+      const item = value as Record<string, any>;
+      const hasOptionData = item.options || item.variation || item.additionalProperty || item.size || item.color || item.colour || item.variantSize || item.variantColor;
+      if (item.sku && hasOptionData) values.push(item);
+      ['variants', 'productVariants', 'hasVariant', 'offers'].forEach((key) => visitEmbedded(item[key], [...path, key]));
+    };
+    try {
+      const parsed = JSON.parse($(element).contents().text());
+      productRoot(parsed).forEach((root) => visitEmbedded(root));
+    } catch { /* non-JSON scripts */ }
+  });
+  return values;
+}
+
+function categoryHint($: cheerio.CheerioAPI, schema: Record<string, any>, pageUrl: string) {
+  const values: string[] = [];
+  const add = (value: unknown) => { const result = text(value); if (result && result.length < 100) values.push(result); };
+  add(schema.category);
+  const breadcrumb = schema.breadcrumb?.itemListElement;
+  if (Array.isArray(breadcrumb)) breadcrumb.forEach((item: any) => add(item.name ?? item.item?.name));
+  $('meta[property="product:category"], meta[name="category"], meta[property="og:category"], [itemprop="category"]').each((_, element) => add($(element).attr('content') ?? $(element).text()));
+  $('[class*="breadcrumb"], [id*="breadcrumb"], nav[aria-label*="breadcrumb" i]').first().find('a, span, li').each((_, element) => add($(element).text()));
+  try { new URL(pageUrl).pathname.split('/').filter(Boolean).slice(0, -1).forEach((part) => add(decodeURIComponent(part).replace(/[-_]+/g, ' '))); } catch { /* URL already validated */ }
+  return values.find((value) => /shoe|footwear|trainer|dress|top|women|men|kid|bag|home|kitchen|curtain|bath|apparel|clothing/i.test(value)) ?? values[0];
+}
+
+function variantOptionValues(item: Record<string, any>, selectorOptions: Record<string, string> = {}) {
+  const options = { ...selectorOptions, ...schemaValues(item), ...schemaValues(item.additionalProperty), ...schemaValues(item.variation), ...schemaValues(item.options), ...schemaValues(item.itemOffered) };
+  const name = text(item.name);
+  if (name) {
+    for (const dimension of ['Size', 'Color']) {
+      const match = name.match(new RegExp(`(?:${dimension}|${dimension === 'Color' ? 'Colour' : ''})\\s*[:/-]\\s*([A-Za-z0-9+ -]+)`, 'i'));
+      if (match && !options[dimension]) options[dimension] = match[1].trim();
+    }
+  }
+  return options;
 }
 
 export function parseProduct(html: string, pageUrl: string): ScrapedProduct {
   const $ = cheerio.load(html);
   const schema = productSchemas($)[0] ?? {};
-  const offers = Array.isArray(schema.offers) ? schema.offers : schema.offers ? [schema.offers] : [];
+  const offers = variantObjects($, schema);
+  const selectors = selectorCombinations($);
   const firstOffer = offers[0] ?? {};
-  const currency = String(firstOffer.priceCurrency ?? '').toUpperCase();
-  const schemaPrice = currency === 'ZAR' ? price(firstOffer.price) : null;
+  const firstOfferData = firstOffer.itemOffered && typeof firstOffer.itemOffered === 'object' ? firstOffer.itemOffered : firstOffer;
+  const currency = String(firstOffer.priceCurrency ?? firstOfferData.priceCurrency ?? firstOffer.priceSpecification?.priceCurrency ?? '').toUpperCase();
+  const schemaPrice = currency === 'ZAR' ? price(firstOffer.price ?? firstOfferData.price ?? firstOffer.priceSpecification?.price ?? firstOfferData.priceSpecification?.price) : null;
   const ogPrice = $('meta[property="product:price:amount"]').attr('content');
   const ogCurrency = String($('meta[property="product:price:currency"]').attr('content') ?? 'ZAR').toUpperCase();
   const basePrice = schemaPrice ?? (ogCurrency === 'ZAR' ? price(ogPrice) : null) ?? price($('.price, .product-price, [itemprop="price"]').first().text());
@@ -400,15 +551,39 @@ export function parseProduct(html: string, pageUrl: string): ScrapedProduct {
     });
   }
   const images = absoluteImages(imageValues, pageUrl).slice(0, MAX_IMAGES);
-  const variants = offers.filter((offer) => offer !== firstOffer || offers.length > 1).map((offer, index) => ({
-    name: text(offer.name) || text(offer.sku) || 'Variant',
-    sku: text(offer.sku) || text(schema.sku),
-    options: Object.fromEntries((offer.additionalProperty ?? []).filter((property: any) => property?.name && property?.value).map((property: any) => [property.name, property.value])),
-    price: price(offer.price) ?? basePrice ?? 0,
-    stock: stockFromAvailability(offer.availability, index)
-  })).filter((variant) => variant.price > 0);
+  const seen = new Set<string>();
+  const sourceVariants: Record<string, any>[] = offers.length > 0 ? offers : selectors.map((options, index) => ({ options, sku: `IMPORT-${index + 1}` }));
+  const variants = sourceVariants.map((offer, index) => {
+    const data = {
+      ...offer,
+      ...(offer.itemOffered && typeof offer.itemOffered === 'object' ? offer.itemOffered : {}),
+      ...(offer.offers && typeof offer.offers === 'object' && !Array.isArray(offer.offers) ? offer.offers : {})
+    };
+    // A selector group describes the available combinations, not one option
+    // to copy onto every embedded variant. Only align it by index when the
+    // page exposes the same number of variants; selector-only pages use the
+    // synthetic sources above instead.
+    const selectorOptions = selectors.length === offers.length ? selectors[index] : {};
+    const options = variantOptionValues(data, selectorOptions);
+    const sku = text(data.sku) || text(offer.sku) || (offers.length === 1 ? text(schema.sku) : '') || `IMPORT-${index + 1}`;
+    const combination = Object.entries(options).sort().map(([k, v]) => `${k}:${v}`).join('|');
+    const key = (combination || sku).toLowerCase();
+    if (seen.has(key)) return null;
+    seen.add(key);
+    const rawStock = data.inventoryLevel ?? data.inventoryQuantity ?? data.stock ?? data.quantity;
+    const generatedName = `${name || 'Product'} Variant ${index + 1}`;
+    const resolvedOptions = Object.keys(options).length > 0 ? options : { Variant: String(index + 1) };
+    return {
+      name: text(data.name) || text(data.sku) || generatedName,
+      sku,
+      options: resolvedOptions,
+      price: price(data.price) ?? price(data.priceSpecification?.price) ?? price(offer.price) ?? price(offer.priceSpecification?.price) ?? basePrice ?? 0,
+      stock: rawStock != null ? importedStock(rawStock) : stockFromAvailability(data.availability ?? offer.availability, index)
+    };
+  }).filter((variant): variant is NonNullable<typeof variant> => Boolean(variant && variant.price > 0));
   const brand = schema.brand && typeof schema.brand === 'object' ? (schema.brand as { name?: unknown }) : undefined;
   const brandName = text(brand?.name);
+  const category = categoryHint($, schema, pageUrl);
   return {
     name,
     description,
@@ -417,6 +592,7 @@ export function parseProduct(html: string, pageUrl: string): ScrapedProduct {
     images,
     variants: variants.length > 0 ? variants : [{ name: 'Default', sku: text(schema.sku) || `IMPORT-${Date.now().toString(36).toUpperCase()}`, options: {}, price: basePrice ?? 0, stock: stockFromAvailability(firstOffer.availability, 0) }],
     ...(brandName ? { brand: brandName } : {}),
+    ...(category ? { category, categoryName: category } : {}),
     ...(text(schema.sku) ? { sku: text(schema.sku) } : {})
   };
 }

@@ -10,6 +10,7 @@ import { createBrowserClient } from '@supabase/ssr';
 import { ImageUploader } from './ImageUploader';
 import { VariantEditor, type VariantRow } from './VariantEditor';
 import { ProductUrlImporter, type ScrapedProduct } from './ProductUrlImporter';
+import { importedStock, resolveImportedCategory } from '@/lib/catalog/importer';
 
 function getSupabase() {
   return createBrowserClient(
@@ -38,13 +39,14 @@ export function NewProductForm({ categories }: Props) {
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [description, setDescription] = useState('');
-  const [categoryId, setCategoryId] = useState(categories[0]?.id ?? '');
+  const [categoryId, setCategoryId] = useState('');
   const [basePrice, setBasePrice] = useState('');
   const [tags, setTags] = useState('');
   const [isFeatured, setIsFeatured] = useState(false);
   const [isActive, setIsActive] = useState(true);
   const [images, setImages] = useState<ImageItem[]>([]);
   const [variants, setVariants] = useState<VariantRow[]>([]);
+  const [imported, setImported] = useState(false);
 
   function slugify(s: string) {
     return s.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
@@ -52,6 +54,9 @@ export function NewProductForm({ categories }: Props) {
 
   function onParsed(data: ScrapedProduct) {
     setName(data.name);
+    setImported(true);
+    const category = resolveImportedCategory(data.categoryName ?? data.category, categories);
+    if (category) setCategoryId(category.id);
     setDescription(data.description);
     setBasePrice(data.price.toFixed(2));
     setImages(data.images.map((url, idx) => ({ id: `imported-${idx}`, url })));
@@ -62,7 +67,7 @@ export function NewProductForm({ categories }: Props) {
       options: v.options,
       price_cents: Math.round(v.price * 100),
       compare_at_cents: null,
-      stock: v.stock,
+      stock: importedStock(v.stock),
       is_active: true,
       sort_order: idx
     })));
@@ -121,7 +126,7 @@ export function NewProductForm({ categories }: Props) {
           options: v.options,
           price_cents: v.price_cents,
           compare_at_cents: v.compare_at_cents,
-          stock: v.stock,
+          stock: imported ? importedStock(v.stock) : v.stock,
           is_active: v.is_active,
           sort_order: idx
         })) as any
@@ -153,7 +158,7 @@ export function NewProductForm({ categories }: Props) {
         label="Category"
         value={categoryId}
         onChange={(e) => setCategoryId(e.target.value)}
-        options={categories.map((c) => ({ value: c.id, label: c.name }))}
+        options={[{ value: '', label: 'Select a category' }, ...categories.map((c) => ({ value: c.id, label: c.name }))]}
       />
       <Input label="Price (ZAR)" type="number" step="0.01" required value={basePrice} onChange={(e) => setBasePrice(e.target.value)} placeholder="299.00" />
       <Input label="Tags (comma-separated)" value={tags} onChange={(e) => setTags(e.target.value)} placeholder="new, summer, beach" />

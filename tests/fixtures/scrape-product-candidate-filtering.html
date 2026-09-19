@@ -1,0 +1,20 @@
+<!doctype html>
+<html>
+  <head><meta property="og:title" content="Candidate Filter Test"></head>
+  <body>
+    <section class="product-gallery">
+      <img data-src="/assets/site-logo.svg" src="/products/data-src-fallback.jpg" alt="Product image">
+      <img srcset="/assets/site-banner.jpg 1200w, /products/srcset-fallback.jpg 800w" alt="Product image">
+      <picture>
+        <source srcset="/assets/recommendation-banner.jpg 1600w, /products/picture-fallback.jpg 1000w">
+        <img src="/assets/recommendation-thumbnail.jpg" alt="Product image">
+      </picture>
+      <a href="/assets/recommendation.jpg">
+        <img src="/products/child.jpg" alt="Product image child">
+      </a>
+      <a href="/products/full-size.jpg">
+        <img src="/assets/recommendation-thumbnail.jpg" alt="Product image thumbnail">
+      </a>
+    </section>
+  </body>
+</html>

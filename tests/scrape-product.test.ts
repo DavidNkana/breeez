@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 import test from 'node:test';
 import { assertPublicRedirectTarget, assertPublicUrl, bestSrcsetCandidate, createPinnedLookup, imageFormat, isPrivateIp, normaliseLookupAddresses, parseProduct } from '../app/api/admin/scrape-product/route';
+import { resolveImportedCategory } from '../lib/catalog/importer';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
@@ -169,4 +170,89 @@ test('preserves image order and caps the gallery at ten images', () => {
   const html = Array.from({ length: 12 }, (_, index) => `<img class="hero" src="/images/dress-${index + 1}.jpg">`).join('');
   const product = parseProduct(html, 'https://shop.example/tee');
   assert.deepEqual(product.images, Array.from({ length: 10 }, (_, index) => `https://shop.example/images/dress-${index + 1}.jpg`));
+});
+
+test('extracts size and colour dimensions, dedupes combinations, and floors unavailable stock', () => {
+  const product = parseProduct(`
+    <script type="application/ld+json">
+      {"@type":"ProductGroup","name":"Runner","category":"Footwear","hasVariant":[
+        {"@type":"Product","name":"Runner M Black","sku":"RUN-M-B","size":"M","color":"Black","offers":{"price":299,"priceCurrency":"ZAR","availability":"https://schema.org/OutOfStock"}},
+        {"@type":"Product","name":"Runner M Black duplicate","sku":"RUN-M-B","size":"M","color":"Black","offers":{"price":299,"priceCurrency":"ZAR","availability":"https://schema.org/InStock","inventoryLevel":25}},
+        {"@type":"Product","name":"Runner L White","sku":"RUN-L-W","additionalProperty":[{"name":"Size","value":"L"},{"name":"Colour","value":"White"}],"offers":{"price":299,"priceCurrency":"ZAR","inventoryLevel":0}}
+      ]}
+    </script>
+  `, 'https://shop.example/footwear/runner');
+  assert.equal(product.category, 'Footwear');
+  assert.equal(product.variants.length, 2);
+  assert.deepEqual(product.variants[0].options, { Size: 'M', Color: 'Black' });
+  assert.deepEqual(product.variants[1].options, { Size: 'L', Color: 'White' });
+  assert.deepEqual(product.variants.map((variant) => variant.stock), [10, 10]);
+});
+
+test('preserves a credible positive source quantity and maps footwear to Shoes', () => {
+  const product = parseProduct(`<script type="application/ld+json">{"@type":"Product","name":"Trainer","category":"Trainers","offers":{"price":100,"priceCurrency":"ZAR","inventoryLevel":42,"sku":"T-1"}}</script>`, 'https://shop.example/shoes/trainer');
+  assert.equal(product.variants[0].stock, 42);
+  assert.equal(resolveImportedCategory(product.category, [{ id: 'shoes-id', name: 'Shoes', slug: 'shoes' }])?.id, 'shoes-id');
+});
+
+test('matches compound category hints to the most specific category', () => {
+  const categories = [
+    { id: 'women-id', name: 'Women', slug: 'women' },
+    { id: 'shoes-id', name: 'Shoes', slug: 'shoes' },
+  ];
+  assert.equal(resolveImportedCategory('Women’s Shoes', categories)?.id, 'shoes-id');
+  assert.equal(resolveImportedCategory('Women', categories)?.id, 'women-id');
+  assert.equal(resolveImportedCategory('Fashion World Footwear/Trainers', categories)?.id, 'shoes-id');
+});
+
+test('prefers product aliases over competing retailer and department categories', () => {
+  const categories = [
+    { id: 'fashion-id', name: 'Fashion', slug: 'fashion' },
+    { id: 'shoes-id', name: 'Shoes', slug: 'shoes' },
+  ];
+  assert.equal(resolveImportedCategory('Fashion World Footwear', categories)?.id, 'shoes-id');
+  assert.equal(resolveImportedCategory('Fashion World Trainers', categories)?.id, 'shoes-id');
+});
+
+test('imports bare Product.offers entries as priced variants without recommendation offers', () => {
+  const product = parseProduct(`
+    <script type="application/ld+json">
+      {
+        "@type":"Product",
+        "name":"Everyday Runner",
+        "offers":[
+          {"@type":"Offer","price":299,"priceCurrency":"ZAR","availability":"https://schema.org/InStock"},
+          {"@type":"Offer","price":349,"priceCurrency":"ZAR","availability":"https://schema.org/InStock"}
+        ],
+        "isRelatedTo":{"@type":"Product","name":"Recommended Runner","offers":{"price":99,"priceCurrency":"ZAR","sku":"RECOMMENDED"}}
+      }
+    </script>
+  `, 'https://shop.example/shoes/everyday-runner');
+  assert.deepEqual(product.variants.map((variant) => variant.price), [299, 349]);
+  assert.deepEqual(product.variants.map((variant) => variant.sku), ['IMPORT-1', 'IMPORT-2']);
+  assert.deepEqual(product.variants.map((variant) => variant.options), [{ Variant: '1' }, { Variant: '2' }]);
+  assert.equal(product.variants.some((variant) => variant.sku === 'RECOMMENDED'), false);
+});
+
+test('extracts selector-only size and colour combinations', async () => {
+  const html = await readFile(resolve('tests/fixtures/scrape-product-selector-only.html'), 'utf8');
+  const product = parseProduct(html, 'https://shop.example/shoes/everyday-runner');
+  assert.deepEqual(product.variants.map((variant) => variant.options), [
+    { Size: 'S', Color: 'Black' },
+    { Size: 'S', Color: 'White' },
+    { Size: 'M', Color: 'Black' },
+    { Size: 'M', Color: 'White' },
+  ]);
+  assert.equal(product.variants.every((variant) => variant.stock >= 10), true);
+});
+
+test('keeps embedded recommendations out of the primary product variants', async () => {
+  const html = await readFile(resolve('tests/fixtures/scrape-product-embedded-recommendation.html'), 'utf8');
+  const product = parseProduct(html, 'https://shop.example/shoes/primary-runner');
+  assert.deepEqual(product.variants.map((variant) => variant.sku), ['PRIMARY-BLACK-S', 'PRIMARY-WHITE-M']);
+  assert.equal(product.variants.some((variant) => variant.sku === 'RECOMMENDED-RED-L'), false);
+});
+
+test('does not force an unknown category to Women', () => {
+  assert.equal(resolveImportedCategory('Mystery Department', [{ id: 'w', name: 'Women', slug: 'women' }]), undefined);
 });

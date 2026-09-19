@@ -21,6 +21,8 @@ export type ScrapedProduct = {
   warnings?: string[];
   brand?: string;
   sku?: string;
+  category?: string;
+  categoryName?: string;
 };
 
 type Props = {
@@ -33,7 +35,7 @@ export function ProductUrlImporter({ onParsed }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const [summary, setSummary] = useState<{ images: number; variants: number; warnings: string[] } | null>(null);
+  const [summary, setSummary] = useState<{ images: number; variants: number; category?: string; warnings: string[] } | null>(null);
   const showToast = useToast((s) => s.show);
 
   useEffect(() => {
@@ -55,7 +57,7 @@ export function ProductUrlImporter({ onParsed }: Props) {
       if (!response.ok || !result.ok) throw new Error(result.error || 'Could not parse this product URL');
       const data = result.data as ScrapedProduct;
       onParsed(data);
-      setSummary({ images: data.images.length, variants: data.variants.length, warnings: data.warnings ?? [] });
+      setSummary({ images: data.images.length, variants: data.variants.length, category: data.categoryName ?? data.category, warnings: data.warnings ?? [] });
       setSuccess(true);
       showToast('Product details imported successfully', 'success');
     } catch (err) {
@@ -106,7 +108,7 @@ export function ProductUrlImporter({ onParsed }: Props) {
       </div>
       {success && summary && (
         <div className="mt-2 text-xs">
-          <p className="font-medium text-success">Imported {summary.images} image{summary.images === 1 ? '' : 's'} and {summary.variants} variant{summary.variants === 1 ? '' : 's'} — review before saving.</p>
+          <p className="font-medium text-success">Imported {summary.images} image{summary.images === 1 ? '' : 's'} and {summary.variants} variant{summary.variants === 1 ? '' : 's'}{summary.category ? ` in ${summary.category}` : ''} — stock is floored at 10 for imported variants; review before saving.</p>
           {summary.warnings.length > 0 && <p className="mt-1 text-warning">{summary.warnings.length} image{summary.warnings.length === 1 ? '' : 's'} skipped: {summary.warnings.join(', ')}.</p>}
         </div>
       )}
