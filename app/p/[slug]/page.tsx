@@ -9,6 +9,7 @@ import { brand } from '@/lib/brand';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { getAvailableStock, isPurchasableVariant } from '@/lib/catalog/variant-options';
 
 type Props = { params: { slug: string } };
 
@@ -48,7 +49,7 @@ export default async function ProductPage({ params }: Props) {
 
   const priceCents = product.variants[0]?.price_cents ?? product.base_price_cents;
   const compareAt = product.variants[0]?.compare_at_cents ?? null;
-  const inStock = product.variants.some((v) => v.stock > 0);
+  const inStock = product.variants.some((v) => isPurchasableVariant(v) && getAvailableStock(v.stock) > 0);
   const SITE_URL = brand.siteUrl;
 
   // JSON-LD structured data — drives Google rich snippets + product cards

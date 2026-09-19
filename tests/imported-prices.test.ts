@@ -37,5 +37,6 @@ test('coerces imported stock into the database field and applies the import floo
   assert.equal(stockQuantity('12.9'), 12);
   assert.equal(stockQuantity('not a quantity'), 0);
   assert.equal(importedStock('0'), 10);
+  assert.equal(importedStock('9'), 10);
   assert.equal(importedStock('12'), 12);
 });
