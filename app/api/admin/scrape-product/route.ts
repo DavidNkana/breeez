@@ -753,6 +753,11 @@ export function parseProduct(html: string, pageUrl: string): ScrapedProduct {
       sku: text(firstOffer.sku) || text(schema.sku) || `IMPORT-${index + 1}`
     }))
     : extractedOffers.length > 0 ? extractedOffers : selectors.map(({ options, active }, index) => ({ options, active, sku: `IMPORT-${index + 1}` }));
+  // Product.offers is normally a product-level summary. It must not make every
+  // selector value unavailable just because that summary says OutOfStock (or
+  // has an ambiguous availability value). Availability is authoritative only
+  // on an actual variant/offer record, or on one of an array of bare offers.
+  const hasVariantSpecificAvailability = hasVariantOptions || Boolean(schema.hasVariant) || Array.isArray(schema.offers);
   const variants = sourceVariants.map((offer, index) => {
     const data = {
       ...offer,
@@ -766,6 +771,9 @@ export function parseProduct(html: string, pageUrl: string): ScrapedProduct {
     const selectorOptions = selectors.length === sourceVariants.length ? selectors[index].options : {};
     const options = variantOptionValues(data, selectorOptions);
     const selectorActive = mergeSelectorAvailability(options, true, selectors);
+    const explicitVariantAvailability = hasVariantSpecificAvailability
+      ? availabilityFromValue(data.availability ?? offer.availability)
+      : undefined;
     const baseSku = text(data.sku) || text(offer.sku) || (extractedOffers.length === 1 ? text(schema.sku) : '') || `IMPORT-${index + 1}`;
     const generatedSkuSuffix = Object.values(options).map((value) => value.replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '')).filter(Boolean).join('-');
     const sku = hasSelectors && !hasVariantOptions && generatedSkuSuffix
@@ -786,7 +794,7 @@ export function parseProduct(html: string, pageUrl: string): ScrapedProduct {
       options: resolvedOptions,
       price: priceSnapshot(data).current ?? priceSnapshot(offer).current ?? basePrice ?? 0,
       stock: rawStock != null ? importedStock(rawStock) : stockFromAvailability(data.availability ?? offer.availability, index),
-      active: data.active !== false && data.is_active !== false && availabilityFromValue(data) !== false && availabilityFromValue(data.availability ?? offer.availability) !== false && selectorActive
+      active: (!hasVariantSpecificAvailability || data.active !== false && data.is_active !== false && explicitVariantAvailability !== false) && selectorActive
     };
   }).filter((variant): variant is NonNullable<typeof variant> => Boolean(variant && variant.price > 0));
   const brand = schema.brand && typeof schema.brand === 'object' ? (schema.brand as { name?: unknown }) : undefined;
@@ -798,7 +806,7 @@ export function parseProduct(html: string, pageUrl: string): ScrapedProduct {
     price: basePrice ?? 0,
     comparePrice,
     images,
-    variants: variants.length > 0 ? variants : [{ name: 'Default', sku: text(schema.sku) || `IMPORT-${Date.now().toString(36).toUpperCase()}`, options: {}, price: basePrice ?? 0, stock: stockFromAvailability(firstOffer.availability, 0), active: availabilityFromValue(firstOffer.availability) !== false }],
+    variants: variants.length > 0 ? variants : [{ name: 'Default', sku: text(schema.sku) || `IMPORT-${Date.now().toString(36).toUpperCase()}`, options: {}, price: basePrice ?? 0, stock: stockFromAvailability(firstOffer.availability, 0), active: true }],
     ...(brandName ? { brand: brandName } : {}),
     ...(category ? { category, categoryName: category } : {}),
     ...(text(schema.sku) ? { sku: text(schema.sku) } : {})

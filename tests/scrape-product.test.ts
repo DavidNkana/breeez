@@ -274,6 +274,34 @@ test('preserves every source size and marks disabled or sold-out options inactiv
   assert.equal(product.variants.every((variant) => variant.stock >= 10), true);
 });
 
+test('does not apply product-level availability to imported variants', async () => {
+  const html = await readFile(resolve('tests/fixtures/scrape-product-generic-availability.html'), 'utf8');
+  const product = parseProduct(html, 'https://shop.example/apparel/low-stock-tee');
+  assert.equal(product.variants.length, 1);
+  assert.equal(product.variants[0].active, true);
+  assert.equal(product.variants[0].stock, 10);
+});
+
+test('applies OutOfStock only to the exact offer variant', async () => {
+  const html = await readFile(resolve('tests/fixtures/scrape-product-offer-availability.html'), 'utf8');
+  const product = parseProduct(html, 'https://shop.example/apparel/exact-offer-tee');
+  assert.deepEqual(product.variants.map((variant) => variant.active), [false, true]);
+  assert.equal(product.variants.every((variant) => variant.stock >= 10), true);
+});
+
+test('defaults variants with no availability metadata to active', () => {
+  const product = parseProduct(`
+    <script type="application/ld+json">
+      {"@type":"ProductGroup","name":"No Metadata Tee","hasVariant":[
+        {"@type":"Product","name":"No Metadata S","size":"S","offers":{"price":299,"priceCurrency":"ZAR"}},
+        {"@type":"Product","name":"No Metadata M","size":"M","offers":{"price":299,"priceCurrency":"ZAR"}}
+      ]}
+    </script>
+  `, 'https://shop.example/apparel/no-metadata-tee');
+  assert.deepEqual(product.variants.map((variant) => variant.active), [true, true]);
+  assert.deepEqual(product.variants.map((variant) => variant.stock), [10, 20]);
+});
+
 test('merges disabled selector metadata into matching existing offers', () => {
   const product = parseProduct(`
     <label for="size">Size</label>
