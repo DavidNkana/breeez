@@ -22,9 +22,20 @@ test('accepts complete image signatures only for their declared format', () => {
 test('rejects private and redirect targets', async () => {
   assert.equal(isPrivateIp('127.0.0.1'), true);
   assert.equal(isPrivateIp('::ffff:192.168.1.10'), true);
+  assert.equal(isPrivateIp('::7f00:1'), true);
+  assert.equal(isPrivateIp('::c0a8:101'), true);
+  assert.equal(isPrivateIp('0:0:0:0:0:ffff:c0a8:0101'), true);
+  assert.equal(isPrivateIp('::ffff:192.168.1.1'), true);
+  assert.equal(isPrivateIp('::ffff:7f00:1'), true);
   await assert.rejects(assertPublicUrl('http://127.0.0.1/admin'), /Private or internal/);
   await assert.rejects(assertPublicUrl('http://[::1]/admin'), /Private or internal/);
+  await assert.rejects(assertPublicUrl('http://[::c0a8:101]/admin'), /Private or internal/);
   await assert.rejects(assertPublicRedirectTarget('http://127.0.0.1/internal', new URL('https://public.example/')), /Private or internal/);
+});
+
+test('rejects malformed public URLs with a validation error', async () => {
+  await assert.rejects(assertPublicUrl('not a URL'), { message: 'The URL is invalid' });
+  assert.throws(() => assertPublicRedirectTarget('http://[not-an-ip', new URL('https://public.example/')), { message: 'The URL is invalid' });
 });
 
 test('normalises public DNS lookup results without accepting undefined addresses', () => {

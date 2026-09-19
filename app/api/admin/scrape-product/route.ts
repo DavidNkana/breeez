@@ -40,15 +40,38 @@ const MAX_PAGE_BYTES = 2 * 1024 * 1024;
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 const MAX_IMAGES = 10;
 
+function ipv4Number(address: string) {
+  const parts = address.split('.').map(Number);
+  return parts.length === 4 && parts.every((part) => Number.isInteger(part) && part >= 0 && part <= 255)
+    ? (((parts[0] * 256 + parts[1]) * 256 + parts[2]) * 256 + parts[3]) >>> 0
+    : null;
+}
+
 function mappedIpv4(address: string) {
-  const lower = address.toLowerCase();
-  const dotted = lower.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
-  if (dotted) return dotted[1];
-  const hexadecimal = lower.match(/^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/);
-  if (!hexadecimal) return null;
-  const first = Number.parseInt(hexadecimal[1], 16);
-  const second = Number.parseInt(hexadecimal[2], 16);
-  return `${first >> 8}.${first & 255}.${second >> 8}.${second & 255}`;
+  const words = ipv6Words(address);
+  if (!words) return null;
+  const mapped = words.slice(0, 5).every((word) => word === 0) && words[5] === 0xffff;
+  const compatible = words.slice(0, 6).every((word) => word === 0);
+  if (!mapped && !compatible) return null;
+  const number = (((words[6] << 16) | words[7]) >>> 0);
+  return `${number >>> 24}.${(number >>> 16) & 255}.${(number >>> 8) & 255}.${number & 255}`;
+}
+
+function ipv6Words(address: string) {
+  let value = address.toLowerCase();
+  const dottedIndex = value.lastIndexOf(':');
+  if (value.includes('.') && dottedIndex >= 0) {
+    const number = ipv4Number(value.slice(dottedIndex + 1));
+    if (number == null) return null;
+    value = `${value.slice(0, dottedIndex + 1)}${(number >>> 16).toString(16)}:${(number & 0xffff).toString(16)}`;
+  }
+  const halves = value.split('::');
+  if (halves.length > 2) return null;
+  const left = halves[0] ? halves[0].split(':') : [];
+  const right = halves.length === 2 && halves[1] ? halves[1].split(':') : [];
+  const words = [...left, ...(halves.length === 2 ? Array(8 - left.length - right.length).fill('0') : []), ...right]
+    .map((word) => /^[0-9a-f]{1,4}$/.test(word) ? Number.parseInt(word, 16) : NaN);
+  return words.length === 8 && words.every(Number.isInteger) ? words : null;
 }
 
 /**
@@ -71,31 +94,37 @@ export function normaliseLookupAddresses(result: unknown) {
 
 export function isPrivateIp(address: string) {
   if (isIP(address) === 4) {
-    const parts = address.split('.').map(Number);
-    return parts[0] === 0 || parts[0] === 10 || parts[0] === 127 ||
-      (parts[0] === 169 && parts[1] === 254) ||
-      (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) ||
-      (parts[0] === 192 && parts[1] === 168) ||
-      (parts[0] === 192 && parts[1] === 0) ||
-      (parts[0] === 192 && parts[1] === 2) ||
-      (parts[0] === 100 && parts[1] >= 64 && parts[1] <= 127) ||
-      (parts[0] === 198 && (parts[1] === 18 || parts[1] === 19)) ||
-      (parts[0] === 198 && parts[1] === 51 && parts[2] === 100) ||
-      (parts[0] === 203 && parts[1] === 0 && parts[2] === 113) ||
-      parts[0] >= 224;
+    const number = ipv4Number(address);
+    if (number == null) return true;
+    return [
+      [0x00000000, 0xff000000], [0x0a000000, 0xff000000], [0x64400000, 0xffc00000],
+      [0x7f000000, 0xff000000], [0xa9fe0000, 0xffff0000], [0xac100000, 0xfff00000],
+      [0xc0000000, 0xffffff00], [0xc0000200, 0xffffff00], [0xc0586300, 0xffffff00],
+      [0xc0a80000, 0xffff0000], [0xc6120000, 0xfffe0000], [0xc6336400, 0xffffff00],
+      [0xcb007100, 0xffffff00], [0xe0000000, 0xe0000000],
+    ].some(([network, mask]) => ((number & mask) >>> 0) === network);
   }
   const lower = address.toLowerCase();
-  // IPv4-mapped IPv6 addresses must be checked as IPv4, not as public IPv6.
   const mapped = mappedIpv4(lower);
   if (mapped) return isPrivateIp(mapped);
-  return lower === '::1' || lower === '::' || lower.startsWith('fc') ||
-    lower.startsWith('fd') || lower.startsWith('fe8') || lower.startsWith('fe9') ||
-    lower.startsWith('fea') || lower.startsWith('feb') || lower.startsWith('ff') ||
-    lower.startsWith('2001:db8:');
+  const words = ipv6Words(lower);
+  if (!words) return true;
+  return (words[0] & 0xfe00) === 0xfc00 || // ULA
+    (words[0] & 0xffc0) === 0xfe80 || // link-local
+    (words[0] & 0xff00) === 0xff00 || // multicast
+    (words[0] === 0x2001 && [0x0002, 0x0010, 0x0020, 0x0db8].includes(words[1])) ||
+    words.every((word) => word === 0); // unspecified
+}
+
+const invalidUrlMessage = 'The URL is invalid';
+
+async function resolvePublicAddresses(hostname: string) {
+  return isIP(hostname) ? [hostname] : normaliseLookupAddresses(await lookup(hostname, { all: true, verbatim: true }));
 }
 
 async function assertPublicUrl(value: string) {
-  const parsed = new URL(value);
+  let parsed: URL;
+  try { parsed = new URL(value); } catch { throw new Error(invalidUrlMessage); }
   if (!['http:', 'https:'].includes(parsed.protocol) || parsed.username || parsed.password) {
     throw new Error('Only public http:// or https:// URLs are allowed');
   }
@@ -103,7 +132,7 @@ async function assertPublicUrl(value: string) {
   if (hostname === 'localhost' || hostname.endsWith('.localhost') || hostname.endsWith('.local') || hostname === 'metadata.google.internal') {
     throw new Error('Private or internal URLs are not allowed');
   }
-  const addresses = isIP(hostname) ? [hostname] : normaliseLookupAddresses(await lookup(hostname, { all: true, verbatim: true }));
+  const addresses = await resolvePublicAddresses(hostname);
   if (!addresses.length || addresses.some(isPrivateIp)) throw new Error('Private or internal URLs are not allowed');
   return parsed;
 }
@@ -111,7 +140,10 @@ async function assertPublicUrl(value: string) {
 export { assertPublicUrl };
 
 export function assertPublicRedirectTarget(location: string, base: URL) {
-  return assertPublicUrl(new URL(location, base).toString());
+  try { return assertPublicUrl(new URL(location, base).toString()); } catch (error) {
+    if (error instanceof Error && error.message === invalidUrlMessage) throw error;
+    throw new Error(invalidUrlMessage);
+  }
 }
 
 type PublicResponse = { response: Response; url: string };
@@ -131,7 +163,7 @@ export function createPinnedLookup(address: string, family: number): LookupFunct
  */
 async function fetchPublicUrl(value: URL, init: { headers: Record<string, string>; timeoutMs: number }): Promise<PublicResponse> {
   const hostname = value.hostname.replace(/^\[|\]$/g, '');
-  const addresses = isIP(hostname) ? [hostname] : normaliseLookupAddresses(await lookup(hostname, { all: true, verbatim: true }));
+  const addresses = await resolvePublicAddresses(hostname);
   if (!addresses.length || addresses.some(isPrivateIp)) throw new Error('Private or internal URLs are not allowed');
   const address = addresses[0];
   const family = isIP(address);
@@ -145,8 +177,15 @@ async function fetchPublicUrl(value: URL, init: { headers: Record<string, string
       servername: isIP(hostname) ? undefined : hostname,
       timeout: init.timeoutMs,
     }, (incoming) => {
-      const body = Readable.toWeb(incoming) as ReadableStream<Uint8Array>;
-      resolve({ response: new Response(body, { status: incoming.statusCode ?? 502, headers: incoming.headers as Record<string, string> }), url: value.toString() });
+      // Keep exceptions in the response callback inside this promise. An
+      // exception here otherwise escapes the POST handler and Next renders
+      // its HTML 500 page instead of our JSON error response.
+      try {
+        const body = Readable.toWeb(incoming) as ReadableStream<Uint8Array>;
+        resolve({ response: new Response(body, { status: incoming.statusCode ?? 502, headers: incoming.headers as Record<string, string> }), url: value.toString() });
+      } catch (error) {
+        reject(error);
+      }
     });
     request.once('error', reject);
     request.once('timeout', () => request.destroy(new Error('Request timed out')));
@@ -821,14 +860,36 @@ export function imageFormat(contentType: string, bytes: Uint8Array) {
   return null;
 }
 
-async function rehostImages(images: string[], pageUrl: string) {
+export async function rehostImages(images: string[], pageUrl: string) {
   if (images.length === 0) return { images: [], warnings: [] };
-  const admin = createAdminClient();
   const stored: string[] = [];
   const warnings: string[] = [];
-  for (const [index, imageUrl] of images.entries()) {
+
+  // Validate before touching Supabase so a missing/broken service-role
+  // configuration can never make an otherwise valid import fail. Original
+  // URLs are only retained after this SSRF check succeeds.
+  const validatedImages: Array<{ imageUrl: string; safeUrl: URL }> = [];
+  for (const imageUrl of images) {
     try {
-      let safeUrl = await assertPublicUrl(imageUrl);
+      validatedImages.push({ imageUrl, safeUrl: await assertPublicUrl(imageUrl) });
+    } catch {
+      warnings.push('An image URL was rejected as unsafe and was not imported');
+    }
+  }
+
+  let admin: ReturnType<typeof createAdminClient>;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return {
+      images: validatedImages.map(({ imageUrl }) => imageUrl),
+      warnings: [...warnings, 'Images kept at their original URLs (image storage is not configured)'],
+    };
+  }
+
+  for (const [index, { imageUrl, safeUrl: initialUrl }] of validatedImages.entries()) {
+    try {
+      let safeUrl = initialUrl;
       let response: Response | null = null;
       let finalUrl = safeUrl.toString();
       for (let redirects = 0; redirects <= 3; redirects += 1) {
@@ -860,10 +921,31 @@ async function rehostImages(images: string[], pageUrl: string) {
         stored.push(admin.storage.from('product-images').getPublicUrl(data.path).data.publicUrl);
       }
     } catch {
-      warnings.push(`Image ${index + 1} could not be imported`);
+      // The original URL was validated above. Rehosting is an enhancement;
+      // never turn a storage/network failure into a failed product import.
+      stored.push(imageUrl);
+      warnings.push(`Image ${index + 1} kept at its original URL (image could not be rehosted)`);
     }
   }
   return { images: stored, warnings };
+}
+
+const knownScrapeErrors = [
+  'Only public http:// or https:// URLs are allowed',
+  'Private or internal URLs are not allowed',
+  'The product page returned an invalid redirect',
+  'Too many redirects',
+  'The response is too large',
+  'Response body timed out',
+  'A product URL is required',
+  invalidUrlMessage,
+];
+
+function safeScrapeError(error: unknown) {
+  const message = error instanceof Error ? error.message : '';
+  if (knownScrapeErrors.includes(message)) return { status: 400, message };
+  if (/^Could not fetch the page \(HTTP \d{3}\)$/.test(message)) return { status: 400, message };
+  return { status: 500, message: 'Could not scrape this product right now' };
 }
 
 export async function POST(request: Request) {
@@ -894,7 +976,7 @@ export async function POST(request: Request) {
     const hosted = await rehostImages(product.images, finalPageUrl);
     return NextResponse.json({ ok: true, data: { ...product, images: hosted.images, warnings: hosted.warnings } });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Could not parse this product URL';
-    return NextResponse.json({ ok: false, error: message }, { status: 400 });
+    const failure = safeScrapeError(error);
+    return NextResponse.json({ ok: false, error: failure.message }, { status: failure.status });
   }
 }
