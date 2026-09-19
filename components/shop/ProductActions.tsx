@@ -88,7 +88,7 @@ export function ProductActions({ productId, productSlug, productName, basePriceC
 
       {selectedVariant && (
         <p className="mt-3 text-sm font-medium text-brand-700 dark:text-brand-200" aria-live="polite">
-          {selectedVariant.stock > 0 ? `${selectedVariant.stock} left in stock` : 'Out of stock'}
+          {getAvailableStock(selectedVariant.stock) > 0 ? `${getAvailableStock(selectedVariant.stock)} left in stock` : 'Out of stock'}
         </p>
       )}
       {!selectedVariant && optionKeys.length > 0 && (
@@ -96,9 +96,14 @@ export function ProductActions({ productId, productSlug, productName, basePriceC
           {availableStock > 0 ? `${availableStock} available across options` : 'Out of stock'}
         </p>
       )}
+      {!selectedVariant && variants.length === 0 && (
+        <p className="mt-3 text-sm text-brand-600 dark:text-brand-300" aria-live="polite">
+          No variants are available for this product.
+        </p>
+      )}
 
       {/* Out of stock warning for the selected variant */}
-      {selectedVariant && selectedVariant.stock !== null && selectedVariant.stock !== undefined && selectedVariant.stock <= 0 && (
+      {selectedVariant && getAvailableStock(selectedVariant.stock) <= 0 && (
         <div className="mt-4 rounded-md border border-danger bg-red-50 px-3 py-2 text-sm text-red-800">
           This variant is out of stock. Pick a different option.
         </div>

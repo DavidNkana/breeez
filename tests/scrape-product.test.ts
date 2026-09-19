@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import test from 'node:test';
-import { assertPublicRedirectTarget, assertPublicUrl, bestSrcsetCandidate, createPinnedLookup, imageFormat, isPrivateIp, normaliseLookupAddresses, parseProduct } from '../app/api/admin/scrape-product/route';
+import { assertPublicRedirectTarget, assertPublicUrl, bestSrcsetCandidate, createPinnedLookup, imageFormat, isPrivateIp, normaliseLookupAddresses, parseProduct, scrapedProductPriceError } from '../app/api/admin/scrape-product/route';
 import { resolveImportedCategory } from '../lib/catalog/importer';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
@@ -255,4 +255,52 @@ test('keeps embedded recommendations out of the primary product variants', async
 
 test('does not force an unknown category to Women', () => {
   assert.equal(resolveImportedCategory('Mystery Department', [{ id: 'w', name: 'Women', slug: 'women' }]), undefined);
+});
+
+test('normalises common ZAR price formats and keeps sale price over compare price', () => {
+  const product = parseProduct(`
+    <script type="application/ld+json">
+      {"@type":"Product","name":"Sale Tee","offers":{"price":"R 1 299.99","priceCurrency":"ZAR","regularPrice":"1,599.99"}}
+    </script>
+  `, 'https://shop.example/tee');
+  assert.equal(product.price, 1299.99);
+  assert.equal(product.comparePrice, 1599.99);
+});
+
+test('uses AggregateOffer lowPrice as the selling price and highPrice as compare price', () => {
+  const product = parseProduct(`
+    <script type="application/ld+json">
+      {"@type":"Product","name":"Runner","offers":{"@type":"AggregateOffer","priceCurrency":"ZAR","lowPrice":"1299,99","highPrice":1599.99}}
+    </script>
+  `, 'https://shop.example/runner');
+  assert.equal(product.price, 1299.99);
+  assert.equal(product.comparePrice, 1599.99);
+});
+
+test('prefers an explicit Product price over cheaper variant offers', () => {
+  const product = parseProduct(`
+    <script type="application/ld+json">
+      {"@type":"Product","name":"Priced Runner","price":1999,"priceCurrency":"ZAR","offers":[
+        {"@type":"Offer","price":299,"priceCurrency":"ZAR"},
+        {"@type":"Offer","price":399,"priceCurrency":"ZAR"}
+      ]}
+    </script>
+  `, 'https://shop.example/runner');
+  assert.equal(product.price, 1999);
+  assert.deepEqual(product.variants.map((variant) => variant.price), [299, 399]);
+});
+
+test('falls back to visible and cents-based embedded prices', () => {
+  const visible = parseProduct('<h1>Dress</h1><div class="sale-price">R 1 299,99</div><div class="was-price">R 1 499,99</div>', 'https://shop.example/dress');
+  assert.equal(visible.price, 1299.99);
+  assert.equal(visible.comparePrice, 1499.99);
+
+  const embedded = parseProduct('<script type="application/json">{"@type":"Product","name":"Cap","price_cents":129999}</script>', 'https://shop.example/cap');
+  assert.equal(embedded.price, 1299.99);
+});
+
+test('leaves no-price pages at zero for the API to reject with a clear error', () => {
+  const product = parseProduct('<h1>Priceless item</h1>', 'https://shop.example/item');
+  assert.equal(product.price, 0);
+  assert.equal(scrapedProductPriceError(product), 'Could not detect a valid positive ZAR price on this product page — fill the price manually');
 });

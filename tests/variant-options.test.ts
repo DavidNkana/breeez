@@ -43,6 +43,13 @@ test('normalizes unavailable stock for gating and display', () => {
   assert.equal(getAvailableStock(5), 5);
 });
 
+test('accepts numeric stock returned as a string at the PDP boundary', () => {
+  const variant = { id: 'imported', options: { Size: 'M' }, stock: '12', is_active: true };
+  assert.equal(getAvailableStock(variant.stock), 12);
+  assert.equal(getPurchasableVariantForOptions([variant], ['Size'], { Size: 'M' })?.id, 'imported');
+  assert.equal(canAddVariantToCart(variant, 12), true);
+});
+
 test('disables stockless option values without hiding valid combinations', () => {
   const variants: VariantOptionSource[] = [
     { options: { Size: 'S', Color: 'Red' }, stock: 0 },

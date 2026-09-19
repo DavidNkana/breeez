@@ -10,7 +10,8 @@ import { createBrowserClient } from '@supabase/ssr';
 import { ImageUploader } from './ImageUploader';
 import { VariantEditor, type VariantRow } from './VariantEditor';
 import { ProductUrlImporter, type ScrapedProduct } from './ProductUrlImporter';
-import { importedStock, resolveImportedCategory } from '@/lib/catalog/importer';
+import { importedStock, resolveImportedCategory, stockQuantity } from '@/lib/catalog/importer';
+import { mapImportedVariantPrices, normalizeVariantCompareAtCents } from '@/lib/catalog/imported-prices';
 
 function getSupabase() {
   return createBrowserClient(
@@ -41,6 +42,7 @@ export function NewProductForm({ categories }: Props) {
   const [description, setDescription] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [basePrice, setBasePrice] = useState('');
+  const [comparePrice, setComparePrice] = useState('');
   const [tags, setTags] = useState('');
   const [isFeatured, setIsFeatured] = useState(false);
   const [isActive, setIsActive] = useState(true);
@@ -58,15 +60,15 @@ export function NewProductForm({ categories }: Props) {
     const category = resolveImportedCategory(data.categoryName ?? data.category, categories);
     if (category) setCategoryId(category.id);
     setDescription(data.description);
-    setBasePrice(data.price.toFixed(2));
+    if (Number.isFinite(data.price) && data.price > 0) setBasePrice(data.price.toFixed(2));
+    setComparePrice(data.comparePrice != null && Number.isFinite(data.comparePrice) && data.comparePrice > data.price ? data.comparePrice.toFixed(2) : '');
     setImages(data.images.map((url, idx) => ({ id: `imported-${idx}`, url })));
     setVariants(data.variants.map((v, idx) => ({
       product_id: 'new-product',
       sku: v.sku,
       name: v.name,
       options: v.options,
-      price_cents: Math.round(v.price * 100),
-      compare_at_cents: null,
+      ...mapImportedVariantPrices(v.price, data.comparePrice),
       stock: importedStock(v.stock),
       is_active: true,
       sort_order: idx
@@ -84,8 +86,14 @@ export function NewProductForm({ categories }: Props) {
       return;
     }
     const basePriceCents = Math.round(parseFloat(basePrice) * 100);
-    if (isNaN(basePriceCents) || basePriceCents <= 0) {
+    if (!Number.isFinite(basePriceCents) || basePriceCents <= 0) {
       showToast('Valid price required', 'error');
+      setSaving(false);
+      return;
+    }
+    const compareAtCents = comparePrice.trim() ? Math.round(parseFloat(comparePrice) * 100) : null;
+    if (comparePrice.trim() && (compareAtCents == null || !Number.isFinite(compareAtCents) || compareAtCents <= basePriceCents)) {
+      showToast('Compare-at price must be greater than base price', 'error');
       setSaving(false);
       return;
     }
@@ -106,6 +114,7 @@ export function NewProductForm({ categories }: Props) {
       description,
       category_id: categoryId || null,
       base_price_cents: basePriceCents,
+      compare_at_cents: compareAtCents,
       tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
       is_active: true
     } as any).select('id').single();
@@ -125,8 +134,8 @@ export function NewProductForm({ categories }: Props) {
           name: v.name,
           options: v.options,
           price_cents: v.price_cents,
-          compare_at_cents: v.compare_at_cents,
-          stock: imported ? importedStock(v.stock) : v.stock,
+          compare_at_cents: normalizeVariantCompareAtCents(v.price_cents, v.compare_at_cents),
+          stock: imported ? importedStock(v.stock) : stockQuantity(v.stock),
           is_active: v.is_active,
           sort_order: idx
         })) as any
@@ -160,7 +169,10 @@ export function NewProductForm({ categories }: Props) {
         onChange={(e) => setCategoryId(e.target.value)}
         options={[{ value: '', label: 'Select a category' }, ...categories.map((c) => ({ value: c.id, label: c.name }))]}
       />
-      <Input label="Price (ZAR)" type="number" step="0.01" required value={basePrice} onChange={(e) => setBasePrice(e.target.value)} placeholder="299.00" />
+      <div className="grid grid-cols-2 gap-3">
+        <Input label="Price (ZAR)" type="number" step="0.01" required value={basePrice} onChange={(e) => setBasePrice(e.target.value)} placeholder="299.00" />
+        <Input label="Compare-at price (optional)" type="number" step="0.01" value={comparePrice} onChange={(e) => setComparePrice(e.target.value)} placeholder="399.00" />
+      </div>
       <Input label="Tags (comma-separated)" value={tags} onChange={(e) => setTags(e.target.value)} placeholder="new, summer, beach" />
       <div>
         <label className="mb-1 block text-sm font-medium text-brand-900">Description</label>

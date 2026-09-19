@@ -10,7 +10,7 @@ import * as cheerio from 'cheerio';
 import type { AnyNode } from 'domhandler';
 import { requireAdmin } from '@/lib/auth/session';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { importedStock } from '@/lib/catalog/importer';
+import { IMPORT_STOCK_FLOOR, importedStock } from '@/lib/catalog/importer';
 
 export const runtime = 'nodejs';
 
@@ -209,11 +209,57 @@ function text(value: unknown) {
   return typeof value === 'string' ? value.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() : '';
 }
 
-function price(value: unknown) {
-  const raw = String(value ?? '').replace(/[^\d.,-]/g, '');
-  const normalized = raw.includes('.') && raw.includes(',') ? raw.replace(/,/g, '') : raw.replace(',', '.');
-  const parsed = typeof value === 'number' ? value : parseFloat(normalized);
-  return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+/** Prices in schema.org and HTML metadata are rand, while *_cents fields are cents. */
+function price(value: unknown, unit: 'rand' | 'cents' = 'rand') {
+  if (value == null || value === '') return null;
+  if (unit === 'cents' && typeof value === 'number') {
+    return Number.isFinite(value) && value > 0 ? value / 100 : null;
+  }
+  const source = String(value).trim();
+  const raw = source.replace(/[^\d.,-]/g, '').replace(/\s/g, '');
+  if (!raw) return null;
+  let normalized = raw;
+  if (raw.includes('.') && raw.includes(',')) {
+    normalized = raw.lastIndexOf(',') > raw.lastIndexOf('.')
+      ? raw.replace(/\./g, '').replace(',', '.')
+      : raw.replace(/,/g, '');
+  } else if (raw.includes(',')) {
+    const parts = raw.split(',');
+    normalized = parts.length === 2 && parts[1].length === 2
+      ? `${parts[0].replace(/\./g, '')}.${parts[1]}`
+      : raw.replace(/,/g, '');
+  }
+  const parsed = Number(normalized);
+  if (!Number.isFinite(parsed) || parsed <= 0) return null;
+  return unit === 'cents' ? parsed / 100 : parsed;
+}
+
+function sourcePrice(value: Record<string, any>, key: string) {
+  const centsKey = `${key}_cents`;
+  const camelCentsKey = `${key}Cents`;
+  return price(value[centsKey], 'cents') ?? price(value[camelCentsKey], 'cents') ?? price(value[key]);
+}
+
+type PriceSnapshot = { current: number | null; compare: number | null };
+
+function priceSnapshot(value: Record<string, any>): PriceSnapshot {
+  const specification = value.priceSpecification && typeof value.priceSpecification === 'object' ? value.priceSpecification : {};
+  const current = ['salePrice', 'sale_price', 'sellingPrice', 'selling_price', 'currentPrice', 'current_price', 'price', 'lowPrice', 'minPrice']
+    .map((key) => sourcePrice(value, key)).find((candidate): candidate is number => candidate != null)
+    ?? sourcePrice(specification, 'price');
+  const compare = ['comparePrice', 'compare_price', 'regularPrice', 'regular_price', 'originalPrice', 'original_price', 'listPrice', 'list_price', 'wasPrice', 'was_price', 'highPrice', 'maxPrice']
+    .map((key) => sourcePrice(value, key)).find((candidate): candidate is number => candidate != null) ?? null;
+  return { current, compare };
+}
+
+function positivePrice(value: number | null | undefined) {
+  return value != null && Number.isFinite(value) && value > 0 ? value : null;
+}
+
+export function scrapedProductPriceError(product: Pick<ScrapedProduct, 'price'>) {
+  return positivePrice(product.price)
+    ? null
+    : 'Could not detect a valid positive ZAR price on this product page — fill the price manually';
 }
 
 function absoluteImages(values: unknown[], pageUrl: string) {
@@ -359,7 +405,7 @@ function genericImageCandidates($: cheerio.CheerioAPI) {
 
 function productSchemas($: cheerio.CheerioAPI) {
   const products: Record<string, unknown>[] = [];
-  $('script[type="application/ld+json"]').each((_, element) => {
+  $('script[type="application/ld+json"], script[type="application/json"]').each((_, element) => {
     try {
       const value = JSON.parse($(element).contents().text());
       const values = Array.isArray(value) ? value : [value];
@@ -381,8 +427,6 @@ function stockFromAvailability(value: unknown, index = 0) {
   if (quantity != null) return importedStock(quantity);
   return importedStock(index === 0 ? 10 : 20);
 }
-
-const IMPORT_STOCK_FLOOR = 10;
 
 function schemaValues(value: unknown): Record<string, string> {
   const options: Record<string, string> = {};
@@ -532,11 +576,47 @@ export function parseProduct(html: string, pageUrl: string): ScrapedProduct {
   const selectors = selectorCombinations($);
   const firstOffer = offers[0] ?? {};
   const firstOfferData = firstOffer.itemOffered && typeof firstOffer.itemOffered === 'object' ? firstOffer.itemOffered : firstOffer;
-  const currency = String(firstOffer.priceCurrency ?? firstOfferData.priceCurrency ?? firstOffer.priceSpecification?.priceCurrency ?? '').toUpperCase();
-  const schemaPrice = currency === 'ZAR' ? price(firstOffer.price ?? firstOfferData.price ?? firstOffer.priceSpecification?.price ?? firstOfferData.priceSpecification?.price) : null;
-  const ogPrice = $('meta[property="product:price:amount"]').attr('content');
-  const ogCurrency = String($('meta[property="product:price:currency"]').attr('content') ?? 'ZAR').toUpperCase();
-  const basePrice = schemaPrice ?? (ogCurrency === 'ZAR' ? price(ogPrice) : null) ?? price($('.price, .product-price, [itemprop="price"]').first().text());
+  const schemaOffers = [schema.offers].flatMap((value) => Array.isArray(value) ? value : [value])
+    .filter((value): value is Record<string, any> => Boolean(value && typeof value === 'object'));
+  const nestedOfferRecords = [...schemaOffers, ...offers].flatMap((record) => {
+    const nested = record.offers;
+    return nested && typeof nested === 'object' ? (Array.isArray(nested) ? nested : [nested]) : [];
+  });
+  // Keep product-level prices separate from variant offers. A Product price (or
+  // an AggregateOffer on Product.offers) describes the product's advertised
+  // base price and must not be replaced by the cheapest variant offer.
+  const priceRecords = [...nestedOfferRecords, ...schemaOffers, ...offers, schema, firstOfferData]
+    .filter((value): value is Record<string, any> => Boolean(value && typeof value === 'object'));
+  const isZar = (value: Record<string, any>) => {
+    const currency = String(value.priceCurrency ?? value.priceSpecification?.priceCurrency ?? '').toUpperCase();
+    return !currency || currency === 'ZAR' || currency === 'ZAR ';
+  };
+  const snapshots = priceRecords.filter(isZar).map(priceSnapshot);
+  const currentPrices = snapshots.map((snapshot) => snapshot.current).filter((candidate): candidate is number => candidate != null);
+  const comparePrices = snapshots.map((snapshot) => snapshot.compare).filter((candidate): candidate is number => candidate != null);
+  const schemaPrice = currentPrices.length > 0 ? Math.min(...currentPrices) : null;
+  const schemaCompare = comparePrices.length > 0 ? Math.max(...comparePrices) : null;
+  const productRecords = [
+    schema,
+    ...schemaOffers.filter((record) => !Array.isArray(schema.offers) && record === schema.offers),
+  ].filter(isZar);
+  const productSnapshots = productRecords.map(priceSnapshot);
+  const productPrice = productSnapshots
+    .map((snapshot) => snapshot.current)
+    .find((candidate): candidate is number => candidate != null) ?? null;
+  const productCompare = productSnapshots
+    .map((snapshot) => snapshot.compare)
+    .find((candidate): candidate is number => candidate != null) ?? null;
+  const metaValue = (...selectors: string[]) => selectors.map((selector) => $(selector).first().attr('content')).map((value) => price(value)).find((candidate): candidate is number => candidate != null);
+  const ogPrice = metaValue('meta[property="product:price:sale_price"]', 'meta[property="product:price:amount"]', 'meta[property="og:price:amount"]');
+  const ogRegularPrice = metaValue('meta[property="product:price:original"]', 'meta[property="product:price:regular_price"]', 'meta[property="product:original_price"]');
+  const ogCurrency = String($('meta[property="product:price:currency"], meta[property="og:price:currency"]').first().attr('content') ?? 'ZAR').toUpperCase();
+  const visibleSale = price($('.sale-price, .price--sale, .special-price, [class*="sale-price"], [class*="selling-price"]').first().text());
+  const visibleRegular = price($('.was-price, .old-price, .regular-price, .original-price, [class*="was-price"], [class*="old-price"]').first().text());
+  const visiblePrice = price($('.price, .product-price, [itemprop="price"]').first().text());
+  const basePrice = positivePrice(productPrice) ?? (ogCurrency === 'ZAR' ? positivePrice(ogPrice) : null) ?? positivePrice(visibleSale) ?? positivePrice(visiblePrice) ?? positivePrice(schemaPrice);
+  const comparePrice = [productCompare, schemaCompare, ogRegularPrice, visibleRegular].map((candidate) => positivePrice(candidate))
+    .find((candidate): candidate is number => candidate != null && basePrice != null && candidate > basePrice) ?? null;
   const name = text(schema.name) || text($('meta[property="og:title"]').attr('content')) || text($('h1').first().text());
   const description = text(schema.description) || text($('meta[property="og:description"]').attr('content')) || text($('.description, .product-description, [itemprop="description"]').first().text());
   const schemaImages = Array.isArray(schema.image) ? schema.image : schema.image ? [schema.image] : [];
@@ -577,7 +657,7 @@ export function parseProduct(html: string, pageUrl: string): ScrapedProduct {
       name: text(data.name) || text(data.sku) || generatedName,
       sku,
       options: resolvedOptions,
-      price: price(data.price) ?? price(data.priceSpecification?.price) ?? price(offer.price) ?? price(offer.priceSpecification?.price) ?? basePrice ?? 0,
+      price: priceSnapshot(data).current ?? priceSnapshot(offer).current ?? basePrice ?? 0,
       stock: rawStock != null ? importedStock(rawStock) : stockFromAvailability(data.availability ?? offer.availability, index)
     };
   }).filter((variant): variant is NonNullable<typeof variant> => Boolean(variant && variant.price > 0));
@@ -588,7 +668,7 @@ export function parseProduct(html: string, pageUrl: string): ScrapedProduct {
     name,
     description,
     price: basePrice ?? 0,
-    comparePrice: null,
+    comparePrice,
     images,
     variants: variants.length > 0 ? variants : [{ name: 'Default', sku: text(schema.sku) || `IMPORT-${Date.now().toString(36).toUpperCase()}`, options: {}, price: basePrice ?? 0, stock: stockFromAvailability(firstOffer.availability, 0) }],
     ...(brandName ? { brand: brandName } : {}),
@@ -664,6 +744,8 @@ export async function POST(request: Request) {
     const finalPageUrl = fetched.url;
     const product = parseProduct(new TextDecoder().decode(await readLimitedBody(response, MAX_PAGE_BYTES)), finalPageUrl);
     if (!product.name) return NextResponse.json({ ok: false, error: 'Could not extract a product name from this page — try a different URL or fill manually' }, { status: 400 });
+    const priceError = scrapedProductPriceError(product);
+    if (priceError) return NextResponse.json({ ok: false, error: priceError }, { status: 400 });
     const hosted = await rehostImages(product.images, finalPageUrl);
     return NextResponse.json({ ok: true, data: { ...product, images: hosted.images, warnings: hosted.warnings } });
   } catch (error) {
