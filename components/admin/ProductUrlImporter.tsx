@@ -38,8 +38,7 @@ export function ProductUrlImporter({ onParsed }: Props) {
     setMounted(true);
   }, []);
 
-  async function parseUrl(e: React.FormEvent) {
-    e.preventDefault();
+  async function parseUrl() {
     setError('');
     setSuccess(false);
     setLoading(true);
@@ -82,18 +81,24 @@ export function ProductUrlImporter({ onParsed }: Props) {
         <h2 className="text-sm font-semibold text-brand-900 dark:text-brand-50">Import from URL</h2>
         <p className="mt-0.5 text-xs text-brand-600 dark:text-brand-300">Paste a product link from Fashion World, Lily, or another SA store.</p>
       </div>
-      <form onSubmit={parseUrl} className="flex flex-col gap-2 sm:flex-row sm:items-end">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
         <Input
           label="Import from URL (Fashion World, Lily, etc.)"
           type="url"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              void parseUrl();
+            }
+          }}
           placeholder="https://www.fashionworld.co.za/product/..."
           error={error}
           disabled={loading}
         />
-        <Button type="submit" loading={loading} disabled={!url.trim()} className="sm:mb-0.5">Parse</Button>
-      </form>
+        <Button type="button" onClick={parseUrl} loading={loading} disabled={!url.trim()} className="sm:mb-0.5">Parse</Button>
+      </div>
       {success && <p className="mt-2 text-xs font-medium text-success">Product details filled in — review them before saving.</p>}
     </div>
   );
