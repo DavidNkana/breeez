@@ -1,5 +1,6 @@
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
+import type { LookupFunction } from 'node:net';
 import { randomUUID } from 'node:crypto';
 import http from 'node:http';
 import https from 'node:https';
@@ -45,6 +46,24 @@ function mappedIpv4(address: string) {
   return `${first >> 8}.${first & 255}.${second >> 8}.${second & 255}`;
 }
 
+/**
+ * dns.lookup({ all: true }) returns AddressInfo objects, but keeping this
+ * boundary defensive avoids ever passing an absent address to net.isIP or a
+ * pinned socket lookup callback. This also makes the code tolerant of the
+ * single-result shape returned by some Node DNS implementations/mocks.
+ */
+export function normaliseLookupAddresses(result: unknown) {
+  const entries = Array.isArray(result) ? result : [result];
+  return entries.flatMap((entry) => {
+    const address = typeof entry === 'string'
+      ? entry
+      : entry && typeof entry === 'object' && 'address' in entry && typeof entry.address === 'string'
+        ? entry.address
+        : null;
+    return address && isIP(address) ? [address] : [];
+  });
+}
+
 export function isPrivateIp(address: string) {
   if (isIP(address) === 4) {
     const parts = address.split('.').map(Number);
@@ -79,7 +98,7 @@ async function assertPublicUrl(value: string) {
   if (hostname === 'localhost' || hostname.endsWith('.localhost') || hostname.endsWith('.local') || hostname === 'metadata.google.internal') {
     throw new Error('Private or internal URLs are not allowed');
   }
-  const addresses = isIP(hostname) ? [hostname] : (await lookup(hostname, { all: true })).map((entry) => entry.address);
+  const addresses = isIP(hostname) ? [hostname] : normaliseLookupAddresses(await lookup(hostname, { all: true, verbatim: true }));
   if (!addresses.length || addresses.some(isPrivateIp)) throw new Error('Private or internal URLs are not allowed');
   return parsed;
 }
@@ -92,6 +111,13 @@ export function assertPublicRedirectTarget(location: string, base: URL) {
 
 type PublicResponse = { response: Response; url: string };
 
+export function createPinnedLookup(address: string, family: number): LookupFunction {
+  return (_hostname, options, callback) => {
+    if (options.all) callback(null, [{ address, family }]);
+    else callback(null, address, family);
+  };
+}
+
 /**
  * Make the socket use the exact public address we validated. Native fetch does
  * not expose a DNS pinning hook, so this uses Node's request API and a lookup
@@ -100,15 +126,17 @@ type PublicResponse = { response: Response; url: string };
  */
 async function fetchPublicUrl(value: URL, init: { headers: Record<string, string>; timeoutMs: number }): Promise<PublicResponse> {
   const hostname = value.hostname.replace(/^\[|\]$/g, '');
-  const addresses = isIP(hostname) ? [hostname] : (await lookup(hostname, { all: true })).map((entry) => entry.address);
+  const addresses = isIP(hostname) ? [hostname] : normaliseLookupAddresses(await lookup(hostname, { all: true, verbatim: true }));
   if (!addresses.length || addresses.some(isPrivateIp)) throw new Error('Private or internal URLs are not allowed');
   const address = addresses[0];
+  const family = isIP(address);
+  if (!family) throw new Error('Private or internal URLs are not allowed');
   const transport = value.protocol === 'https:' ? https : http;
 
   return new Promise((resolve, reject) => {
     const request = transport.request(value, {
       headers: init.headers,
-      lookup: (_hostname, _options, callback) => callback(null, address, isIP(address)),
+      lookup: createPinnedLookup(address, family),
       servername: isIP(hostname) ? undefined : hostname,
       timeout: init.timeoutMs,
     }, (incoming) => {
