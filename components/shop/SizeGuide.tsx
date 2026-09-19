@@ -15,16 +15,18 @@ export function SizeGuide() {
 
   return (
     <>
-      <button
+      <Button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 text-xs text-brand-600 underline hover:text-brand-900"
+        variant="secondary"
+        size="sm"
+        aria-haspopup="dialog"
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
           <path d="M3 6h18M5 6v14h14V6M9 10v6M15 10v6" />
         </svg>
         Size guide
-      </button>
+      </Button>
 
       {open && (
         <div
