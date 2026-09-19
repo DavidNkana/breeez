@@ -8,7 +8,7 @@ import { Readable } from 'node:stream';
 import { NextResponse } from 'next/server';
 import * as cheerio from 'cheerio';
 import type { AnyNode } from 'domhandler';
-import { requireAdmin } from '@/lib/auth/session';
+import { getCurrentUser } from '@/lib/auth/session';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { IMPORT_STOCK_FLOOR, importedStock } from '@/lib/catalog/importer';
 
@@ -867,12 +867,21 @@ async function rehostImages(images: string[], pageUrl: string) {
 }
 
 export async function POST(request: Request) {
-  await requireAdmin();
-
-  let body: { url?: string };
-  try { body = await request.json(); } catch { return NextResponse.json({ ok: false, error: 'Invalid JSON body' }, { status: 400 }); }
-  if (typeof body.url !== 'string' || !body.url.trim()) return NextResponse.json({ ok: false, error: 'A product URL is required' }, { status: 400 });
   try {
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ ok: false, error: 'You must be signed in as an administrator' }, { status: 401 });
+    const admin = createAdminClient();
+    const { data: adminRow, error: adminError } = await admin
+      .from('admins')
+      .select('user_id')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (adminError) throw adminError;
+    if (!adminRow) return NextResponse.json({ ok: false, error: 'Administrator access is required' }, { status: 403 });
+
+    let body: { url?: string };
+    try { body = await request.json(); } catch { return NextResponse.json({ ok: false, error: 'Invalid JSON body' }, { status: 400 }); }
+    if (typeof body.url !== 'string' || !body.url.trim()) return NextResponse.json({ ok: false, error: 'A product URL is required' }, { status: 400 });
     const url = await assertPublicUrl(body.url.trim());
     const fetched = await fetchPublicPage(url.toString());
     const response = fetched.response;

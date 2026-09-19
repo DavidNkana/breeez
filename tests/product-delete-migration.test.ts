@@ -17,6 +17,29 @@ test('product deletion RPC has a restricted authenticated surface and safe defin
   assert.match(sql, /revoke execute on function public\.delete_product\(uuid\) from public;/);
   assert.match(sql, /grant execute on function public\.delete_product\(uuid\) to authenticated;/);
   assert.match(sql, /if not public\.is_admin\(auth\.uid\(\)\)/);
+  assert.match(sql, /notify pgrst, 'reload schema';/);
+});
+
+test('repair migration reinstalls the exact RPC signature and refreshes PostgREST', async () => {
+  const sql = await readFile(resolve('supabase/migrations/020_repair_atomic_product_delete.sql'), 'utf8');
+  assert.match(sql, /create or replace function public\.delete_product\(p_product_id uuid\)/);
+  assert.match(sql, /security definer/);
+  assert.match(sql, /set search_path = public/);
+  assert.match(sql, /if not public\.is_admin\(auth\.uid\(\)\)/);
+  assert.match(sql, /revoke execute on function public\.delete_product\(uuid\) from public;/);
+  assert.match(sql, /grant execute on function public\.delete_product\(uuid\) to authenticated;/);
+  assert.match(sql, /delete from public\.cart_items[\s\S]*delete from public\.product_images[\s\S]*delete from public\.product_variants[\s\S]*delete from public\.products/);
+  assert.ok(sql.indexOf('delete from public.cart_items') < sql.indexOf('delete from public.product_variants'));
+  assert.match(sql, /notify pgrst, 'reload schema';/);
+  assert.doesNotMatch(sql, /drop function/i, 'repair must be idempotent and preserve the callable signature');
+});
+
+test('repair migration keeps the executable delete body identical to the original contract', async () => {
+  const original = await readFile(resolve('supabase/migrations/019_atomic_product_delete.sql'), 'utf8');
+  const repair = await readFile(resolve('supabase/migrations/020_repair_atomic_product_delete.sql'), 'utf8');
+  const body = (sql: string) => sql.match(/create or replace function public\.delete_product[\s\S]*?as \$\$([\s\S]*?)\$\$;/)?.[1].trim();
+
+  assert.equal(body(repair), body(original), 'repair must restore the same authorization and FK-safe transaction semantics');
 });
 
 test('product deletion removes only affected cart rows before restricted variants', async () => {

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useToast } from '@/components/ui/Toast';
+import { parseJsonResponse } from '@/lib/http/parse-json-response';
 
 export type ScrapedProduct = {
   name: string;
@@ -55,9 +56,10 @@ export function ProductUrlImporter({ onParsed }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: url.trim() })
       });
-      const result = await response.json();
+      const result = await parseJsonResponse<{ ok: boolean; error?: string; data?: ScrapedProduct }>(response);
       if (!response.ok || !result.ok) throw new Error(result.error || 'Could not parse this product URL');
-      const data = result.data as ScrapedProduct;
+      if (!result.data) throw new Error('The importer returned no product data');
+      const data = result.data;
       // Keep older scraper responses safe without changing explicit unavailable
       // variants: only a missing flag defaults to active.
       const normalizedData: ScrapedProduct = {

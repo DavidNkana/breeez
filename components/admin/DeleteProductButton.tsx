@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createBrowserClient } from '@supabase/ssr';
 import { useToast } from '@/components/ui/Toast';
+import { deleteProduct } from '@/lib/catalog/product-delete-client';
 
 function getSupabase() {
   return createBrowserClient(
@@ -26,7 +27,7 @@ export function DeleteProductButton({ productId, productName }: Props) {
   async function onDelete() {
     setLoading(true);
     const supabase = getSupabase();
-    const { error } = await supabase.rpc('delete_product', { p_product_id: productId });
+    const error = await deleteProduct(supabase, productId);
     setLoading(false);
     if (error) {
       showToast(`Delete failed: ${error.message}`, 'error');

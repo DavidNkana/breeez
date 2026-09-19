@@ -15,6 +15,7 @@ import { mapImportedVariantPrices, normalizeVariantCompareAtCents } from '@/lib/
 import { mapNewProductInsert } from '@/lib/catalog/product-payload';
 import { normalizeProductSlug } from '@/lib/catalog/slugs';
 import { createProductWithSlugRetry } from '@/lib/catalog/product-create';
+import { deleteProduct } from '@/lib/catalog/product-delete-client';
 
 function getSupabase() {
   return createBrowserClient(
@@ -159,7 +160,7 @@ export function NewProductForm({ categories }: Props) {
         }
       },
       cleanupCreated: async (createdProduct) => {
-        const { error } = await supabase.rpc('delete_product', { p_product_id: createdProduct.id });
+        const error = await deleteProduct(supabase, createdProduct.id);
         if (error) throw error;
       },
     });

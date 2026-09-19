@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { useToast } from '@/components/ui/Toast';
 import { createBrowserClient } from '@supabase/ssr';
+import { deleteProduct } from '@/lib/catalog/product-delete-client';
 import { ImageUploader } from './ImageUploader';
 import { VariantEditor, type VariantRow } from './VariantEditor';
 import { ProductUrlImporter, type ScrapedProduct } from './ProductUrlImporter';
@@ -220,7 +221,7 @@ export function EditProductForm({ categories, product, existingImages, existingV
     if (!confirm(`Delete "${product.name}"? This cannot be undone.`)) return;
     setDeleting(true);
     const supabase = getSupabase();
-    const { error } = await supabase.rpc('delete_product', { p_product_id: product.id });
+    const error = await deleteProduct(supabase, product.id);
     setDeleting(false);
     if (error) {
       showToast(`Delete failed: ${error.message}`, 'error');

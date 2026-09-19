@@ -1,6 +1,6 @@
--- Delete a product and all of its dependent catalogue data in one transaction.
--- Cart items cannot be left pointing at deleted variants because variant_id is
--- intentionally NOT NULL and RESTRICT: remove only the affected cart rows.
+-- Repair migration for projects where migration 019 was recorded as applied
+-- without the function reaching PostgREST's schema cache. Keep this definition
+-- identical to 019 so either migration path has the same contract.
 create or replace function public.delete_product(p_product_id uuid)
 returns void
 language plpgsql
@@ -23,9 +23,6 @@ begin
 end;
 $$;
 
--- This RPC is intentionally callable only by signed-in users. The function's
--- is_admin check remains the authorization boundary; this grant only prevents
--- anonymous/public callers from invoking it at all.
 revoke execute on function public.delete_product(uuid) from public;
 grant execute on function public.delete_product(uuid) to authenticated;
 notify pgrst, 'reload schema';
