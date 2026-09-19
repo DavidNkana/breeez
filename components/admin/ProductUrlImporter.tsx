@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useToast } from '@/components/ui/Toast';
@@ -27,11 +27,16 @@ type Props = {
 };
 
 export function ProductUrlImporter({ onParsed }: Props) {
+  const [mounted, setMounted] = useState(false);
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const showToast = useToast((s) => s.show);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   async function parseUrl(e: React.FormEvent) {
     e.preventDefault();
@@ -54,6 +59,21 @@ export function ProductUrlImporter({ onParsed }: Props) {
     } finally {
       setLoading(false);
     }
+  }
+
+  // The importer reads from the client-side toast store and contains generated
+  // input ids. Keep its first render identical on the server and client, then
+  // mount the interactive controls after hydration.
+  if (!mounted) {
+    return (
+      <div
+        className="rounded-lg border border-brand-200 bg-brand-50/50 p-4 dark:border-brand-700 dark:bg-brand-900/50"
+        aria-hidden="true"
+      >
+        <div className="mb-3 h-4 w-32 rounded bg-brand-200/70 dark:bg-brand-700/70" />
+        <div className="h-8 w-full rounded bg-brand-200/50 dark:bg-brand-700/50" />
+      </div>
+    );
   }
 
   return (
