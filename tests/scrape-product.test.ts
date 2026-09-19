@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import test from 'node:test';
-import { assertPublicRedirectTarget, assertPublicUrl, bestSrcsetCandidate, createPinnedLookup, imageFormat, isPrivateIp, normaliseLookupAddresses, parseProduct, scrapedProductPriceError } from '../app/api/admin/scrape-product/route';
+import { assertPublicRedirectTarget, assertPublicUrl, bestSrcsetCandidate, createPinnedLookup, imageFormat, isPrivateIp, mergeSelectorAvailability, normaliseLookupAddresses, parseProduct, scrapedProductPriceError } from '../app/api/admin/scrape-product/route';
 import { resolveImportedCategory } from '../lib/catalog/importer';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
@@ -263,6 +263,34 @@ test('extracts Fashion World inline sizes and expands a bare offer into variants
   ]);
   assert.equal(product.variants.every((variant) => variant.stock >= 10), true);
   assert.equal(product.variants.some((variant) => Object.values(variant.options).includes('Size chart')), false);
+});
+
+test('preserves every source size and marks disabled or sold-out options inactive', async () => {
+  const html = await readFile(resolve('tests/fixtures/scrape-product-availability.html'), 'utf8');
+  const product = parseProduct(html, 'https://shop.example/apparel/everyday-tee');
+  assert.deepEqual(product.variants.map((variant) => variant.options.Size), ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL']);
+  assert.deepEqual(product.variants.map((variant) => variant.active), [false, true, true, true, true, false, true]);
+  assert.equal(product.variants.every((variant) => variant.stock >= 10), true);
+});
+
+test('merges disabled selector metadata into matching existing offers', () => {
+  const product = parseProduct(`
+    <label for="size">Size</label>
+    <select id="size">
+      <option value="S">S</option>
+      <option value="M" disabled>M</option>
+    </select>
+    <script type="application/ld+json">${JSON.stringify({
+      '@type': 'ProductGroup', name: 'Offer tee', hasVariant: [
+        { '@type': 'Product', name: 'Offer S', size: 'S', offers: { price: 299, priceCurrency: 'ZAR' } },
+        { '@type': 'Product', name: 'Offer M', size: 'M', offers: { price: 299, priceCurrency: 'ZAR' } },
+      ],
+    })}</script>
+  `, 'https://shop.example/tee');
+
+  assert.deepEqual(product.variants.map((variant) => variant.options), [{ Size: 'S' }, { Size: 'M' }]);
+  assert.deepEqual(product.variants.map((variant) => variant.active), [true, false]);
+  assert.equal(mergeSelectorAvailability({ Size: 'M' }, true, [{ options: { Size: 'M' }, active: false }]), false);
 });
 
 test('keeps embedded recommendations out of the primary product variants', async () => {

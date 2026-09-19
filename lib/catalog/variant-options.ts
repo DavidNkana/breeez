@@ -4,11 +4,16 @@ export type VariantOptionSource = {
   sku?: string | null;
   stock?: number | string | null;
   is_active?: boolean | null;
+  active?: boolean | null;
 };
 
 export type VariantOptionGroup = {
   key: string;
   values: string[];
+};
+
+export type VariantOptionRenderModel = VariantOptionGroup & {
+  options: Array<{ value: string; isSelected: boolean; disabled: boolean; crossedOut: boolean }>;
 };
 
 /** Convert importer/editor keys into consistent, customer-facing labels. */
@@ -56,7 +61,7 @@ export function getAvailableStock(stock: number | string | null | undefined) {
 
 /** A variant can be selected for purchase only when it is active and has stock. */
 export function isPurchasableVariant(variant: VariantOptionSource) {
-  return variant.is_active !== false && (variant.stock === undefined || getAvailableStock(variant.stock) > 0);
+  return variant.is_active !== false && variant.active !== false && (variant.stock === undefined || getAvailableStock(variant.stock) > 0);
 }
 
 export function canAddVariantToCart(variant: VariantOptionSource | null | undefined, quantity: number) {
@@ -105,6 +110,27 @@ export function getValidOptionValues(
     if (value) values.add(value);
   }
   return Array.from(values);
+}
+
+/** Render contract for option controls: unavailable values remain discoverable. */
+export function getVariantOptionRenderModel(
+  variants: VariantOptionSource[],
+  selectedOptions: Record<string, string>,
+): VariantOptionRenderModel[] {
+  const groups = getVariantOptionGroups(variants);
+  return groups.map(({ key, values }) => {
+    const validValues = new Set(getValidOptionValues(variants, groups.map((group) => group.key), selectedOptions, key));
+    return {
+      key,
+      values,
+      options: values.map((value) => ({
+        value,
+        isSelected: selectedOptions[key] === value,
+        disabled: !validValues.has(value),
+        crossedOut: !validValues.has(value),
+      })),
+    };
+  });
 }
 
 /** Keep as many existing choices as possible while always producing a valid combination. */

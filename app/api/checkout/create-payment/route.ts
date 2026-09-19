@@ -4,6 +4,55 @@ import { NextResponse } from 'next/server';
 import { createPayment, isMockMode } from '@/lib/payments/server';
 import { getCurrentUser } from '@/lib/auth/session';
 import { sendOrderConfirmation } from '@/lib/email/resend';
+import { getStockRollbackItems, STOCK_COMPENSATION_FAILURE_MESSAGE } from '@/lib/checkout/stock';
+
+type SuccessfulDecrement = { order_item_id: string };
+
+async function rollbackCheckout(
+  adminSupabase: any,
+  orderId: string,
+  successfulDecrements: SuccessfulDecrement[],
+) {
+  const compensationFailures: string[] = [];
+  for (const { order_item_id } of getStockRollbackItems(successfulDecrements)) {
+    try {
+      const compensation = await adminSupabase.rpc('compensate_checkout_stock' as any, {
+        p_order_item_id: order_item_id,
+      } as any);
+      if (compensation.error) {
+        compensationFailures.push(`${order_item_id}: ${compensation.error.message ?? 'unknown compensation error'}`);
+        console.error('[checkout] stock compensation failed', {
+          orderId,
+          orderItemId: order_item_id,
+          error: compensation.error.message ?? 'unknown compensation error',
+        });
+      }
+    } catch (error: any) {
+      compensationFailures.push(`${order_item_id}: ${error?.message ?? 'unknown compensation error'}`);
+      console.error('[checkout] stock compensation failed', {
+        orderId,
+        orderItemId: order_item_id,
+        error: error?.message ?? 'unknown compensation error',
+      });
+    }
+  }
+
+  let cancellationError: string | null = null;
+  try {
+    const cancellation = await adminSupabase
+      .from('orders')
+      .update({ status: 'cancelled' } as any)
+      .eq('id', orderId);
+    if (cancellation.error) cancellationError = cancellation.error.message ?? 'unknown cancellation error';
+  } catch (error: any) {
+    cancellationError = error?.message ?? 'unknown cancellation error';
+  }
+  if (cancellationError) {
+    console.error('[checkout] order cancellation failed', { orderId, error: cancellationError });
+  }
+
+  return { failed: compensationFailures.length > 0 || Boolean(cancellationError) };
+}
 
 /** Bypasses the RPC — inserts order directly with explicit customer_id */
 export async function POST(req: Request) {
@@ -84,41 +133,57 @@ export async function POST(req: Request) {
     }
 
     // Atomic stock decrement using row-level locking so concurrent buyers can't oversell.
-    const stockShortages: { name: string; requested: number; available: number }[] = [];
+    const successfulDecrements: SuccessfulDecrement[] = [];
+    let stockFailure: { kind: 'unavailable' | 'shortage' | 'error'; name: string; requested: number } | null = null;
     for (const ci of items) {
       const v = ci.variant as any;
       const p = v?.product as any;
       const pc = v?.price_cents ?? p?.base_price_cents ?? 0;
-      const ok = await adminSupabase.rpc('atomic_checkout_stock' as any, {
-        p_variant_id: ci.variant_id,
-        p_quantity: ci.quantity,
-        p_order_id: order.id,
-        p_product_name: p?.name ?? 'Item',
-        p_sku: v?.sku ?? '',
-        p_unit_price_cents: pc,
-      } as any) as { data: boolean | null };
-      if (ok?.data !== true) {
-        // Inline the order_items row that the RPC didn't insert
-        stockShortages.push({
+      let result: { data: string | null; error?: { message?: string } | null };
+      try {
+        result = await adminSupabase.rpc('atomic_checkout_stock' as any, {
+          p_variant_id: ci.variant_id,
+          p_quantity: ci.quantity,
+          p_order_id: order.id,
+          p_product_name: p?.name ?? 'Item',
+          p_sku: v?.sku ?? '',
+          p_unit_price_cents: pc,
+        } as any);
+      } catch (error: any) {
+        result = { data: null, error: { message: error?.message ?? 'stock reservation failed' } };
+      }
+      const orderItemId = result.data;
+      if (result.error) {
+        stockFailure = {
+          kind: /unavailable/i.test(result.error.message ?? '') ? 'unavailable' : 'error',
           name: p?.name ?? 'Item',
           requested: ci.quantity,
-          available: 0,
-        });
+        };
+        break;
+      }
+      if (orderItemId) {
+        successfulDecrements.push({ order_item_id: orderItemId });
+      } else {
+        stockFailure = { kind: 'shortage', name: p?.name ?? 'Item', requested: ci.quantity };
+        break;
       }
     }
 
-    if (stockShortages.length > 0) {
-      // Roll back: cancel the order, decrement any partial stock already deducted
-      for (const ci of items) {
-        await adminSupabase.from('product_variants')
-          .update({ stock: ((await adminSupabase.from('product_variants').select('stock').eq('id', ci.variant_id).single() as any)?.data?.stock ?? 0) + ci.quantity } as any)
-          .eq('id', ci.variant_id)
-          .catch(() => null);
+    if (stockFailure) {
+      const rollback = await rollbackCheckout(adminSupabase, order.id, successfulDecrements);
+      if (rollback.failed) {
+        return NextResponse.json(
+          { error: STOCK_COMPENSATION_FAILURE_MESSAGE },
+          { status: 500 },
+        );
       }
-      await adminSupabase.from('orders').update({ status: 'cancelled' } as any).eq('id', order.id);
-      const first = stockShortages[0];
+      if (stockFailure.kind === 'unavailable') {
+        return NextResponse.json({ error: `${stockFailure.name} is no longer available.` }, { status: 409 });
+      }
       return NextResponse.json(
-        { error: `Not enough stock for ${first.name} — only ${first.available} left, you asked for ${first.requested}.` },
+        { error: stockFailure.kind === 'shortage'
+          ? `Not enough stock for ${stockFailure.name} — only 0 left, you asked for ${stockFailure.requested}.`
+          : 'Unable to reserve stock. Please try again.' },
         { status: 409 }
       );
     }
@@ -138,13 +203,21 @@ export async function POST(req: Request) {
     }
 
     const origin = req.headers.get('origin') || '';
-    const intent = await createPayment({
-      orderId: order.id, orderNumber: order.order_number, amountCents: totalCents,
-      customerEmail: email, method: paymentMethod,
-      returnUrl: `${origin}/checkout/success/${order.id}?ref=${order.order_number}`, cancelUrl: `${origin}/cart`
-    });
-    const _p: any = await adminSupabase.from('orders').update({ payment_reference: intent.reference } as any).eq('id', order.id);
-    return NextResponse.json({ orderId: order.id, orderNumber: order.order_number, redirectUrl: intent.redirectUrl });
+    try {
+      const intent = await createPayment({
+        orderId: order.id, orderNumber: order.order_number, amountCents: totalCents,
+        customerEmail: email, method: paymentMethod,
+        returnUrl: `${origin}/checkout/success/${order.id}?ref=${order.order_number}`, cancelUrl: `${origin}/cart`
+      });
+      const _p: any = await adminSupabase.from('orders').update({ payment_reference: intent.reference } as any).eq('id', order.id);
+      return NextResponse.json({ orderId: order.id, orderNumber: order.order_number, redirectUrl: intent.redirectUrl });
+    } catch (paymentError: any) {
+      const rollback = await rollbackCheckout(adminSupabase, order.id, successfulDecrements);
+      if (rollback.failed) {
+        return NextResponse.json({ error: STOCK_COMPENSATION_FAILURE_MESSAGE }, { status: 500 });
+      }
+      return NextResponse.json({ error: paymentError?.message || 'Payment creation failed' }, { status: 502 });
+    }
   } catch (err: any) {
     console.error('[checkout]', err);
     return NextResponse.json({ error: err?.message || 'Checkout failed' }, { status: 500 });

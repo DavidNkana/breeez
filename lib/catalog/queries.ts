@@ -218,6 +218,11 @@ export type ProductDetail = Product & {
   images: ProductImage[];
 };
 
+/** PDPs show the complete option matrix for active/public products. */
+export function shouldIncludePdpVariant(productIsActive: boolean, _variantIsActive: boolean) {
+  return productIsActive;
+}
+
 export async function getProductBySlug(slug: string): Promise<ProductDetail | null> {
   const supabase = await createClient();
   const { data, error } = (await supabase
@@ -230,11 +235,14 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
 
   const product = data as Product;
 
+  // Inactive variants are intentionally included so the PDP can preserve the
+  // source retailer's complete option set and cross out unavailable values.
+  // They remain non-purchasable through isPurchasableVariant and checkout's
+  // active-row guard.
   const { data: variants } = (await supabase
     .from('product_variants')
     .select('*')
     .eq('product_id', product.id)
-    .eq('is_active', true)
     .order('sort_order')) as any;
 
   const { data: images } = (await supabase
@@ -246,7 +254,7 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
   return {
     ...product,
     category: null, // fetched separately if needed
-    variants: (variants ?? []) as ProductVariant[],
+    variants: (variants ?? []).filter((variant: ProductVariant) => shouldIncludePdpVariant(product.is_active, variant.is_active)) as ProductVariant[],
     images: (images ?? []) as ProductImage[]
   };
 }

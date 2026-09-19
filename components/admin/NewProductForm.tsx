@@ -70,7 +70,7 @@ export function NewProductForm({ categories }: Props) {
       options: v.options,
       ...mapImportedVariantPrices(v.price, data.comparePrice),
       stock: importedStock(v.stock),
-      is_active: true,
+       is_active: v.active,
       sort_order: idx
     })));
   }

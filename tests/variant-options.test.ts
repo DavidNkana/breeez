@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { canAddVariantToCart, getAvailableStock, getPurchasableVariantForOptions, getValidOptionValues, getVariantDisplayName, getVariantForOptions, getVariantOptionGroups, optionLabel, reconcileSelectedOptions, type VariantOptionSource } from '../lib/catalog/variant-options';
+import { canAddVariantToCart, getAvailableStock, getPurchasableVariantForOptions, getValidOptionValues, getVariantDisplayName, getVariantForOptions, getVariantOptionGroups, getVariantOptionRenderModel, optionLabel, reconcileSelectedOptions, type VariantOptionSource } from '../lib/catalog/variant-options';
 
 test('groups saved variant options with human-readable labels', () => {
   const variants: VariantOptionSource[] = [
@@ -60,6 +60,28 @@ test('disables stockless option values without hiding valid combinations', () =>
 
   assert.deepEqual(getValidOptionValues(variants, ['Size', 'Color'], { Color: 'Red' }, 'Size'), ['L']);
   assert.deepEqual(getValidOptionValues(variants, ['Size', 'Color'], { Size: 'S' }, 'Color'), ['Blue']);
+});
+
+test('marks source-unavailable values disabled even when their imported stock is floored', () => {
+  const variants: VariantOptionSource[] = [
+    { options: { Size: 'XS' }, stock: 10, is_active: true },
+    { options: { Size: 'S' }, stock: 10, is_active: true },
+    { options: { Size: '2XL' }, stock: 10, is_active: false },
+  ];
+  assert.deepEqual(getVariantOptionGroups(variants)[0].values, ['XS', 'S', '2XL']);
+  assert.deepEqual(getValidOptionValues(variants, ['Size'], {}, 'Size'), ['XS', 'S']);
+});
+
+test('render model keeps inactive options visible, disabled, and crossed out', () => {
+  const model = getVariantOptionRenderModel([
+    { options: { Size: 'S' }, stock: 4, is_active: true },
+    { options: { Size: 'L' }, stock: 4, is_active: false },
+  ], {});
+
+  assert.deepEqual(model[0].options, [
+    { value: 'S', isSelected: false, disabled: false, crossedOut: false },
+    { value: 'L', isSelected: false, disabled: true, crossedOut: true },
+  ]);
 });
 
 test('reconciles selections to an in-stock variant and passes its cart values', () => {
