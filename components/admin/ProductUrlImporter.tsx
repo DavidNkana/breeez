@@ -18,6 +18,7 @@ export type ScrapedProduct = {
     price: number;
     stock: number;
   }>;
+  warnings?: string[];
   brand?: string;
   sku?: string;
 };
@@ -32,6 +33,7 @@ export function ProductUrlImporter({ onParsed }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [summary, setSummary] = useState<{ images: number; variants: number; warnings: string[] } | null>(null);
   const showToast = useToast((s) => s.show);
 
   useEffect(() => {
@@ -41,6 +43,7 @@ export function ProductUrlImporter({ onParsed }: Props) {
   async function parseUrl() {
     setError('');
     setSuccess(false);
+    setSummary(null);
     setLoading(true);
     try {
       const response = await fetch('/api/admin/scrape-product', {
@@ -50,7 +53,9 @@ export function ProductUrlImporter({ onParsed }: Props) {
       });
       const result = await response.json();
       if (!response.ok || !result.ok) throw new Error(result.error || 'Could not parse this product URL');
-      onParsed(result.data as ScrapedProduct);
+      const data = result.data as ScrapedProduct;
+      onParsed(data);
+      setSummary({ images: data.images.length, variants: data.variants.length, warnings: data.warnings ?? [] });
       setSuccess(true);
       showToast('Product details imported successfully', 'success');
     } catch (err) {
@@ -99,7 +104,12 @@ export function ProductUrlImporter({ onParsed }: Props) {
         />
         <Button type="button" onClick={parseUrl} loading={loading} disabled={!url.trim()} className="sm:mb-0.5">Parse</Button>
       </div>
-      {success && <p className="mt-2 text-xs font-medium text-success">Product details filled in — review them before saving.</p>}
+      {success && summary && (
+        <div className="mt-2 text-xs">
+          <p className="font-medium text-success">Imported {summary.images} image{summary.images === 1 ? '' : 's'} and {summary.variants} variant{summary.variants === 1 ? '' : 's'} — review before saving.</p>
+          {summary.warnings.length > 0 && <p className="mt-1 text-warning">{summary.warnings.length} image{summary.warnings.length === 1 ? '' : 's'} skipped: {summary.warnings.join(', ')}.</p>}
+        </div>
+      )}
     </div>
   );
 }

@@ -54,7 +54,7 @@ export function NewProductForm({ categories }: Props) {
     setName(data.name);
     setDescription(data.description);
     setBasePrice(data.price.toFixed(2));
-    setImages(data.images.slice(0, 10).map((url, idx) => ({ id: `imported-${idx}`, url })));
+    setImages(data.images.map((url, idx) => ({ id: `imported-${idx}`, url })));
     setVariants(data.variants.map((v, idx) => ({
       product_id: 'new-product',
       sku: v.sku,

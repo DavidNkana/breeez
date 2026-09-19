@@ -83,7 +83,7 @@ export function EditProductForm({ categories, product, existingImages, existingV
     setDescription(data.description);
     setBasePrice(data.price.toFixed(2));
     setComparePrice(data.comparePrice != null ? data.comparePrice.toFixed(2) : '');
-    setImages(data.images.slice(0, 10).map((url, idx) => ({ id: `imported-${idx}`, url })));
+    setImages(data.images.map((url, idx) => ({ id: `imported-${idx}`, url })));
     setVariants(data.variants.map((v, idx) => ({
       product_id: product.id,
       sku: v.sku,
