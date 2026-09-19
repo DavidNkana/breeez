@@ -12,6 +12,7 @@ import { VariantEditor, type VariantRow } from './VariantEditor';
 import { ProductUrlImporter, type ScrapedProduct } from './ProductUrlImporter';
 import { importedStock, resolveImportedCategory, stockQuantity } from '@/lib/catalog/importer';
 import { mapImportedVariantPrices, normalizeVariantCompareAtCents } from '@/lib/catalog/imported-prices';
+import { mapNewProductInsert } from '@/lib/catalog/product-payload';
 
 function getSupabase() {
   return createBrowserClient(
@@ -70,7 +71,7 @@ export function NewProductForm({ categories }: Props) {
       options: v.options,
       ...mapImportedVariantPrices(v.price, data.comparePrice),
       stock: importedStock(v.stock),
-       is_active: v.active,
+       is_active: v.active !== false,
       sort_order: idx
     })));
   }
@@ -108,16 +109,16 @@ export function NewProductForm({ categories }: Props) {
     const supabase = getSupabase();
 
     // Insert product
-    const { data: product, error: pErr } = await supabase.from('products').insert({
+    const { data: product, error: pErr } = await supabase.from('products').insert(mapNewProductInsert({
       slug: finalSlug,
       name,
       description,
-      category_id: categoryId || null,
-      base_price_cents: basePriceCents,
-      compare_at_cents: compareAtCents,
+      categoryId: categoryId || null,
+      basePriceCents,
+      compareAtCents,
       tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
-      is_active: true
-    } as any).select('id').single();
+      isActive,
+    }) as any).select('id').single();
 
     if (pErr || !product) {
       showToast(pErr?.message || 'Failed to create product', 'error');

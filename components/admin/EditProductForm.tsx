@@ -97,7 +97,7 @@ export function EditProductForm({ categories, product, existingImages, existingV
       options: v.options,
       ...mapImportedVariantPrices(v.price, data.comparePrice),
       stock: importedStock(v.stock),
-       is_active: v.active,
+       is_active: v.active !== false,
       sort_order: idx
     })));
   }

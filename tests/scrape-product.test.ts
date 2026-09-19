@@ -3,6 +3,7 @@ import http from 'node:http';
 import test from 'node:test';
 import { assertPublicRedirectTarget, assertPublicUrl, bestSrcsetCandidate, createPinnedLookup, imageFormat, isPrivateIp, mergeSelectorAvailability, normaliseLookupAddresses, parseProduct, scrapedProductPriceError } from '../app/api/admin/scrape-product/route';
 import { resolveImportedCategory } from '../lib/catalog/importer';
+import { mapNewProductInsert } from '../lib/catalog/product-payload';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
@@ -291,6 +292,38 @@ test('merges disabled selector metadata into matching existing offers', () => {
   assert.deepEqual(product.variants.map((variant) => variant.options), [{ Size: 'S' }, { Size: 'M' }]);
   assert.deepEqual(product.variants.map((variant) => variant.active), [true, false]);
   assert.equal(mergeSelectorAvailability({ Size: 'M' }, true, [{ options: { Size: 'M' }, active: false }]), false);
+});
+
+test('defaults legacy scraped variants to active while preserving explicit false', () => {
+  const product = parseProduct(`
+    <script type="application/ld+json">
+      ${JSON.stringify({
+        '@type': 'ProductGroup',
+        name: 'Legacy tee',
+        hasVariant: [
+          { '@type': 'Product', name: 'Legacy active', size: 'S', offers: { price: 299, priceCurrency: 'ZAR' } },
+          { '@type': 'Product', name: 'Legacy inactive', size: 'M', active: false, offers: { price: 299, priceCurrency: 'ZAR' } },
+        ],
+      })}
+    </script>
+  `, 'https://shop.example/tee');
+
+  assert.deepEqual(product.variants.map((variant) => variant.active), [true, false]);
+});
+
+test('maps the new product active checkbox into the insert payload', () => {
+  const payload = mapNewProductInsert({
+    slug: 'hidden-tee',
+    name: 'Hidden tee',
+    description: 'A tee',
+    categoryId: null,
+    basePriceCents: 29900,
+    compareAtCents: null,
+    tags: [],
+    isActive: false,
+  });
+
+  assert.equal(payload.is_active, false);
 });
 
 test('keeps embedded recommendations out of the primary product variants', async () => {

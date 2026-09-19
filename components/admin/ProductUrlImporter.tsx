@@ -17,6 +17,8 @@ export type ScrapedProduct = {
     options: Record<string, string>;
     price: number;
     stock: number;
+    /** Scrapers emit this; default to active for older response payloads. */
+    active?: boolean;
   }>;
   warnings?: string[];
   brand?: string;
@@ -56,8 +58,14 @@ export function ProductUrlImporter({ onParsed }: Props) {
       const result = await response.json();
       if (!response.ok || !result.ok) throw new Error(result.error || 'Could not parse this product URL');
       const data = result.data as ScrapedProduct;
-      onParsed(data);
-      setSummary({ images: data.images.length, variants: data.variants.length, category: data.categoryName ?? data.category, warnings: data.warnings ?? [] });
+      // Keep older scraper responses safe without changing explicit unavailable
+      // variants: only a missing flag defaults to active.
+      const normalizedData: ScrapedProduct = {
+        ...data,
+        variants: data.variants.map((variant) => ({ ...variant, active: variant.active !== false }))
+      };
+      onParsed(normalizedData);
+      setSummary({ images: normalizedData.images.length, variants: normalizedData.variants.length, category: normalizedData.categoryName ?? normalizedData.category, warnings: normalizedData.warnings ?? [] });
       setSuccess(true);
       showToast('Product details imported successfully', 'success');
     } catch (err) {
