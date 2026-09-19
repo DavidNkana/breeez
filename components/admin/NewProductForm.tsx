@@ -13,6 +13,8 @@ import { ProductUrlImporter, type ScrapedProduct } from './ProductUrlImporter';
 import { importedStock, resolveImportedCategory, stockQuantity } from '@/lib/catalog/importer';
 import { mapImportedVariantPrices, normalizeVariantCompareAtCents } from '@/lib/catalog/imported-prices';
 import { mapNewProductInsert } from '@/lib/catalog/product-payload';
+import { normalizeProductSlug } from '@/lib/catalog/slugs';
+import { createProductWithSlugRetry } from '@/lib/catalog/product-create';
 
 function getSupabase() {
   return createBrowserClient(
@@ -51,10 +53,6 @@ export function NewProductForm({ categories }: Props) {
   const [variants, setVariants] = useState<VariantRow[]>([]);
   const [imported, setImported] = useState(false);
 
-  function slugify(s: string) {
-    return s.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-  }
-
   function onParsed(data: ScrapedProduct) {
     setName(data.name);
     setImported(true);
@@ -80,8 +78,10 @@ export function NewProductForm({ categories }: Props) {
     e.preventDefault();
     setSaving(true);
 
-    const finalSlug = slug || slugify(name);
-    if (!finalSlug) {
+    // A manually entered slug is respected as-is (apart from surrounding
+    // whitespace); generated slugs use the same normalization everywhere.
+    const requestedSlug = slug.trim() || normalizeProductSlug(name);
+    if (!requestedSlug) {
       showToast('Name is required', 'error');
       setSaving(false);
       return;
@@ -108,50 +108,66 @@ export function NewProductForm({ categories }: Props) {
 
     const supabase = getSupabase();
 
-    // Insert product
-    const { data: product, error: pErr } = await supabase.from('products').insert(mapNewProductInsert({
-      slug: finalSlug,
-      name,
-      description,
-      categoryId: categoryId || null,
-      basePriceCents,
-      compareAtCents,
-      tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
-      isActive,
-    }) as any).select('id').single();
+    // The unique index is the arbiter here. Retrying only a unique-key error
+    // avoids a check-then-insert race when two admins use the same name.
+    const result = await createProductWithSlugRetry({
+      requestedSlug,
+      insertProduct: async (candidateSlug) => {
+        const insertResult = await supabase.from('products').insert(mapNewProductInsert({
+          slug: candidateSlug,
+          name,
+          description,
+          categoryId: categoryId || null,
+          basePriceCents,
+          compareAtCents,
+          tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
+          isActive,
+        }) as any).select('id').single();
+        return {
+          data: insertResult.data as { id: string } | null,
+          error: insertResult.error,
+        };
+      },
+      onCreated: async (createdProduct) => {
+        // These side effects run once, only after the product insert succeeds.
+        if (variants.length > 0) {
+          const { error } = await supabase.from('product_variants').insert(
+            variants.map((v, idx) => ({
+              product_id: createdProduct.id,
+              sku: v.sku,
+              name: v.name,
+              options: v.options,
+              price_cents: v.price_cents,
+              compare_at_cents: normalizeVariantCompareAtCents(v.price_cents, v.compare_at_cents),
+              stock: imported ? importedStock(v.stock) : stockQuantity(v.stock),
+              is_active: v.is_active,
+              sort_order: idx
+            })) as any
+          );
+          if (error) throw error;
+        }
 
-    if (pErr || !product) {
-      showToast(pErr?.message || 'Failed to create product', 'error');
+        if (images.length > 0) {
+          const { error } = await supabase.from('product_images').insert(
+            images.map((img, idx) => ({
+              product_id: createdProduct.id,
+              url: img.url,
+              sort_order: idx
+            })) as any
+          );
+          if (error) throw error;
+        }
+      },
+      cleanupCreated: async (createdProduct) => {
+        const { error } = await supabase.rpc('delete_product', { p_product_id: createdProduct.id });
+        if (error) throw error;
+      },
+    });
+
+    if (result.error || !result.product) {
+      showToast(result.error?.message || 'Failed to create product', 'error');
       setSaving(false);
       return;
-    }
-
-    // Insert variants
-    if (variants.length > 0) {
-      await supabase.from('product_variants').insert(
-        variants.map((v, idx) => ({
-          product_id: (product as any).id,
-          sku: v.sku,
-          name: v.name,
-          options: v.options,
-          price_cents: v.price_cents,
-          compare_at_cents: normalizeVariantCompareAtCents(v.price_cents, v.compare_at_cents),
-          stock: imported ? importedStock(v.stock) : stockQuantity(v.stock),
-          is_active: v.is_active,
-          sort_order: idx
-        })) as any
-      );
-    }
-
-    // Insert images
-    if (images.length > 0) {
-      await supabase.from('product_images').insert(
-        images.map((img, idx) => ({
-          product_id: (product as any).id,
-          url: img.url,
-          sort_order: idx
-        })) as any
-      );
     }
 
     showToast(`Product created with ${images.length} image${images.length === 1 ? '' : 's'}`, 'success');

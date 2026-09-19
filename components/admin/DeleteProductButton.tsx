@@ -26,9 +26,7 @@ export function DeleteProductButton({ productId, productName }: Props) {
   async function onDelete() {
     setLoading(true);
     const supabase = getSupabase();
-    await supabase.from('product_images').delete().eq('product_id', productId);
-    await supabase.from('product_variants').delete().eq('product_id', productId);
-    const { error } = await supabase.from('products').delete().eq('id', productId);
+    const { error } = await supabase.rpc('delete_product', { p_product_id: productId });
     setLoading(false);
     if (error) {
       showToast(`Delete failed: ${error.message}`, 'error');

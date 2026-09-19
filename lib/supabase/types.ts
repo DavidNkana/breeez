@@ -233,6 +233,10 @@ export type Database = {
         };
         Returns: string;
       };
+      delete_product: {
+        Args: { p_product_id: string };
+        Returns: undefined;
+      };
     };
     Enums: {
       order_status: OrderStatus;

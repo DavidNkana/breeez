@@ -12,6 +12,9 @@ import { VariantEditor, type VariantRow } from './VariantEditor';
 import { ProductUrlImporter, type ScrapedProduct } from './ProductUrlImporter';
 import { importedStock, resolveImportedCategory, stockQuantity } from '@/lib/catalog/importer';
 import { mapImportedVariantPrices, normalizeVariantCompareAtCents } from '@/lib/catalog/imported-prices';
+import { normalizeProductSlug } from '@/lib/catalog/slugs';
+import { replaceProductChildren } from '@/lib/catalog/product-children';
+import { updateProductWithSlugRetry } from '@/lib/catalog/product-update';
 
 function getSupabase() {
   return createBrowserClient(
@@ -77,10 +80,6 @@ export function EditProductForm({ categories, product, existingImages, existingV
   const [variants, setVariants] = useState<VariantRow[]>(existingVariants);
   const [imported, setImported] = useState(false);
 
-  function slugify(s: string) {
-    return s.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-  }
-
   function onParsed(data: ScrapedProduct) {
     setName(data.name);
     setImported(true);
@@ -106,7 +105,7 @@ export function EditProductForm({ categories, product, existingImages, existingV
     e.preventDefault();
     setSaving(true);
 
-    const finalSlug = slug || slugify(name);
+    const finalSlug = normalizeProductSlug(slug.trim() || name);
     if (!finalSlug) {
       showToast('Name is required', 'error');
       setSaving(false);
@@ -135,8 +134,18 @@ export function EditProductForm({ categories, product, existingImages, existingV
 
     const supabase = getSupabase();
 
-    // Update product
-    const { error: pErr } = await supabase.from('products').update({
+    const previousProduct = {
+      slug: product.slug,
+      name: product.name,
+      description: product.description,
+      category_id: product.category_id,
+      base_price_cents: product.base_price_cents,
+      compare_at_cents: product.compare_at_cents,
+      tags: product.tags,
+      is_active: product.is_active,
+      is_featured: product.is_featured,
+    };
+    const nextProduct = {
       slug: finalSlug,
       name,
       description,
@@ -146,42 +155,60 @@ export function EditProductForm({ categories, product, existingImages, existingV
       tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
       is_active: isActive,
       is_featured: isFeatured
-    } as any).eq('id', product.id);
+    };
 
-    if (pErr) {
-      showToast(`Update failed: ${pErr.message}`, 'error');
+    try {
+      await updateProductWithSlugRetry({
+        requestedSlug: finalSlug,
+        currentSlug: product.slug,
+        maxAttempts: 10,
+        next: nextProduct,
+        previous: previousProduct,
+        updateProduct: async (values) => ({
+          error: (await supabase.from('products').update(values as any).eq('id', product.id)).error,
+        }),
+        restoreProduct: async (expected, previous) => {
+          const query = supabase.from('products').update(previous as any).eq('id', product.id);
+          const result = await query.match(expected as any).select('id').maybeSingle();
+          return {
+            error: result.error ?? (!result.data ? { message: 'product changed while saving' } : null),
+          };
+        },
+        replaceChildren: () => replaceProductChildren({
+          images: images.map((img, idx) => ({ product_id: product.id, url: img.url, sort_order: idx })),
+          previousImages: existingImages.map((img) => ({ product_id: product.id, url: img.url, sort_order: img.sort_order })),
+          variants: variants.map((v, idx) => ({
+            product_id: product.id,
+            sku: v.sku,
+            name: v.name,
+            options: v.options,
+            price_cents: v.price_cents,
+            compare_at_cents: normalizeVariantCompareAtCents(v.price_cents, v.compare_at_cents),
+            stock: imported ? importedStock(v.stock) : stockQuantity(v.stock),
+            is_active: v.is_active,
+            sort_order: idx,
+          })),
+          previousVariants: existingVariants.map((v) => ({
+            product_id: product.id,
+            sku: v.sku,
+            name: v.name,
+            options: v.options,
+            price_cents: v.price_cents,
+            compare_at_cents: normalizeVariantCompareAtCents(v.price_cents, v.compare_at_cents),
+            stock: v.stock,
+            is_active: v.is_active,
+            sort_order: v.sort_order,
+          })),
+          deleteImages: async () => ({ error: (await supabase.from('product_images').delete().eq('product_id', product.id)).error }),
+          insertImages: async (rows) => ({ error: (rows.length ? await supabase.from('product_images').insert(rows as any) : { error: null }).error }),
+          deleteVariants: async () => ({ error: (await supabase.from('product_variants').delete().eq('product_id', product.id)).error }),
+          insertVariants: async (rows) => ({ error: (rows.length ? await supabase.from('product_variants').insert(rows as any) : { error: null }).error }),
+        }),
+      });
+    } catch (childError) {
+      showToast(`Update failed: ${childError instanceof Error ? childError.message : (childError as { message?: string }).message || 'Could not save variants or images'}`, 'error');
       setSaving(false);
       return;
-    }
-
-    // Sync images: delete all existing, re-insert in current order
-    await supabase.from('product_images').delete().eq('product_id', product.id);
-    if (images.length > 0) {
-      await supabase.from('product_images').insert(
-        images.map((img, idx) => ({
-          product_id: product.id,
-          url: img.url,
-          sort_order: idx
-        })) as any
-      );
-    }
-
-    // Sync variants: delete all existing, re-insert with current data
-    await supabase.from('product_variants').delete().eq('product_id', product.id);
-    if (variants.length > 0) {
-      await supabase.from('product_variants').insert(
-        variants.map((v, idx) => ({
-          product_id: product.id,
-          sku: v.sku,
-          name: v.name,
-          options: v.options,
-          price_cents: v.price_cents,
-          compare_at_cents: normalizeVariantCompareAtCents(v.price_cents, v.compare_at_cents),
-          stock: imported ? importedStock(v.stock) : stockQuantity(v.stock),
-          is_active: v.is_active,
-          sort_order: idx
-        })) as any
-      );
     }
 
     showToast('Product updated', 'success');
@@ -193,10 +220,7 @@ export function EditProductForm({ categories, product, existingImages, existingV
     if (!confirm(`Delete "${product.name}"? This cannot be undone.`)) return;
     setDeleting(true);
     const supabase = getSupabase();
-    // Delete images first (FK), then variants, then product
-    await supabase.from('product_images').delete().eq('product_id', product.id);
-    await supabase.from('product_variants').delete().eq('product_id', product.id);
-    const { error } = await supabase.from('products').delete().eq('id', product.id);
+    const { error } = await supabase.rpc('delete_product', { p_product_id: product.id });
     setDeleting(false);
     if (error) {
       showToast(`Delete failed: ${error.message}`, 'error');
