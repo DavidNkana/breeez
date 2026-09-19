@@ -2,7 +2,7 @@ export type VariantOptionSource = {
   options?: Record<string, string> | null;
   name?: string | null;
   sku?: string | null;
-  stock?: number | null;
+  stock?: number | string | null;
   is_active?: boolean | null;
 };
 
@@ -48,8 +48,10 @@ export function getVariantDisplayName(variant: VariantOptionSource) {
   return 'Standard';
 }
 
-export function getAvailableStock(stock: number | null | undefined) {
-  return typeof stock === 'number' && Number.isFinite(stock) ? Math.max(0, stock) : 0;
+/** Runtime-safe because API/database boundaries can represent integer values as strings. */
+export function getAvailableStock(stock: number | string | null | undefined) {
+  const quantity = typeof stock === 'number' ? stock : Number(typeof stock === 'string' ? stock.trim() : NaN);
+  return Number.isFinite(quantity) ? Math.max(0, Math.floor(quantity)) : 0;
 }
 
 /** A variant can be selected for purchase only when it is active and has stock. */

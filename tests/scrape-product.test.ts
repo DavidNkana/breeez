@@ -246,6 +246,25 @@ test('extracts selector-only size and colour combinations', async () => {
   assert.equal(product.variants.every((variant) => variant.stock >= 10), true);
 });
 
+test('extracts Fashion World inline sizes and expands a bare offer into variants', async () => {
+  const html = await readFile(resolve('tests/fixtures/fashion-world-size-markup.html'), 'utf8');
+  const product = parseProduct(html, 'https://fashionworld.example/apple-ladies-top-and-shorts-set');
+
+  assert.equal(product.price, 150);
+  assert.equal(product.variants.length, 4);
+  assert.deepEqual(product.variants.map((variant) => variant.options), [
+    { Size: 'S' }, { Size: 'M' }, { Size: 'L' }, { Size: 'XL' }
+  ]);
+  assert.deepEqual(product.variants.map((variant) => variant.sku), [
+    'IQ7997-S', 'IQ7997-M', 'IQ7997-L', 'IQ7997-XL'
+  ]);
+  assert.deepEqual(product.variants.map((variant) => variant.name), [
+    'Size: S', 'Size: M', 'Size: L', 'Size: XL'
+  ]);
+  assert.equal(product.variants.every((variant) => variant.stock >= 10), true);
+  assert.equal(product.variants.some((variant) => Object.values(variant.options).includes('Size chart')), false);
+});
+
 test('keeps embedded recommendations out of the primary product variants', async () => {
   const html = await readFile(resolve('tests/fixtures/scrape-product-embedded-recommendation.html'), 'utf8');
   const product = parseProduct(html, 'https://shop.example/shoes/primary-runner');

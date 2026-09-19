@@ -1,7 +1,13 @@
 export const IMPORT_STOCK_FLOOR = 10;
 
+/** Convert the scraper/form value to the integer stored in product_variants.stock. */
+export function stockQuantity(value: unknown) {
+  const quantity = typeof value === 'number' ? value : Number(String(value ?? '').trim());
+  return Number.isFinite(quantity) && quantity >= 0 ? Math.floor(quantity) : 0;
+}
+
 export function importedStock(value: unknown) {
-  const quantity = typeof value === 'number' ? value : Number.parseInt(String(value ?? ''), 10);
+  const quantity = stockQuantity(value);
   return Number.isFinite(quantity) && quantity > IMPORT_STOCK_FLOOR ? quantity : IMPORT_STOCK_FLOOR;
 }
 

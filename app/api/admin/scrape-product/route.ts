@@ -451,6 +451,25 @@ function schemaValues(value: unknown): Record<string, string> {
 
 type SelectorGroup = { name: string; values: string[] };
 
+function cleanSelectorValue(value: string) {
+  return text(value)
+    .replace(/\s*[|·•]\s*/g, ' ')
+    .replace(/^(?:size\s+chart|choose\s+(?:a\s+)?size|select\s+(?:a\s+)?size)\s*/i, '')
+    .trim();
+}
+
+function inlineSizeValues(value: string) {
+  const cleaned = cleanSelectorValue(value);
+  const marker = cleaned.match(/(?:size\s*(?:chart)?|available\s+sizes?)\s*(?:—|–|-|:)?\s*(.*)$/i)?.[1] ?? '';
+  // Fashion World/Lily pages often render the option control as plain text,
+  // e.g. “Size — Size chart S M L XL”, rather than as a select or swatches.
+  // Keep this deliberately narrow so recommendation/widget copy cannot become
+  // product variants.
+  const source = marker.replace(/^size\s+chart\s*/i, '').trim();
+  const values = source.match(/\b(?:XXS|XS|S|M|L|XL|XXL|XXXL|[0-9]{1,2}(?:\.[0-9])?)\b/gi) ?? [];
+  return values.map(cleanSelectorValue).filter((candidate) => candidate && !/^size\s+chart$/i.test(candidate));
+}
+
 function selectorLabel($: cheerio.CheerioAPI, node: cheerio.Cheerio<AnyNode>) {
   const id = node.attr('id');
   const context = text(node.parent().text()).slice(0, 180);
@@ -466,7 +485,7 @@ function selectorGroups($: cheerio.CheerioAPI): SelectorGroup[] {
   const groups: SelectorGroup[] = [];
   const addGroup = (label: string, values: string[]) => {
     const name = label.replace(/colour/i, 'Color').trim();
-    const cleaned = Array.from(new Set(values.map((value) => text(value)).filter(Boolean)));
+    const cleaned = Array.from(new Set(values.map(cleanSelectorValue).filter((value) => value && !/^size\s+chart$/i.test(value))));
     if (/size|colou?r/i.test(name) && cleaned.length > 0 && !groups.some((group) => group.name === name && group.values.join('|') === cleaned.join('|'))) {
       groups.push({ name, values: cleaned });
     }
@@ -480,6 +499,36 @@ function selectorGroups($: cheerio.CheerioAPI): SelectorGroup[] {
     const node = $(element);
     const values = node.find('[data-value], [value], [aria-label]').toArray().map((option) => $(option).attr('data-value') || $(option).attr('value') || $(option).attr('aria-label') || text($(option).text()));
     addGroup(selectorLabel($, node), values);
+  });
+  // Some retailers have a visual size-chart label with the values in its text
+  // and no semantic controls at all. Only inspect nodes explicitly mentioning
+  // size, and only accept size-shaped tokens from that text.
+  $('[class*="size" i], [id*="size" i], fieldset, legend, label').each((_, element) => {
+    const node = $(element);
+    const label = selectorLabel($, node) || node.text();
+    if (!/size/i.test(label)) return;
+    addGroup('Size', inlineSizeValues(node.text()));
+  });
+  const addEmbeddedOptions = (value: unknown) => {
+    if (!value || typeof value !== 'object') return;
+    if (Array.isArray(value)) return value.forEach(addEmbeddedOptions);
+    const item = value as Record<string, unknown>;
+    for (const [key, rawValues] of Object.entries(item)) {
+      const label = /colou?r/i.test(key) ? 'Color' : /^size$/i.test(key) ? 'Size' : '';
+      if (label && Array.isArray(rawValues)) addGroup(label, rawValues.map((rawValue) => String(rawValue)));
+      if (/options?|attributes?|productOptions/i.test(key)) addEmbeddedOptions(rawValues);
+    }
+    for (const key of ['variants', 'productVariants', 'product', 'productData']) addEmbeddedOptions(item[key]);
+  };
+  $('[data-product-options], [data-variant-options], [data-options]').each((_, element) => {
+    try { addEmbeddedOptions(JSON.parse($(element).attr('data-product-options') ?? $(element).attr('data-variant-options') ?? $(element).attr('data-options') ?? '')); } catch { /* Ignore malformed attributes. */ }
+  });
+  $('script').each((_, element) => {
+    const node = $(element);
+    const type = String(node.attr('type') ?? '').toLowerCase();
+    if (!type.includes('json') && !node.attr('id')?.match(/product|variant|next/i)) return;
+    if (/recommend|related|cross[-_ ]?sell|upsell|widget|carousel/i.test(`${node.attr('id') ?? ''} ${node.attr('class') ?? ''}`)) return;
+    try { addEmbeddedOptions(JSON.parse(node.contents().text())); } catch { /* Ignore non-JSON scripts. */ }
   });
   return groups;
 }
@@ -574,10 +623,17 @@ export function parseProduct(html: string, pageUrl: string): ScrapedProduct {
   const schema = productSchemas($)[0] ?? {};
   const offers = variantObjects($, schema);
   const selectors = selectorCombinations($);
+  const hasSelectors = selectors.some((options) => Object.keys(options).length > 0);
   const firstOffer = offers[0] ?? {};
   const firstOfferData = firstOffer.itemOffered && typeof firstOffer.itemOffered === 'object' ? firstOffer.itemOffered : firstOffer;
   const schemaOffers = [schema.offers].flatMap((value) => Array.isArray(value) ? value : [value])
     .filter((value): value is Record<string, any> => Boolean(value && typeof value === 'object'));
+  // Keep every bare Offer from Product.offers. The recursive embedded-variant
+  // walker intentionally ignores offer arrays in some retailer payloads, but
+  // those offers are still valid primary product price records.
+  const extractedOffers = Array.isArray(schema.offers)
+    ? schemaOffers
+    : offers.length < schemaOffers.length ? schemaOffers : offers;
   const nestedOfferRecords = [...schemaOffers, ...offers].flatMap((record) => {
     const nested = record.offers;
     return nested && typeof nested === 'object' ? (Array.isArray(nested) ? nested : [nested]) : [];
@@ -632,7 +688,17 @@ export function parseProduct(html: string, pageUrl: string): ScrapedProduct {
   }
   const images = absoluteImages(imageValues, pageUrl).slice(0, MAX_IMAGES);
   const seen = new Set<string>();
-  const sourceVariants: Record<string, any>[] = offers.length > 0 ? offers : selectors.map((options, index) => ({ options, sku: `IMPORT-${index + 1}` }));
+  const hasVariantOptions = extractedOffers.some((offer) => Object.keys(variantOptionValues(offer)).length > 0);
+  // A bare Product/Offer is only a price/SKU record. If the page separately
+  // exposes option controls, expand the controls into the real variant matrix
+  // instead of treating that bare offer as “Variant 1”.
+  const sourceVariants: Record<string, any>[] = hasSelectors && !hasVariantOptions
+    ? selectors.map((options, index) => ({
+      ...firstOffer,
+      options,
+      sku: text(firstOffer.sku) || text(schema.sku) || `IMPORT-${index + 1}`
+    }))
+    : extractedOffers.length > 0 ? extractedOffers : selectors.map((options, index) => ({ options, sku: `IMPORT-${index + 1}` }));
   const variants = sourceVariants.map((offer, index) => {
     const data = {
       ...offer,
@@ -643,18 +709,24 @@ export function parseProduct(html: string, pageUrl: string): ScrapedProduct {
     // to copy onto every embedded variant. Only align it by index when the
     // page exposes the same number of variants; selector-only pages use the
     // synthetic sources above instead.
-    const selectorOptions = selectors.length === offers.length ? selectors[index] : {};
+    const selectorOptions = selectors.length === sourceVariants.length ? selectors[index] : {};
     const options = variantOptionValues(data, selectorOptions);
-    const sku = text(data.sku) || text(offer.sku) || (offers.length === 1 ? text(schema.sku) : '') || `IMPORT-${index + 1}`;
+    const baseSku = text(data.sku) || text(offer.sku) || (extractedOffers.length === 1 ? text(schema.sku) : '') || `IMPORT-${index + 1}`;
+    const generatedSkuSuffix = Object.values(options).map((value) => value.replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '')).filter(Boolean).join('-');
+    const sku = hasSelectors && !hasVariantOptions && generatedSkuSuffix
+      ? `${baseSku.replace(/-\d+$/, '')}-${generatedSkuSuffix}`
+      : baseSku;
     const combination = Object.entries(options).sort().map(([k, v]) => `${k}:${v}`).join('|');
-    const key = (combination || sku).toLowerCase();
+    // Bare offers have no combination to identify them. Keep distinct priced
+    // offers, while option-bearing variants still dedupe by their combination.
+    const key = (combination || `${sku}-${index}`).toLowerCase();
     if (seen.has(key)) return null;
     seen.add(key);
     const rawStock = data.inventoryLevel ?? data.inventoryQuantity ?? data.stock ?? data.quantity;
-    const generatedName = `${name || 'Product'} Variant ${index + 1}`;
+    const generatedName = Object.entries(options).map(([key, value]) => `${key}: ${value}`).join(' / ') || `${name || 'Product'} Variant ${index + 1}`;
     const resolvedOptions = Object.keys(options).length > 0 ? options : { Variant: String(index + 1) };
     return {
-      name: text(data.name) || text(data.sku) || generatedName,
+      name: hasSelectors && !hasVariantOptions ? generatedName : text(data.name) || text(data.sku) || generatedName,
       sku,
       options: resolvedOptions,
       price: priceSnapshot(data).current ?? priceSnapshot(offer).current ?? basePrice ?? 0,
