@@ -9,6 +9,7 @@ import { useToast } from '@/components/ui/Toast';
 import { createBrowserClient } from '@supabase/ssr';
 import { ImageUploader } from './ImageUploader';
 import { VariantEditor, type VariantRow } from './VariantEditor';
+import { ProductUrlImporter, type ScrapedProduct } from './ProductUrlImporter';
 
 function getSupabase() {
   return createBrowserClient(
@@ -47,6 +48,24 @@ export function NewProductForm({ categories }: Props) {
 
   function slugify(s: string) {
     return s.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  }
+
+  function onParsed(data: ScrapedProduct) {
+    setName(data.name);
+    setDescription(data.description);
+    setBasePrice(data.price.toFixed(2));
+    setImages(data.images.slice(0, 10).map((url, idx) => ({ id: `imported-${idx}`, url })));
+    setVariants(data.variants.map((v, idx) => ({
+      product_id: 'new-product',
+      sku: v.sku,
+      name: v.name,
+      options: v.options,
+      price_cents: Math.round(v.price * 100),
+      compare_at_cents: null,
+      stock: v.stock,
+      is_active: true,
+      sort_order: idx
+    })));
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -127,6 +146,7 @@ export function NewProductForm({ categories }: Props) {
 
   return (
     <form onSubmit={onSubmit} className="space-y-6 max-w-2xl">
+      <ProductUrlImporter onParsed={onParsed} />
       <Input label="Product name" required value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Coral Beach Towel" />
       <Input label="Slug (auto-generated from name if blank)" value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="coral-beach-towel" />
       <Select

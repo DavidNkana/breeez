@@ -9,6 +9,7 @@ import { useToast } from '@/components/ui/Toast';
 import { createBrowserClient } from '@supabase/ssr';
 import { ImageUploader } from './ImageUploader';
 import { VariantEditor, type VariantRow } from './VariantEditor';
+import { ProductUrlImporter, type ScrapedProduct } from './ProductUrlImporter';
 
 function getSupabase() {
   return createBrowserClient(
@@ -75,6 +76,25 @@ export function EditProductForm({ categories, product, existingImages, existingV
 
   function slugify(s: string) {
     return s.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  }
+
+  function onParsed(data: ScrapedProduct) {
+    setName(data.name);
+    setDescription(data.description);
+    setBasePrice(data.price.toFixed(2));
+    setComparePrice(data.comparePrice != null ? data.comparePrice.toFixed(2) : '');
+    setImages(data.images.slice(0, 10).map((url, idx) => ({ id: `imported-${idx}`, url })));
+    setVariants(data.variants.map((v, idx) => ({
+      product_id: product.id,
+      sku: v.sku,
+      name: v.name,
+      options: v.options,
+      price_cents: Math.round(v.price * 100),
+      compare_at_cents: null,
+      stock: v.stock,
+      is_active: true,
+      sort_order: idx
+    })));
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -189,6 +209,7 @@ export function EditProductForm({ categories, product, existingImages, existingV
 
   return (
     <form onSubmit={onSubmit} className="space-y-6 max-w-2xl">
+      <ProductUrlImporter onParsed={onParsed} />
       <Input label="Product name" required value={name} onChange={(e) => setName(e.target.value)} />
       <Input
         label="Slug"
