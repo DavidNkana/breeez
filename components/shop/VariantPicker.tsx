@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import clsx from 'clsx';
 import type { ProductVariant } from '@/lib/supabase/types';
+import { getAvailableStock, getValidOptionValues, getVariantOptionGroups, getVariantOptionValue, isPurchasableVariant } from '@/lib/catalog/variant-options';
 
 type Props = {
   variants: ProductVariant[];
@@ -20,47 +21,37 @@ type Props = {
  */
 export function VariantPicker({ variants, basePriceCents, selectedOptions, onOptionChange }: Props) {
   const optionKeys = useMemo(() => {
-    return Array.from(new Set(variants.flatMap((v) => Object.keys(v.options))));
+    return getVariantOptionGroups(variants).map((group) => group.key);
   }, [variants]);
 
   // Find the variant matching ALL selected options
   const selectedVariant = useMemo(() => {
     return variants.find((v) =>
-      optionKeys.every((key) => v.options[key] === selectedOptions[key])
+      optionKeys.every((key) => getVariantOptionValue(v, key) === selectedOptions[key])
     ) ?? null;
   }, [variants, optionKeys, selectedOptions]);
 
   // For each option key, find which values have at least one valid variant
   // given the OTHER selected options
   function getValidValues(key: string): Set<string> {
-    const others = optionKeys.filter((k) => k !== key);
-    const valid = new Set<string>();
-    for (const v of variants) {
-      if (v.stock === 0 && !v.is_active) continue;
-      const matchesOthers = others.every((k) => v.options[k] === selectedOptions[k]);
-      if (matchesOthers) {
-        valid.add(v.options[key]);
-      }
-    }
-    return valid;
+    return new Set(getValidOptionValues(variants, optionKeys, selectedOptions, key));
   }
 
   const priceCents = selectedVariant?.price_cents ?? basePriceCents;
-  const stock = selectedVariant?.stock ?? 0;
+  const stock = selectedVariant ? getAvailableStock(selectedVariant.stock) : variants
+    .filter((variant) => optionKeys.every((key) => !selectedOptions[key] || getVariantOptionValue(variant, key) === selectedOptions[key]))
+    .filter(isPurchasableVariant)
+    .reduce((total, variant) => total + getAvailableStock(variant.stock), 0);
 
   return (
     <div className="space-y-5">
-      {optionKeys.map((key) => {
+      {getVariantOptionGroups(variants).map(({ key, values }) => {
         const validValues = getValidValues(key);
         return (
           <div key={key}>
             <p className="text-sm font-medium text-brand-900 capitalize mb-2">{key}</p>
             <div className="flex flex-wrap gap-2">
-              {variants
-                .filter((v) => v.options[key])
-                .map((v) => {
-                  const value = v.options[key];
-                  if (!value) return null;
+              {values.map((value) => {
                   const isSelected = selectedOptions[key] === value;
                   const isValid = validValues.has(value);
                   return (
@@ -89,7 +80,7 @@ export function VariantPicker({ variants, basePriceCents, selectedOptions, onOpt
         {stock > 0 ? (
           <>
             <span className="inline-block h-2 w-2 rounded-full bg-success" />
-            <span>In stock — {stock} available</span>
+            <span>{selectedVariant ? `${stock} left in stock` : `${stock} available across options`}</span>
           </>
         ) : (
           <>

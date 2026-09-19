@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { VariantPicker } from './VariantPicker';
 import { AddToCartButton } from './AddToCartButton';
 import { PriceDisplay } from './PriceDisplay';
 import { LowStockBadge } from './LowStockBadge';
 import { SizeGuide } from './SizeGuide';
 import type { ProductVariant } from '@/lib/supabase/types';
+import { getAvailableStock, getVariantDisplayName, getPurchasableVariantForOptions, getVariantOptionGroups, getVariantOptionValue, isPurchasableVariant, reconcileSelectedOptions } from '@/lib/catalog/variant-options';
 
 type Props = {
   productId: string;
@@ -20,24 +21,24 @@ type Props = {
 
 export function ProductActions({ productId, productSlug, productName, basePriceCents, compareAtCents, variants, images }: Props) {
   const optionKeys = useMemo(
-    () => Array.from(new Set(variants.flatMap((v) => Object.keys(v.options)))),
+    () => getVariantOptionGroups(variants).map((group) => group.key),
     [variants]
   );
 
   // Initialize: pick the first valid option for each key
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(() => {
-    const init: Record<string, string> = {};
-    for (const key of optionKeys) {
-      const firstVariant = variants.find((v) => v.options[key]);
-      if (firstVariant) init[key] = firstVariant.options[key];
-    }
-    return init;
+    return reconcileSelectedOptions(variants, optionKeys, {});
   });
 
-  const selectedVariant = useMemo(() =>
-    variants.find((v) =>
-      optionKeys.every((k) => v.options[k] === selectedOptions[k])
-    ) ?? null,
+  useEffect(() => {
+    setSelectedOptions((previous) => {
+      const next = reconcileSelectedOptions(variants, optionKeys, previous);
+      return JSON.stringify(next) === JSON.stringify(previous) ? previous : next;
+    });
+  }, [variants, optionKeys]);
+
+  const selectedVariant = useMemo(
+    () => getPurchasableVariantForOptions(variants, optionKeys, selectedOptions),
     [variants, optionKeys, selectedOptions]
   );
 
@@ -47,23 +48,22 @@ export function ProductActions({ productId, productSlug, productName, basePriceC
 
   const priceCents = selectedVariant?.price_cents ?? basePriceCents;
   const variantCompareAt = selectedVariant?.compare_at_cents ?? compareAtCents;
+  const availableStock = variants
+    .filter((variant) => isPurchasableVariant(variant) && optionKeys.every((key) => !selectedOptions[key] || getVariantOptionValue(variant, key) === selectedOptions[key]))
+    .reduce((total, variant) => total + getAvailableStock(variant.stock), 0);
 
   return (
     <>
       <PriceDisplay priceCents={priceCents} compareAtCents={variantCompareAt} />
       <LowStockBadge stock={selectedVariant?.stock} />
 
-      {/* Show currently selected variant name + sku */}
-      {selectedVariant && selectedVariant.name && selectedVariant.name !== 'Default' && (
+      {selectedVariant && (
         <p className="mt-2 text-sm text-brand-700">
-          Selected: <span className="font-medium text-brand-900">{selectedVariant.name}</span>
-          {selectedVariant.sku && (
-            <span className="ml-2 text-xs text-brand-400 break-all">SKU: {selectedVariant.sku}</span>
-          )}
+          Selected: <span className="font-medium text-brand-900">{getVariantDisplayName(selectedVariant)}</span>
         </p>
       )}
 
-      {variants.length > 0 && optionKeys.length > 1 && (
+      {variants.length > 0 && optionKeys.length > 0 && (
         <div className="mt-6">
           <VariantPicker
             variants={variants}
@@ -86,8 +86,15 @@ export function ProductActions({ productId, productSlug, productName, basePriceC
         </div>
       )}
 
-      {variants.length === 1 && variants[0].name !== 'Default' && (
-        <p className="mt-4 text-sm text-brand-600">{variants[0].name}</p>
+      {selectedVariant && (
+        <p className="mt-3 text-sm font-medium text-brand-700 dark:text-brand-200" aria-live="polite">
+          {selectedVariant.stock > 0 ? `${selectedVariant.stock} left in stock` : 'Out of stock'}
+        </p>
+      )}
+      {!selectedVariant && optionKeys.length > 0 && (
+        <p className="mt-3 text-sm font-medium text-brand-700 dark:text-brand-200" aria-live="polite">
+          {availableStock > 0 ? `${availableStock} available across options` : 'Out of stock'}
+        </p>
       )}
 
       {/* Out of stock warning for the selected variant */}
@@ -103,9 +110,9 @@ export function ProductActions({ productId, productSlug, productName, basePriceC
           productSlug={productSlug}
           productName={productName}
           imageUrl={images[0]?.url}
-           variants={selectedVariant ? [selectedVariant] : []}
-           basePriceCents={priceCents}
-           size="lg"
+          variants={selectedVariant ? [selectedVariant] : []}
+          basePriceCents={priceCents}
+          size="lg"
         />
       </div>
 

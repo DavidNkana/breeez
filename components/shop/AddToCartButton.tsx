@@ -1,12 +1,13 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useCart } from '@/lib/cart/store';
 import { Button } from '@/components/ui/Button';
 import { QuantityStepper } from './QuantityStepper';
 import { useToast } from '@/components/ui/Toast';
 import { useCartFly } from './CartFly';
 import type { ProductVariant } from '@/lib/supabase/types';
+import { canAddVariantToCart, getAvailableStock, getVariantDisplayName } from '@/lib/catalog/variant-options';
 
 type AddToCartButtonProps = {
   productId: string;
@@ -26,15 +27,22 @@ export function AddToCartButton({ productId, productSlug, productName, imageUrl,
   const { fly } = useCartFly();
   const btnRef = useRef<HTMLButtonElement>(null);
 
+  useEffect(() => {
+    if (!variants.some((variant) => variant.id === selectedId)) {
+      setSelectedId(variants[0]?.id ?? '');
+      setQuantity(1);
+    }
+  }, [variants, selectedId]);
+
   const selected = variants.find((v) => v.id === selectedId);
   const priceCents = selected?.price_cents ?? basePriceCents;
-  const isOutOfStock = !selected || selected.stock === 0;
-  const stockCap = selected?.stock ?? 0;
+  const stockCap = getAvailableStock(selected?.stock);
+  const isOutOfStock = !selected || stockCap <= 0;
 
   function handleAdd() {
-    if (!selected) return;
-    if (quantity > stockCap) {
-      showToast(`Only ${stockCap} available`, 'warning');
+    if (!selected || stockCap <= 0) return;
+    if (!canAddVariantToCart(selected, quantity)) {
+      if (quantity > stockCap) showToast(`Only ${stockCap} available`, 'warning');
       return;
     }
     // Capture rect of the add-to-cart button before the cart drawer opens
@@ -44,7 +52,7 @@ export function AddToCartButton({ productId, productSlug, productName, imageUrl,
       {
         variantId: selected.id,
         productSlug,
-        name: `${productName}${selected.name ? ` — ${selected.name}` : ''}`,
+        name: `${productName} — ${getVariantDisplayName(selected)}`,
         priceCents,
         imageUrl
       },
@@ -76,9 +84,9 @@ export function AddToCartButton({ productId, productSlug, productName, imageUrl,
           aria-label="Select variant"
         >
           {variants.map((v) => (
-            <option key={v.id} value={v.id} disabled={v.stock === 0}>
-              {v.name || (v.options && Object.values(v.options).join(' / '))}
-              {v.stock === 0 ? ' (out of stock)' : ` — R${((v.price_cents ?? basePriceCents) / 100).toFixed(2)}`}
+            <option key={v.id} value={v.id} disabled={getAvailableStock(v.stock) <= 0}>
+              {getVariantDisplayName(v)}
+              {getAvailableStock(v.stock) <= 0 ? ' (out of stock)' : ` — R${((v.price_cents ?? basePriceCents) / 100).toFixed(2)}`}
             </option>
           ))}
         </select>
