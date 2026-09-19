@@ -5,6 +5,8 @@ import { randomUUID } from 'node:crypto';
 import http from 'node:http';
 import https from 'node:https';
 import { Readable } from 'node:stream';
+import type { IncomingMessage } from 'node:http';
+import { createBrotliDecompress, createGunzip, createInflate } from 'node:zlib';
 import { NextResponse } from 'next/server';
 import * as cheerio from 'cheerio';
 import type { AnyNode } from 'domhandler';
@@ -148,6 +150,22 @@ export function assertPublicRedirectTarget(location: string, base: URL) {
 
 type PublicResponse = { response: Response; url: string };
 
+/** Convert a Node HTTP response into a web Response, decoding negotiated content. */
+export function decodedHttpResponse(incoming: IncomingMessage) {
+  const encoding = String(incoming.headers['content-encoding'] ?? '').toLowerCase();
+  const decoder = encoding.includes('br') ? createBrotliDecompress()
+    : encoding.includes('gzip') ? createGunzip()
+      : encoding.includes('deflate') ? createInflate() : null;
+  const bodyStream = decoder ? incoming.pipe(decoder) : incoming;
+  const headers = { ...incoming.headers };
+  if (decoder) {
+    delete headers['content-encoding'];
+    delete headers['content-length'];
+  }
+  const body = Readable.toWeb(bodyStream) as ReadableStream<Uint8Array>;
+  return new Response(body, { status: incoming.statusCode ?? 502, headers: headers as Record<string, string> });
+}
+
 export function createPinnedLookup(address: string, family: number): LookupFunction {
   return (_hostname, options, callback) => {
     if (options.all) callback(null, [{ address, family }]);
@@ -181,8 +199,12 @@ async function fetchPublicUrl(value: URL, init: { headers: Record<string, string
       // exception here otherwise escapes the POST handler and Next renders
       // its HTML 500 page instead of our JSON error response.
       try {
-        const body = Readable.toWeb(incoming) as ReadableStream<Uint8Array>;
-        resolve({ response: new Response(body, { status: incoming.statusCode ?? 502, headers: incoming.headers as Record<string, string> }), url: value.toString() });
+        // Lily/Fashion World commonly negotiates brotli or gzip. Node's
+        // request API does not transparently decode it (unlike fetch), so
+        // cheerio would otherwise receive compressed bytes. Remove the
+        // encoded-body headers after decoding or Response may reject the
+        // stream/length combination before the handler can return JSON.
+        resolve({ response: decodedHttpResponse(incoming), url: value.toString() });
       } catch (error) {
         reject(error);
       }
@@ -948,10 +970,23 @@ function safeScrapeError(error: unknown) {
   return { status: 500, message: 'Could not scrape this product right now' };
 }
 
+function jsonResponse(body: unknown, status: number) {
+  try {
+    return NextResponse.json(body, { status });
+  } catch {
+    // Keep the contract JSON even if a framework/runtime response adapter
+    // fails while handling an upstream exception.
+    return new Response(JSON.stringify(body), {
+      status,
+      headers: { 'content-type': 'application/json; charset=utf-8' },
+    });
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const user = await getCurrentUser();
-    if (!user) return NextResponse.json({ ok: false, error: 'You must be signed in as an administrator' }, { status: 401 });
+    if (!user) return jsonResponse({ ok: false, error: 'You must be signed in as an administrator' }, 401);
     const admin = createAdminClient();
     const { data: adminRow, error: adminError } = await admin
       .from('admins')
@@ -959,24 +994,28 @@ export async function POST(request: Request) {
       .eq('user_id', user.id)
       .maybeSingle();
     if (adminError) throw adminError;
-    if (!adminRow) return NextResponse.json({ ok: false, error: 'Administrator access is required' }, { status: 403 });
+    if (!adminRow) return jsonResponse({ ok: false, error: 'Administrator access is required' }, 403);
 
     let body: { url?: string };
-    try { body = await request.json(); } catch { return NextResponse.json({ ok: false, error: 'Invalid JSON body' }, { status: 400 }); }
-    if (typeof body.url !== 'string' || !body.url.trim()) return NextResponse.json({ ok: false, error: 'A product URL is required' }, { status: 400 });
+    try { body = await request.json(); } catch { return jsonResponse({ ok: false, error: 'Invalid JSON body' }, 400); }
+    if (typeof body.url !== 'string' || !body.url.trim()) return jsonResponse({ ok: false, error: 'A product URL is required' }, 400);
     const url = await assertPublicUrl(body.url.trim());
     const fetched = await fetchPublicPage(url.toString());
     const response = fetched.response;
     if (!response.ok) throw new Error(`Could not fetch the page (HTTP ${response.status})`);
     const finalPageUrl = fetched.url;
     const product = parseProduct(new TextDecoder().decode(await readLimitedBody(response, MAX_PAGE_BYTES)), finalPageUrl);
-    if (!product.name) return NextResponse.json({ ok: false, error: 'Could not extract a product name from this page — try a different URL or fill manually' }, { status: 400 });
+    if (!product.name) return jsonResponse({ ok: false, error: 'Could not extract a product name from this page — try a different URL or fill manually' }, 400);
     const priceError = scrapedProductPriceError(product);
-    if (priceError) return NextResponse.json({ ok: false, error: priceError }, { status: 400 });
+    if (priceError) return jsonResponse({ ok: false, error: priceError }, 400);
     const hosted = await rehostImages(product.images, finalPageUrl);
-    return NextResponse.json({ ok: true, data: { ...product, images: hosted.images, warnings: hosted.warnings } });
+    return jsonResponse({ ok: true, data: { ...product, images: hosted.images, warnings: hosted.warnings } }, 200);
   } catch (error) {
     const failure = safeScrapeError(error);
-    return NextResponse.json({ ok: false, error: failure.message }, { status: failure.status });
+    return jsonResponse({ ok: false, error: failure.message }, failure.status);
   }
+}
+
+export function GET() {
+  return jsonResponse({ ok: false, error: 'Method not allowed' }, 405);
 }

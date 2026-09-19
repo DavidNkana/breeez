@@ -104,6 +104,19 @@ test('keeps every size visible while crossing out sold-out and source-inactive v
   assert.equal(canAddVariantToCart(getVariantForOptions(variants, ['Size'], { Size: 'XL' }), 1), true);
 });
 
+test('renders the complete 3-to-8 option set when only 8 is active', () => {
+  const variants: VariantOptionSource[] = [3, 4, 5, 6, 7, 8].map((size) => ({
+    id: `size-${size}`, options: { Size: String(size) }, stock: size === 8 ? 20 : 10,
+    is_active: size === 8,
+  }));
+  const model = getVariantOptionRenderModel(variants, { Size: '8' });
+  assert.deepEqual(model[0].options.map(({ value, disabled, crossedOut }) => ({ value, disabled, crossedOut })), [
+    { value: '3', disabled: true, crossedOut: true }, { value: '4', disabled: true, crossedOut: true },
+    { value: '5', disabled: true, crossedOut: true }, { value: '6', disabled: true, crossedOut: true },
+    { value: '7', disabled: true, crossedOut: true }, { value: '8', disabled: false, crossedOut: false },
+  ]);
+});
+
 test('crosses every option and reports no purchasable selection when all stock is zero', () => {
   const variants: VariantOptionSource[] = [
     { options: { Size: 'S' }, stock: 0 },

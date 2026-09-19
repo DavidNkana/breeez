@@ -1,10 +1,12 @@
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { createPayment, isMockMode } from '@/lib/payments/server';
 import { getCurrentUser } from '@/lib/auth/session';
 import { sendOrderConfirmation } from '@/lib/email/resend';
 import { getStockRollbackItems, STOCK_COMPENSATION_FAILURE_MESSAGE } from '@/lib/checkout/stock';
+import { getCheckoutProductSlugs } from '@/lib/checkout/cache';
 
 type SuccessfulDecrement = { order_item_id: string };
 
@@ -12,6 +14,7 @@ async function rollbackCheckout(
   adminSupabase: any,
   orderId: string,
   successfulDecrements: SuccessfulDecrement[],
+  affectedProductSlugs: string[],
 ) {
   const compensationFailures: string[] = [];
   for (const { order_item_id } of getStockRollbackItems(successfulDecrements)) {
@@ -51,7 +54,29 @@ async function rollbackCheckout(
     console.error('[checkout] order cancellation failed', { orderId, error: cancellationError });
   }
 
+  // The reservation changed stock before payment creation. Refresh PDPs even
+  // when the reservation is compensated so a previously cached sold-out state
+  // cannot survive a failed checkout.
+  try { revalidatePath('/'); } catch (error) {
+    console.error('[checkout] cache revalidation failed during rollback', error);
+  }
+  for (const slug of affectedProductSlugs) {
+    try { revalidatePath(`/p/${slug}`); } catch (error) {
+      console.error('[checkout] product cache revalidation failed during rollback', { slug, error });
+    }
+  }
+
   return { failed: compensationFailures.length > 0 || Boolean(cancellationError) };
+}
+
+function revalidateCheckoutProducts(items: any[]) {
+  for (const slug of getCheckoutProductSlugs(items)) {
+    try { revalidatePath(`/p/${slug}`); } catch (error) {
+      // Cache invalidation is best-effort; it must not turn a committed stock
+      // decrement/payment intent into a false checkout failure.
+      console.error('[checkout] product cache revalidation failed', { slug, error });
+    }
+  }
 }
 
 /** Bypasses the RPC — inserts order directly with explicit customer_id */
@@ -70,10 +95,13 @@ export async function POST(req: Request) {
     const adminSupabase = (await createAdminClient()) as any; // service-role for atomic RPC + writes
 
     const { data: cartItems } = (await supabase.from('cart_items')
-      .select('*, variant:product_variants(*, product:products(base_price_cents))')
+      .select('*, variant:product_variants(*, product:products(base_price_cents, slug))')
       .eq('cart_id', cartId)) as any;
     const items = (cartItems ?? []) as any[];
     if (items.length === 0) return NextResponse.json({ error: 'Cart empty' }, { status: 400 });
+    if (items.some((item) => !Number.isInteger(item.quantity) || item.quantity < 1)) {
+      return NextResponse.json({ error: 'Invalid cart quantity' }, { status: 400 });
+    }
 
     let subtotalCents = 0;
     for (const ci of items) {
@@ -170,7 +198,7 @@ export async function POST(req: Request) {
     }
 
     if (stockFailure) {
-      const rollback = await rollbackCheckout(adminSupabase, order.id, successfulDecrements);
+      const rollback = await rollbackCheckout(adminSupabase, order.id, successfulDecrements, getCheckoutProductSlugs(items));
       if (rollback.failed) {
         return NextResponse.json(
           { error: STOCK_COMPENSATION_FAILURE_MESSAGE },
@@ -189,6 +217,7 @@ export async function POST(req: Request) {
     }
 
     const _d: any = await supabase.from('cart_items').delete().eq('cart_id', cartId);
+    revalidateCheckoutProducts(items);
 
     if (isMockMode()) {
       const _m: any = await adminSupabase.from('orders').update({ status: 'paid', paid_at: new Date().toISOString() } as any).eq('id', order.id);
@@ -212,7 +241,7 @@ export async function POST(req: Request) {
       const _p: any = await adminSupabase.from('orders').update({ payment_reference: intent.reference } as any).eq('id', order.id);
       return NextResponse.json({ orderId: order.id, orderNumber: order.order_number, redirectUrl: intent.redirectUrl });
     } catch (paymentError: any) {
-      const rollback = await rollbackCheckout(adminSupabase, order.id, successfulDecrements);
+      const rollback = await rollbackCheckout(adminSupabase, order.id, successfulDecrements, getCheckoutProductSlugs(items));
       if (rollback.failed) {
         return NextResponse.json({ error: STOCK_COMPENSATION_FAILURE_MESSAGE }, { status: 500 });
       }

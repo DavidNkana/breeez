@@ -1,11 +1,40 @@
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import test from 'node:test';
-import { assertPublicRedirectTarget, assertPublicUrl, bestSrcsetCandidate, createPinnedLookup, imageFormat, isPrivateIp, mergeSelectorAvailability, normaliseLookupAddresses, parseProduct, scrapedProductPriceError } from '../app/api/admin/scrape-product/route';
+import { assertPublicRedirectTarget, assertPublicUrl, bestSrcsetCandidate, createPinnedLookup, decodedHttpResponse, imageFormat, isPrivateIp, mergeSelectorAvailability, normaliseLookupAddresses, parseProduct, scrapedProductPriceError } from '../app/api/admin/scrape-product/route';
 import { resolveImportedCategory } from '../lib/catalog/importer';
 import { mapNewProductInsert } from '../lib/catalog/product-payload';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { brotliCompressSync, deflateSync, gzipSync } from 'node:zlib';
+
+test('decodes gzip, deflate, and Brotli from a genuine local HTTP response', async (t) => {
+  const fixture = await readFile(resolve('tests/fixtures/lily-like-product.html'), 'utf8');
+  const encodings = [
+    ['gzip', gzipSync(Buffer.from(fixture))],
+    ['deflate', deflateSync(Buffer.from(fixture))],
+    ['br', brotliCompressSync(Buffer.from(fixture))],
+  ] as const;
+  const server = http.createServer((request, response) => {
+    const encoding = request.url?.slice(1) ?? 'gzip';
+    const body = encodings.find(([name]) => name === encoding)?.[1] ?? encodings[0][1];
+    response.writeHead(200, { 'content-type': 'text/html', 'content-encoding': encoding, 'content-length': body.length });
+    response.end(body);
+  });
+  await new Promise<void>((resolveListen) => server.listen(0, '127.0.0.1', resolveListen));
+  t.after(() => server.close());
+  const address = server.address();
+  assert.ok(address && typeof address === 'object');
+  for (const [encoding] of encodings) {
+    const response = await new Promise<Response>((resolveResponse, reject) => {
+      http.get(`http://127.0.0.1:${address.port}/${encoding}`, (incoming) => {
+        resolveResponse(decodedHttpResponse(incoming));
+      }).on('error', reject);
+    });
+    assert.equal(await response.text(), fixture);
+    assert.equal(parseProduct(fixture, 'https://example.test/p/lily').name, 'Lily-style Ribbed Midi Dress');
+  }
+});
 
 test('rejects truncated image signatures', () => {
   assert.equal(imageFormat('image/png', Uint8Array.from([0x89, 0x50, 0x4e, 0x47])), null);
@@ -275,6 +304,16 @@ test('extracts Fashion World inline sizes and expands a bare offer into variants
   ]);
   assert.equal(product.variants.every((variant) => variant.stock >= 10), true);
   assert.equal(product.variants.some((variant) => Object.values(variant.options).includes('Size chart')), false);
+});
+
+test('parses a Lily-like page with relative media and inline size controls', async () => {
+  const html = await readFile(resolve('tests/fixtures/lily-like-product.html'), 'utf8');
+  const product = parseProduct(html, 'https://www.lily-like.example/dresses/ribbed-midi');
+  assert.equal(product.name, 'Lily-style Ribbed Midi Dress');
+  assert.equal(product.price, 399.99);
+  assert.deepEqual(product.variants.map((variant) => variant.options.Size), ['6', '8', '10']);
+  assert.deepEqual(product.variants.map((variant) => variant.active), [true, true, false]);
+  assert.equal(product.images[0], 'https://www.lily-like.example/media/products/lily-dress.jpg');
 });
 
 test('preserves every source size and marks disabled or sold-out options inactive', async () => {

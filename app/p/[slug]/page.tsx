@@ -11,6 +11,9 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { getAvailableStock, isPurchasableVariant } from '@/lib/catalog/variant-options';
 
+// Stock changes during checkout; never serve a cached option/availability state.
+export const dynamic = 'force-dynamic';
+
 type Props = { params: { slug: string } };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

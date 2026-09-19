@@ -13,9 +13,10 @@ mock.module('@/lib/auth/session', { namedExports: { getCurrentUser } });
 mock.module('@/lib/supabase/admin', { namedExports: { createAdminClient: () => adminClient } });
 
 let POST: (request: Request) => Promise<Response>;
+let GET: () => Response;
 
 test.before(async () => {
-  ({ POST } = await import('../app/api/admin/scrape-product/route'));
+  ({ POST, GET } = await import('../app/api/admin/scrape-product/route'));
 });
 
 test('scrape route returns a JSON 401 for unauthenticated callers', async () => {
@@ -63,4 +64,11 @@ test('scrape route returns JSON 400 for malformed product URLs', async () => {
   assert.equal(response.status, 400);
   assert.match(response.headers.get('content-type') ?? '', /^application\/json/);
   assert.deepEqual(await response.json(), { ok: false, error: 'The URL is invalid' });
+});
+
+test('scrape route returns a JSON 405 for GET rather than an HTML response', async () => {
+  const response = GET();
+  assert.equal(response.status, 405);
+  assert.match(response.headers.get('content-type') ?? '', /^application\/json/);
+  assert.deepEqual(await response.json(), { ok: false, error: 'Method not allowed' });
 });
