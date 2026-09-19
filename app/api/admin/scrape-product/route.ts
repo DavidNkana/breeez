@@ -7,6 +7,7 @@ import https from 'node:https';
 import { Readable } from 'node:stream';
 import { NextResponse } from 'next/server';
 import * as cheerio from 'cheerio';
+import type { AnyNode } from 'domhandler';
 import { requireAdmin } from '@/lib/auth/session';
 import { createAdminClient } from '@/lib/supabase/admin';
 
@@ -226,6 +227,10 @@ function absoluteImages(values: unknown[], pageUrl: string) {
   })));
 }
 
+function relevantImageUrls(values: unknown[], pageUrl: string) {
+  return absoluteImages(values, pageUrl).filter((value) => !imageIsUnrelated('', value));
+}
+
 export function bestSrcsetCandidate(value: string) {
   const candidates = value.split(',').map((candidate) => {
     const [url, descriptor] = candidate.trim().split(/\s+/);
@@ -235,31 +240,118 @@ export function bestSrcsetCandidate(value: string) {
   return candidates.sort((a, b) => b.amount - a.amount)[0]?.url;
 }
 
-function imageCandidates($: cheerio.CheerioAPI) {
-  const values: string[] = [];
-  const add = (value: string | undefined, srcset = false) => {
-    if (!value) return;
-    if (srcset) {
-      const best = bestSrcsetCandidate(value);
-      if (best) values.push(best);
-      return;
-    }
-    values.push(value.trim());
-  };
-  const selectors = [
-    'img', 'picture source',
-    '[data-image]', '[data-image-url]', '[data-zoom-image]', '[data-full]',
-    '[data-original]', '[data-product-image]', '[data-gallery-image]'
-  ].join(',');
+const unrelatedImageToken = /(?:^|[-_\s/])(?:logo(?:s)?|banner(?:s)?|recommend(?:ation|ations)?|related|cross[-_ ]?sell(?:s|ing)?|upsell(?:s)?|icon(?:s)?|avatar(?:s)?|sprite(?:s)?|tracking|pixel(?:s)?|spinner(?:s)?|placeholder(?:s)?|header(?:s)?|nav(?:s|bar|bars|igation|igations)?|footer(?:s)?)(?:[-_\s/.]|$)/i;
+const productImageToken = /(?:product|gallery|pdp|productview|product-view|media-gallery|product-media|zoom|fotorama|main-image|detail-image|carousel|swiper)/i;
+const imageAttributes = ['data-zoom-image', 'data-full', 'data-original', 'data-product-image', 'data-gallery-image', 'data-image', 'data-image-url', 'data-src', 'data-lazy-src', 'src'];
+const imageElementSelectors = ['img', 'picture source', '[srcset]', '[data-srcset]', '[data-image]', '[data-image-url]', '[data-zoom-image]', '[data-full]', '[data-original]', '[data-product-image]', '[data-gallery-image]', '[data-src]', '[data-lazy-src]'];
+const imageUrlPattern = /\.(?:avif|gif|jpe?g|png|svg|webp)(?:[?#]|$)/i;
+
+type ImageCandidate = { value: string; score: number };
+
+function imageContext($: cheerio.CheerioAPI, element: AnyNode) {
+  const parts: string[] = [];
+  let current: AnyNode | null = element;
+  for (let depth = 0; current && current.type === 'tag' && depth < 5; depth += 1) {
+    const node = $(current);
+    parts.push(current.name, node.attr('id') ?? '', node.attr('class') ?? '', node.attr('alt') ?? '', node.attr('title') ?? '', node.attr('itemprop') ?? '');
+    current = current.parent;
+  }
+  return parts.join(' ').toLowerCase();
+}
+
+function imageIsUnrelated(context: string, value: string) {
+  return unrelatedImageToken.test(`${context} ${value}`);
+}
+
+function isImageUrl(value: string) {
+  try {
+    const resolved = new URL(value.trim(), 'https://image.invalid');
+    return imageUrlPattern.test(resolved.pathname + resolved.search);
+  } catch {
+    return false;
+  }
+}
+
+function srcsetCandidates(value: string) {
+  return value.split(',').map((candidate) => {
+    const [url, descriptor] = candidate.trim().split(/\s+/);
+    const amount = descriptor ? Number.parseFloat(descriptor) : 0;
+    return { url, amount: Number.isFinite(amount) ? amount : 0 };
+  }).filter((candidate) => candidate.url);
+}
+
+function imageAttributeValues($: cheerio.CheerioAPI, element: AnyNode) {
+  const node = $(element);
+  const srcsets = [node.attr('data-srcset'), node.attr('srcset')].filter((value): value is string => Boolean(value?.trim()));
+  if (node.is('img')) {
+    node.closest('picture').find('source').each((_, source) => {
+      const sourceNode = $(source);
+      const sourceSrcset = sourceNode.attr('data-srcset') ?? sourceNode.attr('srcset');
+      if (sourceSrcset?.trim()) srcsets.push(sourceSrcset);
+    });
+  }
+  const values = [
+    ...srcsets.flatMap((srcset) => srcsetCandidates(srcset).map((candidate) => candidate.url.trim())),
+    ...imageAttributes.filter((attribute) => attribute !== 'src').map((attribute) => node.attr(attribute)),
+    node.attr('src'),
+  ].filter((value): value is string => Boolean(value?.trim())).map((value) => value.trim());
+  return { values, hasImageAttribute: values.length > 0, srcsets };
+}
+
+function bestRelevantImageValue(values: string[], context: string) {
+  return values.find((value) => !imageIsUnrelated(context, value));
+}
+
+function bestRelevantSrcsetValue(srcsets: string[], context: string) {
+  for (const srcset of srcsets) {
+    const candidate = srcsetCandidates(srcset)
+      .filter(({ url }) => !imageIsUnrelated(context, url))
+      .sort((a, b) => b.amount - a.amount)[0];
+    if (candidate) return candidate.url.trim();
+  }
+  return undefined;
+}
+
+function imageCandidates($: cheerio.CheerioAPI): ImageCandidate[] {
+  const candidates: ImageCandidate[] = [];
+  const selectors = imageElementSelectors.join(',');
+
   $(selectors).each((_, element) => {
     const node = $(element);
-    ['src', 'data-src', 'data-lazy-src', 'data-image', 'data-image-url', 'data-zoom-image', 'data-full', 'data-original', 'data-product-image', 'data-gallery-image'].forEach((attribute) => add(node.attr(attribute)));
-    ['srcset', 'data-srcset'].forEach((attribute) => add(node.attr(attribute), true));
-    if (node.is('a')) add(node.attr('href'));
+    const context = imageContext($, element);
+    const { values, srcsets } = imageAttributeValues($, element);
+    const parentLink = node.closest('a').attr('href');
+    const score = (productImageToken.test(context) ? 10 : 0) + (node.attr('itemprop') === 'image' ? 5 : 0);
+    const value = bestRelevantSrcsetValue(srcsets, context) ?? bestRelevantImageValue(values, context);
+    if (value && score > 0) candidates.push({ value: value.trim(), score });
+    if (parentLink && isImageUrl(parentLink) && !imageIsUnrelated(context, parentLink) && score > 0) {
+      candidates.push({ value: parentLink.trim(), score });
+    }
   });
-  // Some galleries keep the full-size image on an anchor around the thumbnail.
-  $('.product-gallery a, .product-images a, [class*="gallery"] a').each((_, element) => add($(element).attr('href')));
-  return values;
+
+  // A few older themes expose only the full-size URL on gallery anchors.
+  $('.product-gallery a, .product-images a, [class*="gallery"] a, [id*="gallery"] a').each((_, element) => {
+    const value = $(element).attr('href');
+    const context = imageContext($, element);
+    if (value && isImageUrl(value) && !imageIsUnrelated(context, value)) candidates.push({ value: value.trim(), score: 10 });
+  });
+  return candidates;
+}
+
+function genericImageCandidates($: cheerio.CheerioAPI) {
+  const candidates: ImageCandidate[] = [];
+  $(imageElementSelectors.join(',')).each((_, element) => {
+    const context = imageContext($, element);
+    const { values, srcsets } = imageAttributeValues($, element);
+    const node = $(element);
+    const parentLink = node.closest('a').attr('href');
+    const value = bestRelevantSrcsetValue(srcsets, context) ?? bestRelevantImageValue(values, context);
+    if (value) candidates.push({ value: value.trim(), score: productImageToken.test(context) ? 10 : 0 });
+    if (parentLink && isImageUrl(parentLink) && !imageIsUnrelated(context, parentLink)) {
+      candidates.push({ value: parentLink.trim(), score: productImageToken.test(context) ? 10 : 0 });
+    }
+  });
+  return candidates;
 }
 
 function productSchemas($: cheerio.CheerioAPI) {
@@ -284,7 +376,7 @@ function stockFromAvailability(value: unknown, index = 0) {
   return index === 0 ? 10 : 20;
 }
 
-function parseProduct(html: string, pageUrl: string): ScrapedProduct {
+export function parseProduct(html: string, pageUrl: string): ScrapedProduct {
   const $ = cheerio.load(html);
   const schema = productSchemas($)[0] ?? {};
   const offers = Array.isArray(schema.offers) ? schema.offers : schema.offers ? [schema.offers] : [];
@@ -297,11 +389,16 @@ function parseProduct(html: string, pageUrl: string): ScrapedProduct {
   const name = text(schema.name) || text($('meta[property="og:title"]').attr('content')) || text($('h1').first().text());
   const description = text(schema.description) || text($('meta[property="og:description"]').attr('content')) || text($('.description, .product-description, [itemprop="description"]').first().text());
   const schemaImages = Array.isArray(schema.image) ? schema.image : schema.image ? [schema.image] : [];
-  const imageValues = [...schemaImages];
-  $('meta[property="og:image"], meta[property="og:image:url"], meta[name="twitter:image"]').each((_, element) => {
-    imageValues.push($(element).attr('content') ?? '');
-  });
-  imageValues.push(...imageCandidates($));
+  const scopedImages = imageCandidates($);
+  const productImages = [...relevantImageUrls(schemaImages, pageUrl), ...scopedImages.map((candidate) => candidate.value)];
+  const genericImages = productImages.length === 0 ? genericImageCandidates($).map((candidate) => candidate.value) : [];
+  const imageValues = productImages.length > 0 ? productImages : genericImages;
+  if (imageValues.length === 0) {
+    $('meta[property="og:image"], meta[property="og:image:url"], meta[name="twitter:image"]').each((_, element) => {
+      const value = $(element).attr('content');
+      if (value && !imageIsUnrelated('', value)) imageValues.push(value);
+    });
+  }
   const images = absoluteImages(imageValues, pageUrl).slice(0, MAX_IMAGES);
   const variants = offers.filter((offer) => offer !== firstOffer || offers.length > 1).map((offer, index) => ({
     name: text(offer.name) || text(offer.sku) || 'Variant',

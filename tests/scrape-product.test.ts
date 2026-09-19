@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import test from 'node:test';
-import { assertPublicRedirectTarget, assertPublicUrl, bestSrcsetCandidate, createPinnedLookup, imageFormat, isPrivateIp, normaliseLookupAddresses } from '../app/api/admin/scrape-product/route';
+import { assertPublicRedirectTarget, assertPublicUrl, bestSrcsetCandidate, createPinnedLookup, imageFormat, isPrivateIp, normaliseLookupAddresses, parseProduct } from '../app/api/admin/scrape-product/route';
+import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
 
 test('rejects truncated image signatures', () => {
   assert.equal(imageFormat('image/png', Uint8Array.from([0x89, 0x50, 0x4e, 0x47])), null);
@@ -61,4 +63,110 @@ test('uses the pinned lookup for a successful local HTTP request', async () => {
 test('selects the highest-density srcset candidate', () => {
   assert.equal(bestSrcsetCandidate('/small.jpg 400w, /large.jpg 1200w, /medium.jpg 800w'), '/large.jpg');
   assert.equal(bestSrcsetCandidate('/one.webp 1x, /two.webp 2x'), '/two.webp');
+});
+
+test('extracts ordered unique product images and caps them at ten', async () => {
+  const html = await readFile(resolve('tests/fixtures/scrape-product-mixed.html'), 'utf8');
+  const product = parseProduct(html, 'https://shop.example/products/lily-satin-dress');
+  assert.deepEqual(product.images, [
+    'https://shop.example/products/lily-front.jpg',
+    'https://shop.example/products/lily-back.jpg',
+    'https://shop.example/products/lily-gallery-1.jpg',
+    'https://shop.example/products/lily-gallery-2.jpg',
+    'https://shop.example/products/lily-gallery-3.jpg',
+    'https://shop.example/products/lily-gallery-4.jpg',
+    'https://shop.example/products/lily-gallery-5.jpg',
+    'https://shop.example/products/lily-gallery-6.jpg',
+    'https://shop.example/products/lily-gallery-7.jpg',
+    'https://shop.example/products/lily-gallery-8.jpg',
+  ]);
+  assert.equal(product.images.length, 10);
+  assert.equal(new Set(product.images).size, product.images.length);
+  assert.equal(product.images.some((url) => /logo|banner|recommend|icon/i.test(url)), false);
+});
+
+test('uses social image metadata only when no product image is available', () => {
+  const product = parseProduct('<meta property="og:title" content="Basic Tee"><meta property="og:image" content="/tee.jpg"><img src="/assets/logo.svg" alt="logo">', 'https://shop.example/tee');
+  assert.deepEqual(product.images, ['https://shop.example/tee.jpg']);
+});
+
+test('filters unrelated JSON-LD images while retaining a valid product image', () => {
+  const product = parseProduct(`
+    <script type="application/ld+json">
+      {"@type":"Product","name":"Basic Tee","image":["/assets/logo.svg","/assets/site-banner.jpg","/products/basic-tee.jpg"]}
+    </script>
+  `, 'https://shop.example/tee');
+  assert.deepEqual(product.images, ['https://shop.example/products/basic-tee.jpg']);
+});
+
+test('filters unrelated social images and keeps a valid OG fallback when no product image exists', () => {
+  const product = parseProduct(`
+    <meta property="og:image" content="/assets/site-banner.jpg">
+    <meta name="twitter:image" content="/assets/twitter-banner.jpg">
+    <meta property="og:image:url" content="/assets/basic-tee.jpg">
+  `, 'https://shop.example/tee');
+  assert.deepEqual(product.images, ['https://shop.example/assets/basic-tee.jpg']);
+});
+
+test('does not use social fallback when a valid product image exists', () => {
+  const product = parseProduct(`
+    <script type="application/ld+json">{"@type":"Product","name":"Basic Tee","image":"/products/basic-tee.jpg"}</script>
+    <meta property="og:image" content="/assets/other-product.jpg">
+  `, 'https://shop.example/tee');
+  assert.deepEqual(product.images, ['https://shop.example/products/basic-tee.jpg']);
+});
+
+test('extracts product images from data attributes, srcset, and picture sources', () => {
+  const product = parseProduct(`
+    <section class="product-gallery">
+      <img data-product-image="/products/attribute.jpg" src="/products/thumbnail.jpg">
+      <img data-srcset="/products/small.jpg 400w, /products/srcset.jpg 1200w">
+      <picture><source srcset="/products/picture-small.jpg 400w, /products/picture.jpg 1200w"><img src="/products/picture-thumb.jpg"></picture>
+    </section>
+  `, 'https://shop.example/tee');
+  assert.deepEqual(product.images, [
+    'https://shop.example/products/attribute.jpg',
+    'https://shop.example/products/srcset.jpg',
+    'https://shop.example/products/picture.jpg',
+  ]);
+});
+
+test('filters each image candidate before choosing data-src, srcset, and picture fallbacks', async () => {
+  const html = await readFile(resolve('tests/fixtures/scrape-product-candidate-filtering.html'), 'utf8');
+  const product = parseProduct(html, 'https://shop.example/tee');
+  assert.deepEqual(product.images, [
+    'https://shop.example/products/data-src-fallback.jpg',
+    'https://shop.example/products/srcset-fallback.jpg',
+    'https://shop.example/products/picture-fallback.jpg',
+    'https://shop.example/products/child.jpg',
+    'https://shop.example/products/full-size.jpg',
+  ]);
+  assert.equal(product.images.includes('https://shop.example/assets/recommendation.jpg'), false);
+});
+
+test('keeps a valid generic hero image as the fallback', () => {
+  const product = parseProduct('<img class="hero" src="/dress.jpg" alt="Summer dress">', 'https://shop.example/tee');
+  assert.deepEqual(product.images, ['https://shop.example/dress.jpg']);
+});
+
+test('filters plural unrelated assets from classes and URLs', () => {
+  const product = parseProduct(`
+    <header><img class="logos" src="/assets/logos.svg"></header>
+    <nav><img src="/assets/icons.png"></nav>
+    <main><img src="/products/dress.jpg" alt="Dress"></main>
+    <aside class="recommendations related-products cross-sells"><img src="/assets/recommendations.jpg"></aside>
+    <footer><img src="/assets/banners.jpg"><img src="/assets/footers.png"></footer>
+  `, 'https://shop.example/tee');
+  assert.deepEqual(product.images, ['https://shop.example/products/dress.jpg']);
+});
+
+test('uses the image attribute instead of a non-image parent link', () => {
+  const product = parseProduct('<section class="product-gallery"><a href="/products/dress"><img src="/images/dress.jpg" alt="Dress"></a></section>', 'https://shop.example/tee');
+  assert.deepEqual(product.images, ['https://shop.example/images/dress.jpg']);
+});
+
+test('preserves image order and caps the gallery at ten images', () => {
+  const html = Array.from({ length: 12 }, (_, index) => `<img class="hero" src="/images/dress-${index + 1}.jpg">`).join('');
+  const product = parseProduct(html, 'https://shop.example/tee');
+  assert.deepEqual(product.images, Array.from({ length: 10 }, (_, index) => `https://shop.example/images/dress-${index + 1}.jpg`));
 });
