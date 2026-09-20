@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { Inter } from 'next/font/google';
 import { Suspense } from 'react';
 import './globals.css';
 import { StorefrontProviders } from '@/components/shop/StorefrontProviders';
@@ -16,6 +17,12 @@ const SITE_NAME = brand.name;
 const TITLE_DEFAULT = `${SITE_NAME} — Shop Smart, Save Big`;
 const TITLE_TEMPLATE = `%s · ${SITE_NAME}`;
 const DESCRIPTION = brand.shortDescription;
+
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -100,7 +107,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en-ZA" className="dark">
+    <html lang="en-ZA" className={`${inter.variable} dark`}>
       <body className="min-h-screen flex flex-col bg-black text-white font-sans antialiased dark:bg-brand-950 dark:text-brand-50">
         <NativeChrome />
         <AppSplash />
