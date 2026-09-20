@@ -13,6 +13,7 @@ import type { AnyNode } from 'domhandler';
 import { getCurrentUser } from '@/lib/auth/session';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { IMPORT_STOCK_FLOOR, importedStock } from '@/lib/catalog/importer';
+import { assignVariantSkus } from '@/lib/catalog/variant-skus';
 
 export const runtime = 'nodejs';
 
@@ -861,13 +862,15 @@ export function parseProduct(html: string, pageUrl: string): ScrapedProduct {
   const brand = schema.brand && typeof schema.brand === 'object' ? (schema.brand as { name?: unknown }) : undefined;
   const brandName = text(brand?.name);
   const category = categoryHint($, schema, pageUrl);
+  const finalVariants = variants.length > 0 ? variants : [{ name: 'Default', sku: text(schema.sku) || 'IMPORT-1', options: {}, price: basePrice ?? 0, stock: stockFromAvailability(firstOffer.availability, 0), active: true }];
+  const assignedSkus = assignVariantSkus(finalVariants);
   return {
     name,
     description,
     price: basePrice ?? 0,
     comparePrice,
     images,
-    variants: variants.length > 0 ? variants : [{ name: 'Default', sku: text(schema.sku) || `IMPORT-${Date.now().toString(36).toUpperCase()}`, options: {}, price: basePrice ?? 0, stock: stockFromAvailability(firstOffer.availability, 0), active: true }],
+    variants: finalVariants.map((variant, index) => ({ ...variant, sku: assignedSkus[index] })),
     ...(brandName ? { brand: brandName } : {}),
     ...(category ? { category, categoryName: category } : {}),
     ...(text(schema.sku) ? { sku: text(schema.sku) } : {})

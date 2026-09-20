@@ -16,6 +16,7 @@ import { mapImportedVariantPrices, normalizeVariantCompareAtCents } from '@/lib/
 import { normalizeProductSlug } from '@/lib/catalog/slugs';
 import { replaceProductChildren } from '@/lib/catalog/product-children';
 import { updateProductWithSlugRetry } from '@/lib/catalog/product-update';
+import { assignVariantSkus, duplicateVariantSku, insertVariantsWithSkuRetry } from '@/lib/catalog/variant-skus';
 
 function getSupabase() {
   return createBrowserClient(
@@ -90,7 +91,7 @@ export function EditProductForm({ categories, product, existingImages, existingV
     if (Number.isFinite(data.price) && data.price > 0) setBasePrice(data.price.toFixed(2));
     setComparePrice(data.comparePrice != null && Number.isFinite(data.comparePrice) && data.comparePrice > data.price ? data.comparePrice.toFixed(2) : '');
     setImages(data.images.map((url, idx) => ({ id: `imported-${idx}`, url })));
-    setVariants(data.variants.map((v, idx) => ({
+    const importedVariants = data.variants.map((v, idx) => ({
       product_id: product.id,
       sku: v.sku,
       name: v.name,
@@ -99,7 +100,9 @@ export function EditProductForm({ categories, product, existingImages, existingV
       stock: importedStock(v.stock),
        is_active: v.active !== false,
       sort_order: idx
-    })));
+    }));
+    const skus = assignVariantSkus(importedVariants);
+    setVariants(importedVariants.map((variant, index) => ({ ...variant, sku: skus[index] })));
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -134,6 +137,12 @@ export function EditProductForm({ categories, product, existingImages, existingV
     }
 
     const supabase = getSupabase();
+    const skuError = duplicateVariantSku(variants.map((variant) => variant.sku));
+    if (skuError) {
+      showToast(skuError.message, 'error');
+      setSaving(false);
+      return;
+    }
 
     const previousProduct = {
       slug: product.slug,
@@ -203,7 +212,18 @@ export function EditProductForm({ categories, product, existingImages, existingV
           deleteImages: async () => ({ error: (await supabase.from('product_images').delete().eq('product_id', product.id)).error }),
           insertImages: async (rows) => ({ error: (rows.length ? await supabase.from('product_images').insert(rows as any) : { error: null }).error }),
           deleteVariants: async () => ({ error: (await supabase.from('product_variants').delete().eq('product_id', product.id)).error }),
-          insertVariants: async (rows) => ({ error: (rows.length ? await supabase.from('product_variants').insert(rows as any) : { error: null }).error }),
+          insertVariants: async (rows) => {
+            if (!rows.length) return { error: null };
+            try {
+              await insertVariantsWithSkuRetry({
+                rows,
+                insert: async (row) => ({ error: (await supabase.from('product_variants').insert(row as any)).error }),
+              });
+              return { error: null };
+            } catch (error) {
+              return { error: error as { code?: string; message?: string } };
+            }
+          },
         }),
       });
     } catch (childError) {

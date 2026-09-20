@@ -16,6 +16,7 @@ import { mapNewProductInsert } from '@/lib/catalog/product-payload';
 import { normalizeProductSlug } from '@/lib/catalog/slugs';
 import { createProductWithSlugRetry } from '@/lib/catalog/product-create';
 import { deleteProduct } from '@/lib/catalog/product-delete-client';
+import { assignVariantSkus, duplicateVariantSku, insertVariantsWithSkuRetry } from '@/lib/catalog/variant-skus';
 
 function getSupabase() {
   return createBrowserClient(
@@ -63,7 +64,7 @@ export function NewProductForm({ categories }: Props) {
     if (Number.isFinite(data.price) && data.price > 0) setBasePrice(data.price.toFixed(2));
     setComparePrice(data.comparePrice != null && Number.isFinite(data.comparePrice) && data.comparePrice > data.price ? data.comparePrice.toFixed(2) : '');
     setImages(data.images.map((url, idx) => ({ id: `imported-${idx}`, url })));
-    setVariants(data.variants.map((v, idx) => ({
+    const importedVariants = data.variants.map((v, idx) => ({
       product_id: 'new-product',
       sku: v.sku,
       name: v.name,
@@ -72,7 +73,9 @@ export function NewProductForm({ categories }: Props) {
       stock: importedStock(v.stock),
        is_active: v.active !== false,
       sort_order: idx
-    })));
+    }));
+    const skus = assignVariantSkus(importedVariants);
+    setVariants(importedVariants.map((variant, index) => ({ ...variant, sku: skus[index] })));
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -108,6 +111,12 @@ export function NewProductForm({ categories }: Props) {
     }
 
     const supabase = getSupabase();
+    const skuError = duplicateVariantSku(variants.map((variant) => variant.sku));
+    if (skuError) {
+      showToast(skuError.message, 'error');
+      setSaving(false);
+      return;
+    }
 
     // The unique index is the arbiter here. Retrying only a unique-key error
     // avoids a check-then-insert race when two admins use the same name.
@@ -132,8 +141,8 @@ export function NewProductForm({ categories }: Props) {
       onCreated: async (createdProduct) => {
         // These side effects run once, only after the product insert succeeds.
         if (variants.length > 0) {
-          const { error } = await supabase.from('product_variants').insert(
-            variants.map((v, idx) => ({
+          await insertVariantsWithSkuRetry({
+            rows: variants.map((v, idx) => ({
               product_id: createdProduct.id,
               sku: v.sku,
               name: v.name,
@@ -143,9 +152,9 @@ export function NewProductForm({ categories }: Props) {
               stock: imported ? importedStock(v.stock) : stockQuantity(v.stock),
               is_active: v.is_active,
               sort_order: idx
-            })) as any
-          );
-          if (error) throw error;
+            })),
+            insert: async (row) => ({ error: (await supabase.from('product_variants').insert(row as any)).error }),
+          });
         }
 
         if (images.length > 0) {
