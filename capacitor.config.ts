@@ -35,7 +35,10 @@ const config: CapacitorConfig = {
 
   android: {
     allowMixedContent: false,
-    captureInput: true,
+    // Use Android WebView's normal InputConnection. Capacitor's alternate
+    // captured-input connection is intended for simpler keyboards and can
+    // drop focus or typed characters in HTML inputs on Android WebView.
+    captureInput: false,
     webContentsDebuggingEnabled: false,
     backgroundColor: '#000000'
   },

@@ -76,7 +76,9 @@ export function AppSplash() {
   return (
     <div
       ref={ref}
-      className="fixed inset-0 z-[99999] flex items-center justify-center bg-black"
+      // The splash is decorative and aria-hidden. It must never become a
+      // touch target while hydration/native startup is still in progress.
+      className="pointer-events-none fixed inset-0 z-[99999] flex items-center justify-center bg-black"
       aria-hidden="true"
     >
       <img
