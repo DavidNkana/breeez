@@ -6,6 +6,7 @@ import { CartButton } from '@/components/shop/CartButton';
 import { SearchAutocomplete } from '@/components/shop/SearchAutocomplete';
 import { WishlistButton } from '@/components/shop/WishlistButton';
 import { brand } from '@/lib/brand';
+import { EvasaleAppPromotion } from '@/components/marketing/EvasaleAppPromotion';
 
 const NAV_LINKS = [
   { href: '/',           label: 'Home' },
@@ -43,6 +44,7 @@ export function Header() {
 
         <div className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
           <SearchAutocomplete />
+          <EvasaleAppPromotion />
           <WishlistButton />
           <Link
             href="/account"
