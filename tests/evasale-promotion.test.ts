@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   EVASALE_APP_URL,
   EVASALE_APP_BASE_URL,
+  EVASALE_STORE_LINKS,
   EVASALE_PROMOTION_KEY,
   EVASALE_PROMOTION_VERSION,
   EVASALE_SUPPRESSION_MS,
@@ -69,4 +70,14 @@ test('platform copy branches are deterministic and Play CTA is real', () => {
     attribution.searchParams.get('referrer'),
     'utm_source=evasale_web&utm_medium=app_prompt&utm_campaign=app_install',
   );
+});
+
+test('store cards keep Play attribution active and Apple safely disabled until configured', () => {
+  const play = EVASALE_STORE_LINKS.find((store) => store.id === 'google-play');
+  const apple = EVASALE_STORE_LINKS.find((store) => store.id === 'app-store');
+
+  assert.equal(play?.href, EVASALE_APP_URL);
+  assert.equal(play?.ariaLabel, 'Get Evasale on Google Play');
+  assert.equal(apple?.label, 'App Store — Coming soon');
+  assert.equal(apple?.href, null);
 });
