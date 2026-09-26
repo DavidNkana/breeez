@@ -6,7 +6,7 @@ import { CartButton } from '@/components/shop/CartButton';
 import { SearchAutocomplete } from '@/components/shop/SearchAutocomplete';
 import { WishlistButton } from '@/components/shop/WishlistButton';
 import { brand } from '@/lib/brand';
-import { EvasaleAppPromotion } from '@/components/marketing/EvasaleAppPromotion';
+import { EvasaleAppTrigger } from '@/components/marketing/EvasaleAppPromotion';
 
 const NAV_LINKS = [
   { href: '/',           label: 'Home' },
@@ -44,7 +44,7 @@ export function Header() {
 
         <div className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
           <SearchAutocomplete />
-          <EvasaleAppPromotion />
+          <EvasaleAppTrigger className="hidden sm:inline-flex" />
           <WishlistButton />
           <Link
             href="/account"
@@ -63,6 +63,9 @@ export function Header() {
       {/* Mobile nav strip */}
        <nav aria-label="Navigation" className="md:hidden border-t border-brand-100 bg-brand-50 dark:border-brand-800 dark:bg-brand-900 overflow-x-auto no-scrollbar">
         <ul className="flex px-4 py-2.5 text-sm whitespace-nowrap">
+          <li className="mr-2 flex items-center">
+            <EvasaleAppTrigger />
+          </li>
           {NAV_LINKS.map((l, i) => (
             <li key={l.href} className="flex items-center">
               <Link

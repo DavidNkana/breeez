@@ -10,6 +10,7 @@ import {
   isPromotionSuppressed,
   readPromotionRecord,
   writePromotionSuppression,
+  clearPromotionSuppression,
 } from '../lib/evasale-promotion';
 import { isNativeEnvironment } from '../lib/platform';
 
@@ -18,6 +19,7 @@ function storage() {
   return {
     getItem: (key: string) => values.get(key) ?? null,
     setItem: (key: string, value: string) => values.set(key, value),
+    removeItem: (key: string) => values.delete(key),
   };
 }
 
@@ -37,6 +39,13 @@ test('invalid or old promotion records do not suppress the prompt', () => {
   const store = storage();
   store.setItem(EVASALE_PROMOTION_KEY, JSON.stringify({ version: 99, suppressedUntil: Date.now() + 1000, action: 'dismissed' }));
   assert.equal(readPromotionRecord(store), null);
+});
+
+test('local QA can clear the versioned prompt without changing production suppression rules', () => {
+  const store = storage();
+  writePromotionSuppression(store, 'dismissed', 1_000_000);
+  clearPromotionSuppression(store);
+  assert.equal(store.getItem(EVASALE_PROMOTION_KEY), null);
 });
 
 test('native markers suppress web-only UI even if the bridge signal is unavailable', () => {

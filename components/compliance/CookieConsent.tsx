@@ -67,14 +67,17 @@ export function CookieConsent() {
   function acceptAll() {
     setConsent({ necessary: true, analytics: true, marketing: true });
     setVisible(false);
+    window.dispatchEvent(new Event('evasale:cookieConsentClosed'));
   }
   function rejectOptional() {
     setConsent({ necessary: true, analytics: false, marketing: false });
     setVisible(false);
+    window.dispatchEvent(new Event('evasale:cookieConsentClosed'));
   }
   function saveCustom() {
     setConsent({ necessary: true, analytics, marketing });
     setVisible(false);
+    window.dispatchEvent(new Event('evasale:cookieConsentClosed'));
   }
 
   if (!visible) return null;
