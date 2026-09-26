@@ -122,7 +122,7 @@ export function ProductActions({ productId, productSlug, productName, basePriceC
       </div>
 
       <div className="mt-6 text-xs text-brand-500 space-y-1">
-        <p>13 Days Return Policy</p>
+        <p>7 Days Return Policy</p>
         <p>24/7 Dedicated support</p>
         <p>100% Secure Payment</p>
       </div>

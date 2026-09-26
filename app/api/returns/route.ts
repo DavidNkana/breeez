@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { requireUser } from '@/lib/auth/session';
+import { isWithinReturnWindow, RETURN_WINDOW_DAYS } from '@/lib/returns/policy';
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
@@ -13,12 +14,12 @@ export async function POST(req: Request) {
   }
 
   // Verify the order belongs to this customer
-  const { data: order } = await supabase.from('orders').select('id, customer_id, status, total_cents')
+  const { data: order } = await supabase.from('orders').select('id, customer_id, status, delivered_at, total_cents')
     .eq('id', orderId).eq('customer_id', user.id).maybeSingle();
 
   if (!order) return NextResponse.json({ error: 'Order not found' }, { status: 404 });
-  if (order.status !== 'paid' && order.status !== 'shipped' && order.status !== 'delivered') {
-    return NextResponse.json({ error: 'Order cannot be returned in its current state' }, { status: 400 });
+  if (order.status !== 'delivered' || !order.delivered_at || !isWithinReturnWindow(order.delivered_at)) {
+    return NextResponse.json({ error: `Returns must be requested within ${RETURN_WINDOW_DAYS} days of delivery` }, { status: 400 });
   }
 
   // Check for existing return

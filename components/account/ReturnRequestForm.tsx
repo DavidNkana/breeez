@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Select';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/components/ui/Toast';
+import { RETURN_WINDOW_DAYS } from '@/lib/returns/policy';
 
 type Props = {
   orderId: string;
@@ -75,7 +76,7 @@ export function ReturnRequestForm({ orderId, open, onClose }: Props) {
             />
           </div>
           <p className="text-xs text-brand-500">
-            Returns are accepted within 13 days of delivery. Return shipping is at your cost. See our <a href="/legal/returns" className="text-accent-700 hover:underline" target="_blank">returns policy</a> for details.
+            Returns are accepted within {RETURN_WINDOW_DAYS} days of delivery. Return shipping is at your cost. See our <a href="/legal/returns" className="text-accent-700 hover:underline" target="_blank">returns policy</a> for details.
           </p>
           <Button type="submit" loading={loading} fullWidth>Submit return request</Button>
         </form>

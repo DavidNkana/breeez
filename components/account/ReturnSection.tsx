@@ -4,22 +4,23 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { ReturnRequestForm } from './ReturnRequestForm';
+import { isWithinReturnWindow, RETURN_WINDOW_DAYS } from '@/lib/returns/policy';
 
 type Props = {
   orderId: string;
   orderStatus: string;
-  orderCreatedAt: string;
+  orderDeliveredAt: string | null;
   existingReturn: { id: string; status: string; reason: string; created_at: string } | null;
 };
 
-export function ReturnSection({ orderId, orderStatus, orderCreatedAt, existingReturn }: Props) {
+export function ReturnSection({ orderId, orderStatus, orderDeliveredAt, existingReturn }: Props) {
   const [showForm, setShowForm] = useState(false);
 
-  // Eligible: paid/shipped/delivered, within 13 days, no existing return
-  const eligible = ['paid', 'shipped', 'delivered'].includes(orderStatus) && !existingReturn;
-  const createdAt = new Date(orderCreatedAt);
-  const daysSince = Math.floor((Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
-  const withinWindow = daysSince <= 7;
+  const eligible = orderStatus === 'delivered' && orderDeliveredAt !== null && !existingReturn;
+  const daysSince = orderDeliveredAt
+    ? Math.floor((Date.now() - new Date(orderDeliveredAt).getTime()) / (1000 * 60 * 60 * 24))
+    : 0;
+  const withinWindow = orderDeliveredAt !== null && isWithinReturnWindow(orderDeliveredAt);
 
   const canReturn = eligible && withinWindow;
 
@@ -53,7 +54,7 @@ export function ReturnSection({ orderId, orderStatus, orderCreatedAt, existingRe
           Request return
         </Button>
       ) : (
-        <p className="text-xs text-brand-500">Return window closed ({daysSince} days ago)</p>
+        <p className="text-xs text-brand-500">Return window closed ({daysSince} days ago; {RETURN_WINDOW_DAYS}-day window)</p>
       )}
       <ReturnRequestForm orderId={orderId} open={showForm} onClose={() => setShowForm(false)} />
     </div>

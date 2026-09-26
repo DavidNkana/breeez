@@ -6,6 +6,7 @@ import { RecentlyViewed } from '@/components/shop/RecentlyViewed';
 import { PromoBanner } from '@/components/shop/PromoBanner';
 import { VideoBanner } from '@/components/shop/VideoBanner';
 import { getTodaysPicks, listProducts } from '@/lib/catalog/queries';
+import { RETURN_WINDOW_DAYS } from '@/lib/returns/policy';
 
 export default async function HomePage() {
   const todaysPicks = await getTodaysPicks(12);
@@ -98,8 +99,8 @@ export default async function HomePage() {
             <div className="flex items-start gap-3">
                 <div className="flex-shrink-0 h-10 w-10 rounded-full bg-white dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-brand-100"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M9 7H4v5M4 12a8 8 0 1 0 2-5" /></svg></div>
               <div>
-                 <p className="font-medium text-brand-900 dark:text-white">13-day returns</p>
-                 <p className="text-sm text-brand-600 dark:text-brand-300">Not right? Send it back within 13 days.</p>
+                  <p className="font-medium text-brand-900 dark:text-white">{RETURN_WINDOW_DAYS}-day returns</p>
+                  <p className="text-sm text-brand-600 dark:text-brand-300">Not right? Send it back within {RETURN_WINDOW_DAYS} days.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
