@@ -44,7 +44,7 @@ export function EvasaleAppTrigger({ className = '' }: { className?: string }) {
       className={`inline-flex min-h-9 shrink-0 items-center rounded-md bg-accent-500 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-accent-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 sm:px-3 sm:text-sm ${className}`}
     >
       <span className="sm:hidden">Get app</span>
-      <span className="hidden sm:inline">Get the app</span>
+      <span className="hidden sm:inline">Download the app</span>
     </button>
   );
 }
