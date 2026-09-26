@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { RETURN_WINDOW_DAYS } from '@/lib/returns/policy';
 
 export const metadata = { title: 'Terms & Conditions — Evasale' };
 
@@ -19,7 +20,7 @@ export default function TermsPage() {
         <p>We deliver nationwide via Pargo pickup points, The Courier Guy, or Dawn Wing (metro only). Delivery times are estimates, not guarantees. Risk passes to you on delivery.</p>
 
         <h2>4. Returns &amp; Refunds</h2>
-        <p>You have <strong>7 days</strong> from the date of delivery to return an item for a refund. The item must be unused and in its original packaging. Return shipping is at your cost. Refunds are processed within 5 business days of us receiving the returned item. See our <Link href="/legal/returns">Returns Policy</Link> for details.</p>
+        <p>You have <strong>{RETURN_WINDOW_DAYS} days</strong> from the date of delivery to return an item for a refund. The item must be unused and in its original packaging. Return shipping is at your cost. Refunds are processed within 5 business days of us receiving the returned item. See our <Link href="/legal/returns">Returns Policy</Link> for details.</p>
 
         <h2>5. Product Information</h2>
         <p>We try to display accurate product images, descriptions, and stock levels. Slight variations in colour may occur due to screen differences. Weights and dimensions are approximate.</p>
