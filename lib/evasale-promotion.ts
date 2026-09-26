@@ -13,6 +13,8 @@ export const EVASALE_APP_URL = `${EVASALE_APP_BASE_URL}&${new URLSearchParams({
 export const EVASALE_PROMOTION_VERSION = 1;
 export const EVASALE_PROMOTION_KEY = `evasale:app-promotion:v${EVASALE_PROMOTION_VERSION}`;
 export const EVASALE_SUPPRESSION_MS = 30 * 24 * 60 * 60 * 1000;
+export const EVASALE_COOKIE_CLOSED_EVENT = 'evasale:cookieConsentClosed';
+export const EVASALE_OPEN_EVENT = 'evasale:openAppPromotion';
 
 export type EvasalePlatform = 'android' | 'ios' | 'desktop';
 export type PromotionRecord = {
@@ -67,5 +69,15 @@ export function writePromotionSuppression(
     } satisfies PromotionRecord));
   } catch {
     // Storage can be disabled or full. The in-memory component state remains safe.
+  }
+}
+
+/** Explicitly clear the web prompt during local QA; production UI never calls this. */
+export function clearPromotionSuppression(storage: Pick<Storage, 'removeItem'> | null): void {
+  if (!storage) return;
+  try {
+    storage.removeItem(EVASALE_PROMOTION_KEY);
+  } catch {
+    // Storage can be disabled.
   }
 }

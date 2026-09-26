@@ -7,6 +7,7 @@ import { CartFlyProvider } from './CartFly';
 import { CookieConsent } from '@/components/compliance/CookieConsent';
 import { CartAbandonmentTracker } from './CartAbandonmentTracker';
 import { logError } from '@/lib/utils/error-logger';
+import { EvasaleAppPromotion } from '@/components/marketing/EvasaleAppPromotion';
 
 export function StorefrontProviders() {
   useEffect(() => {
@@ -38,6 +39,7 @@ export function StorefrontProviders() {
       <CartDrawer />
       <ToastViewport />
       <CookieConsent />
+      <EvasaleAppPromotion />
       <CartAbandonmentTracker />
     </CartFlyProvider>
   );
