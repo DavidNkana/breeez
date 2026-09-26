@@ -10,6 +10,23 @@ const EVASALE_APP_ATTRIBUTION = {
 export const EVASALE_APP_URL = `${EVASALE_APP_BASE_URL}&${new URLSearchParams({
   referrer: new URLSearchParams(EVASALE_APP_ATTRIBUTION).toString(),
 }).toString()}`;
+
+// Keep store destinations in one place so the Apple URL can be enabled without
+// changing the promotion component once the listing is available.
+export const EVASALE_STORE_LINKS = [
+  {
+    id: 'google-play',
+    label: 'Google Play',
+    ariaLabel: 'Get Evasale on Google Play',
+    href: EVASALE_APP_URL,
+  },
+  {
+    id: 'app-store',
+    label: 'App Store — Coming soon',
+    ariaLabel: 'App Store — Coming soon',
+    href: null,
+  },
+] as const;
 export const EVASALE_PROMOTION_VERSION = 1;
 export const EVASALE_PROMOTION_KEY = `evasale:app-promotion:v${EVASALE_PROMOTION_VERSION}`;
 export const EVASALE_SUPPRESSION_MS = 30 * 24 * 60 * 60 * 1000;
