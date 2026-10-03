@@ -1,5 +1,6 @@
 
 import { RETURN_WINDOW_DAYS } from '@/lib/returns/policy';
+import { brand } from '@/lib/brand';
 
 export const metadata = { title: 'Returns Policy — Evasale' };
 
@@ -24,7 +25,7 @@ export default function ReturnsPage() {
 
         <h2>How to Return</h2>
         <ol>
-          <li>Email <a href="mailto:returns@breeez.app">returns@breeez.app</a> with your order number and reason</li>
+          <li>Email <a href={`mailto:${brand.contact.email}`}>{brand.contact.email}</a> with your order number and reason</li>
           <li>We&apos;ll send you a return authorisation and the return address</li>
           <li>Pack the item securely and ship it to us (return shipping is at your cost)</li>
           <li>Once we receive and inspect the item, we&apos;ll notify you of the refund decision</li>
@@ -34,13 +35,13 @@ export default function ReturnsPage() {
         <p>Refunds are processed within <strong>5 business days</strong> of us receiving the returned item, via the original payment method.</p>
 
         <h2>Damaged or Wrong Items</h2>
-        <p>If your item arrives damaged or you received the wrong product, we&apos;ll cover the return shipping. Email <a href="mailto:returns@breeez.app">returns@breeez.app</a> with photos within 48 hours of delivery.</p>
+        <p>If your item arrives damaged or you received the wrong product, we&apos;ll cover the return shipping. Email <a href={`mailto:${brand.contact.email}`}>{brand.contact.email}</a> with photos within 48 hours of delivery.</p>
 
         <h2>Exchanges</h2>
         <p>Need a different size or colour? Email us and we&apos;ll arrange an exchange (subject to stock availability).</p>
 
         <h2>Contact</h2>
-        <p><a href="mailto:returns@breeez.app">returns@breeez.app</a></p>
+        <p><a href={`mailto:${brand.contact.email}`}>{brand.contact.email}</a></p>
       </main>
     </>
   );

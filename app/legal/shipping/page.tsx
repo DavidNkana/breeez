@@ -1,3 +1,4 @@
+import { brand } from '@/lib/brand';
 
 export const metadata = { title: 'Shipping Policy — Evasale' };
 
@@ -27,7 +28,7 @@ export default function ShippingPage() {
       <p>Once your order ships, you&apos;ll receive an email with a tracking link. You can also view tracking on your <a href="/account/orders">account orders page</a>.</p>
 
       <h2>Issues with delivery</h2>
-      <p>If your order hasn&apos;t arrived within 7 days of the ETA, please email <a href="mailto:support@breeez.app">support@breeez.app</a> with your order number.</p>
+      <p>If your order hasn&apos;t arrived within 7 days of the ETA, please email <a href={`mailto:${brand.contact.email}`}>{brand.contact.email}</a> with your order number.</p>
       </main>
     </>
   );

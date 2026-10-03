@@ -68,7 +68,7 @@ export default function AboutPage() {
 
         <h2 className="mt-10 text-2xl font-semibold text-brand-950">Where we are</h2>
         <p className="mt-3 text-brand-700 leading-relaxed">
-          Founded in {brand.about.founded} in {brand.contact.address.line2.split(',')[0].trim()}, {brand.name} ships nationwide via Pargo (lockers
+          Founded in {brand.about.founded} in Pretoria, {brand.name} ships nationwide via Pargo (lockers
           and pickup points), The Courier Guy (door to door), and Dawn Wing
           (same-day and overnight in major metros).
         </p>

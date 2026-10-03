@@ -11,6 +11,7 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 import { NativeChrome } from '@/components/app/NativeChrome';
+import { EvasaleComingSoonBanner } from '@/components/layout/EvasaleComingSoonBanner';
 
 const SITE_URL = brand.siteUrl;
 const SITE_NAME = brand.name;
@@ -117,6 +118,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <NavigationLoader />
         </Suspense>
         <Header />
+        <EvasaleComingSoonBanner />
         <div className="flex-1 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
           {children}
           <Footer />

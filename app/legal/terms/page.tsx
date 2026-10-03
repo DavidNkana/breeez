@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { RETURN_WINDOW_DAYS } from '@/lib/returns/policy';
+import { brand } from '@/lib/brand';
 
 export const metadata = { title: 'Terms & Conditions — Evasale' };
 
@@ -38,7 +39,7 @@ export default function TermsPage() {
         <p>These terms are governed by the laws of the Republic of South Africa. Any disputes are subject to the jurisdiction of South African courts.</p>
 
         <h2>10. Contact</h2>
-        <p>Questions? Email <Link href="mailto:support@breeez.app">support@breeez.app</Link>.</p>
+        <p>Questions? Email <Link href={`mailto:${brand.contact.email}`}>{brand.contact.email}</Link>.</p>
       </main>
     </>
   );
