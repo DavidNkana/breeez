@@ -19,7 +19,7 @@ export const brand = {
   founded: 2010,
   freeShippingThresholdCents: 65000,
 
-  // Colors — derived from their actual website (https://www.trendsdaytoday.co.za/)
+  // Colors — Evasale visual identity.
   colors: {
     primary: '#C72E28',     // signature red (links, CTAs)
     accent: '#D9534F',      // lighter red (hover)
@@ -39,36 +39,31 @@ export const brand = {
   favicon: '/brand/evasale-solo-logo.png',
   ogDefault: '/brand/og-default.png', // we already have opengraph-image.tsx — this is fallback
 
-  // Contact — pulled directly from their site footer
+  // Customer contact details. Keep display and navigable values together.
   contact: {
     address: {
-      line1: '382 WF Nkomo St',
-      line2: 'Pretoria West, Pretoria, 0183',
+      line1: 'Bridge Office Park, 3rd',
+      line2: 'Fehrsen St, Brooklyn, Pretoria, 0181',
+      full: 'Bridge Office Park, 3rd, Fehrsen St, Brooklyn, Pretoria, 0181',
       country: 'South Africa',
     },
-    phone: '+27 12 327 0910',
-    whatsapp: '+27 79 457 1253',
-    whatsappLink: 'https://api.whatsapp.com/send?phone=27794571253',
-    email: 'trendsdaytodayonline@gmail.com',
+    phone: '+27 74 777 8886',
+    phoneLink: 'tel:+27747778886',
+    whatsapp: '+27 74 777 8886',
+    whatsappLink: 'https://wa.me/27747778886',
+    email: 'info@evasale.co.za',
     hours: 'Mon–Sat 08:00–17:00',
   },
 
   // Socials
   social: {
-    facebook: 'https://www.facebook.com/profile.php?id=100063971679948',
-    facebookShare: 'https://www.facebook.com/sharer/sharer.php?u=https://www.trendsdaytoday.co.za/',
-    twitter: 'https://x.com/share?url=https://www.trendsdaytoday.co.za/',
-    twitterHandle: '@trendsdaytodaySA', // best guess — confirm with their team
-    whatsappShare: 'https://api.whatsapp.com/send?text=https%3A%2F%2Fwww.trendsdaytoday.co.za%2F',
-    website: 'https://www.trendsdaytoday.co.za',
+    facebook: null,
+    twitter: null,
   },
 
   // URLs used in OG/canonical/legal — environment-overridable.
   // The fallback is the Vercel deployment URL — the actually-live, actually-resolving URL.
-  // Previously this defaulted to https://trends.day-to-day.app which is NOT a registered
-  // domain (placeholder), which broke the Apple-required account-deletion button and any
-  // other code that uses brand.siteUrl. If you ever wire up a real custom domain, set
-  // the NEXT_PUBLIC_SITE_URL env var in Vercel and this getter will use it instead.
+  // Set NEXT_PUBLIC_SITE_URL when a production custom domain is available.
   get siteUrl() {
     return (process.env.NEXT_PUBLIC_SITE_URL || 'https://breeez-lyart.vercel.app').replace(/\/+$/, '');
   },
@@ -77,7 +72,7 @@ export const brand = {
   email: {
     fromName: 'Evasale',
     // from address comes from RESEND_FROM_EMAIL env
-    replyTo: 'trendsdaytodayonline@gmail.com',
+    replyTo: 'info@evasale.co.za',
     orderConfirmationSubject: 'Your Evasale order is confirmed',
     orderShippedSubject: 'Your order is on its way',
     newsletterWelcomeSubject: 'Welcome to Evasale',
@@ -87,7 +82,7 @@ export const brand = {
   // Legal
   privacyOfficer: 'Evasale (Pty) Ltd',
   copyrightLine: '© {year} Evasale. Prices in ZAR. POPIA-compliant.',
-  whatsappStoreLink: 'https://api.whatsapp.com/send?phone=27794571253&text=Hi%20Evasale%20team%2C%20I%27d%20like%20to%20order%20via%20WhatsApp.',
+  whatsappStoreLink: 'https://wa.me/27747778886',
 
   // Home hero copy (no story here — story lives on the About page)
   home: {

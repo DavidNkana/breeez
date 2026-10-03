@@ -476,7 +476,7 @@ This means:
 - [ ] Category: Shopping
 - [ ] Age rating: 4+
 - [ ] Privacy policy URL (hosted at `/legal/privacy` on the deployed site)
-- [ ] Support URL (mailto:support@breeez.shop)
+- [ ] Support URL (mailto:info@evasale.co.za)
 - [ ] Screenshots: 6.7" (iPhone 15 Pro Max), 6.5" (iPhone 11 Pro Max), 5.5" (iPhone 8 Plus), 12.9" iPad — at least 3 per device class
 - [ ] App icon 1024×1024 (no transparency, no rounded corners — Apple adds them)
 - [ ] Description (~4000 chars)
