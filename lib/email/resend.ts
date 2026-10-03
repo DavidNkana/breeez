@@ -7,8 +7,8 @@
  * Setup:
  * 1. Sign up at https://resend.com (free)
  * 2. API Keys → create
- * 3. Add domain trendsdaytoday.co.za (or your subdomain) + verify
- * 4. Vercel env: RESEND_API_KEY + RESEND_FROM_EMAIL=orders@trendsdaytoday.co.za
+ * 3. Add and verify the sending domain in Resend.
+ * 4. Set RESEND_API_KEY and RESEND_FROM_EMAIL in the deployment environment.
  */
 
 import { brand } from '@/lib/brand';
@@ -40,7 +40,7 @@ function emailTemplate(title: string, body: string) {
     ${body}
     <p style="margin-top:32px;font-size:11px;color:#94a3b8;border-top:1px solid #e5e7eb;padding-top:16px">
       ${brand.copyrightLine.replace('{year}', String(new Date().getFullYear()))}<br />
-      ${brand.contact.address.line1}, ${brand.contact.address.line2} — ${brand.contact.email}
+      ${brand.contact.address.full} — ${brand.contact.email}
     </p>
   </div>`;
 }

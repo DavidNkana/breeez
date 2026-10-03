@@ -1141,7 +1141,7 @@ git push origin main
 
 - [ ] Subtitle, category, content rights, age rating
 - [ ] Privacy policy URL (Vercel-deployed `/legal/privacy`)
-- [ ] Support URL (mailto:support@breeez.app)
+- [ ] Support URL (mailto:info@evasale.co.za)
 - [ ] Screenshots (6.7", 6.5", 5.5" iPhone + 12.9" iPad, at least 3 each)
 - [ ] Description, keywords, what's new
 - [ ] Copyright

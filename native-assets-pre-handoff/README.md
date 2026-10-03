@@ -68,7 +68,7 @@ Fill in this exact text (you can customise later):
 2. **Data safety form** under App content:
    - Collected: email (account), name (account), address (orders), payment info (handled by PayFast/Yoco, NOT stored by us)
    - Encrypted in transit: Yes
-   - Users can request deletion: Yes (via account settings, or email support@breeez.shop)
+   - Users can request deletion: Yes (via account settings, or email info@evasale.co.za)
    - All required by app function: Yes
 
 ### Step 5 — Upload the AAB

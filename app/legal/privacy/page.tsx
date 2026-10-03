@@ -1,3 +1,4 @@
+import { brand } from '@/lib/brand';
 
 export const metadata = { title: 'Privacy Notice (POPIA) — Evasale' };
 
@@ -52,7 +53,7 @@ export default function PrivacyPage() {
         <p>We use PostHog for anonymous product analytics (no PII shared). We do not use advertising cookies.</p>
 
         <h2>8. Information Officer</h2>
-        <p>For POPIA-related queries, contact our Information Officer at <a href="mailto:trendsdaytodayonline@gmail.com">trendsdaytodayonline@gmail.com</a>.</p>
+        <p>For POPIA-related queries, contact our Information Officer at <a href={`mailto:${brand.contact.email}`}>{brand.contact.email}</a>.</p>
       </main>
     </>
   );
