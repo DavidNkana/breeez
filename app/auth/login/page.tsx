@@ -1,7 +1,12 @@
 import Link from 'next/link';
 import { LoginForm } from '@/components/auth/LoginForm';
+import { getLoginNextPath } from '@/lib/auth/redirect';
 
-export default function LoginPage() {
+export default function LoginPage({
+  searchParams,
+}: {
+  searchParams?: { next?: string | string[] };
+}) {
   return (
     <>
       <main className="mx-auto max-w-md px-4 py-10 pb-20 safe-bottom">
@@ -11,7 +16,7 @@ export default function LoginPage() {
         <h1 className="text-2xl font-semibold text-brand-950">Sign in</h1>
         <p className="mt-1 text-sm text-brand-600">Welcome back. Sign in to your Evasale account.</p>
         <div className="mt-6">
-          <LoginForm />
+          <LoginForm next={getLoginNextPath(searchParams)} />
         </div>
         <p className="mt-4 text-center text-sm">
           <Link href="/auth/forgot-password" className="text-brand-700 hover:underline">

@@ -1,19 +1,50 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useToast } from '@/components/ui/Toast';
+import { createClient } from '@/lib/supabase/client';
 
 function ResetForm() {
   const router = useRouter();
-  const params = useSearchParams();
   const showToast = useToast((s) => s.show);
+  const [supabase, setSupabase] = useState<ReturnType<typeof createClient> | null>(null);
   const [pw, setPw] = useState('');
   const [pw2, setPw2] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
+  const [hasSession, setHasSession] = useState(false);
+
+  useEffect(() => {
+    const client = createClient();
+    setSupabase(client);
+    let mounted = true;
+
+    async function loadSession() {
+      // The callback flow stores the recovery session in SSR cookies. The
+      // browser client also consumes an implicit-flow hash without exposing it
+      // to the server or sending tokens to our API.
+      const { data, error } = await client.auth.getSession();
+      if (!mounted) return;
+      setHasSession(Boolean(data.session) && !error);
+      setCheckingSession(false);
+    }
+
+    void loadSession();
+    const { data: listener } = client.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return;
+      setHasSession(Boolean(session));
+      setCheckingSession(false);
+    });
+
+    return () => {
+      mounted = false;
+      listener.subscription.unsubscribe();
+    };
+  }, []);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -25,28 +56,21 @@ function ResetForm() {
       showToast('Passwords do not match', 'error');
       return;
     }
-    const accessToken = params.get('access_token');
-    const refreshToken = params.get('refresh_token');
-    if (!accessToken || !refreshToken) {
+    if (checkingSession || !hasSession || !supabase) {
       showToast('Reset link is invalid or expired. Request a new one.', 'error');
       return;
     }
     setSubmitting(true);
     try {
-      const res = await fetch('/api/auth/reset-password', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ accessToken, refreshToken, newPassword: pw }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        showToast(data.error ?? 'Reset failed', 'error');
+      const { error } = await supabase.auth.updateUser({ password: pw });
+      if (error) {
+        showToast(error.message || 'Reset failed', 'error');
         return;
       }
       showToast('Password updated. Please sign in.', 'success');
       router.push('/auth/login');
-    } catch (e: any) {
-      showToast(e?.message ?? 'Network error', 'error');
+    } catch {
+      showToast('Network error', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -58,6 +82,11 @@ function ResetForm() {
       <p className="mt-1 text-sm text-brand-600">Must be at least 8 characters.</p>
 
       <form onSubmit={submit} className="mt-6 space-y-3">
+        {!checkingSession && !hasSession && (
+          <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+            Reset link is invalid or expired. Request a new one.
+          </p>
+        )}
         <div>
           <label className="mb-1 block text-sm font-medium text-brand-900" htmlFor="pw">New password</label>
           <Input
@@ -82,7 +111,7 @@ function ResetForm() {
             autoComplete="new-password"
           />
         </div>
-        <Button type="submit" loading={submitting} fullWidth size="lg">
+        <Button type="submit" loading={submitting || checkingSession} fullWidth size="lg" disabled={!hasSession || checkingSession}>
           Update password
         </Button>
       </form>

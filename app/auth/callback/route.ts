@@ -1,21 +1,29 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextResponse, type NextRequest } from 'next/server';
+import { getAuthOrigin, getSafeNextPath } from '@/lib/auth/redirect';
 
 /**
  * Auth callback handler.
  *
  * Supabase email confirmation + magic links land here with `?code=...` in the URL.
- * We exchange the code for a session (setting the auth cookie) and redirect.
+ * Recovery links may use `token_hash` instead; verification establishes the
+ * session cookie before sending the user to the password form.
  *
  * Configured in supabase/config.toml as one of the redirect URLs.
  */
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
+  const origin = getAuthOrigin(new URL(request.url).origin);
   const code = searchParams.get('code');
-  const next = searchParams.get('next') ?? '/account';
+  const tokenHash = searchParams.get('token_hash');
+  const tokenType = searchParams.get('type');
+  const next = getSafeNextPath(searchParams.get('next'));
 
-  if (code) {
+  const isSupportedTokenType = tokenType === 'signup' || tokenType === 'email' || tokenType === 'magiclink' || tokenType === 'recovery';
+  const redirectPath = tokenType === 'recovery' ? '/auth/reset-password' : next;
+
+  if (code || (tokenHash && isSupportedTokenType)) {
     const cookieStore = await cookies();
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -34,9 +42,18 @@ export async function GET(request: NextRequest) {
       }
     );
 
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) {
-      return NextResponse.redirect(new URL(next, origin));
+    try {
+      const { error } = code
+        ? await supabase.auth.exchangeCodeForSession(code)
+        : await supabase.auth.verifyOtp({
+            token_hash: tokenHash!,
+            type: tokenType as 'signup' | 'email' | 'magiclink' | 'recovery'
+          });
+      if (!error) {
+        return NextResponse.redirect(new URL(redirectPath, origin));
+      }
+    } catch {
+      // Fall through to the safe login error redirect.
     }
   }
 

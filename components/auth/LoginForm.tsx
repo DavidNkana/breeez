@@ -7,6 +7,7 @@ import { createBrowserClient } from '@supabase/ssr';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useToast } from '@/components/ui/Toast';
+import { getAuthCallbackUrl, getSafeNextPath } from '@/lib/auth/redirect';
 
 function getSupabase() {
   return createBrowserClient(
@@ -26,15 +27,20 @@ export function LoginForm({ next = '/account' }: { next?: string }) {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const { error } = await getSupabase().auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) {
-      showToast(error.message, 'error');
-      return;
+    try {
+      const { error } = await getSupabase().auth.signInWithPassword({ email, password });
+      if (error) {
+        showToast(error.message, 'error');
+        return;
+      }
+      showToast('Welcome back!', 'success');
+      router.push(getSafeNextPath(next));
+      router.refresh();
+    } catch (caught) {
+      showToast(caught instanceof Error ? caught.message : 'We could not sign you in. Please try again.', 'error');
+    } finally {
+      setLoading(false);
     }
-    showToast('Welcome back!', 'success');
-    router.push(next);
-    router.refresh();
   }
 
   async function onMagicLink() {
@@ -43,16 +49,21 @@ export function LoginForm({ next = '/account' }: { next?: string }) {
       return;
     }
     setLoading(true);
-    const { error } = await getSupabase().auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}` }
-    });
-    setLoading(false);
-    if (error) {
-      showToast(error.message, 'error');
-      return;
+    try {
+      const { error } = await getSupabase().auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: getAuthCallbackUrl(next, window.location.origin) }
+      });
+      if (error) {
+        showToast(error.message, 'error');
+        return;
+      }
+      setMagicLinkSent(true);
+    } catch (caught) {
+      showToast(caught instanceof Error ? caught.message : 'We could not send the magic link. Please try again.', 'error');
+    } finally {
+      setLoading(false);
     }
-    setMagicLinkSent(true);
   }
 
   if (magicLinkSent) {
