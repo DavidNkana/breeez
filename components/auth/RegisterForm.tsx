@@ -7,6 +7,8 @@ import { createBrowserClient } from '@supabase/ssr';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useToast } from '@/components/ui/Toast';
+import { getAuthCallbackUrl } from '@/lib/auth/redirect';
+import { getSignupState } from '@/lib/auth/signup';
 
 function getSupabase() {
   return createBrowserClient(
@@ -31,17 +33,32 @@ export function RegisterForm() {
       return;
     }
     setLoading(true);
-    const { error } = await getSupabase().auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: fullName },
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=/account`
-      }
-    });
+    let data: Awaited<ReturnType<ReturnType<typeof getSupabase>['auth']['signUp']>>['data'];
+    let error: Awaited<ReturnType<ReturnType<typeof getSupabase>['auth']['signUp']>>['error'];
+    try {
+      ({ data, error } = await getSupabase().auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: fullName },
+          emailRedirectTo: getAuthCallbackUrl('/account', window.location.origin)
+        }
+      }));
+    } catch (caught) {
+      setLoading(false);
+      showToast(caught instanceof Error ? caught.message : 'We could not create your account. Please try again.', 'error');
+      return;
+    }
     setLoading(false);
-    if (error) {
-      showToast(error.message, 'error');
+    const state = getSignupState({ error, user: data.user, session: data.session });
+    if (state === 'error') {
+      showToast(error?.message || 'We could not create your account. Please try again.', 'error');
+      return;
+    }
+    if (state === 'authenticated') {
+      showToast('Your account is ready. Welcome to Evasale!', 'success');
+      router.push('/account');
+      router.refresh();
       return;
     }
     setVerificationSent(true);
