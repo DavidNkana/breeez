@@ -33,9 +33,9 @@ Whether you're refreshing your kitchen, restocking bathroom essentials, updating
 
 WHY BREEZ?
 • Real South African essentials, not overseas noise — products chosen for local taste and local prices.
-• Nationwide delivery: Pargo pickup, The Courier Guy, or Dawn Wing same-day metro.
-• Pay how South Africans pay: PayFast, Yoco, Ozow, instant EFT, or card.
-• Trusted SA couriers: Pargo (pickup lockers), The Courier Guy, Dawn Wing — or collect in store.
+• Nationwide delivery with The Courier Guy.
+• Pay securely with PayFast; PayJustNow is coming soon.
+• Trusted SA courier: The Courier Guy, with delivery details shown at checkout.
 • 7-day returns on unused items (customer pays return shipping).
 • Your account, address book, and wishlist sync across web and mobile.
 
@@ -73,9 +73,9 @@ Welcome to Breeez — your one-stop shop for kitchen, home & lifestyle essential
 What's inside:
 • Browse 14 categories: women, men, kids, shoes, bags, home, kitchen & more
 • Save items to your wishlist
-• Fast checkout with PayFast, Yoco or Ozow
-• SA couriers: Pargo, The Courier Guy, Dawn Wing
-• Nationwide delivery via Pargo, The Courier Guy, or Dawn Wing
+• Fast checkout with PayFast
+• PayJustNow coming soon
+• Nationwide delivery with The Courier Guy
 • 7-day returns, request right from your phone
 • Account, addresses, and order history synced across web + mobile
 

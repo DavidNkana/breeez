@@ -10,22 +10,16 @@ export default function ShippingPage() {
         <p className="text-sm text-brand-500">Last updated: 2026-07-15</p>
 
         <h2>Delivery options</h2>
-        <p>We offer three delivery options at checkout. Availability depends on your postal code and order size.</p>
+        <p>We currently offer one delivery option at checkout: The Courier Guy door delivery. The displayed flat price is the current checkout price; it is not a live courier quote.</p>
 
-      <h3>1. Pargo Pickup Point — R49</h3>
-      <p>Collect your order at one of 2,500+ Pargo pickup points across South Africa. Best for affordable nationwide delivery. ETA 3-5 working days. We&apos;ll send you a pickup code via SMS when your order is ready.</p>
-
-      <h3>2. Door Delivery (The Courier Guy) — R89</h3>
-      <p>Standard delivery to your door, anywhere in South Africa. ETA 2-5 working days. Tracking link sent via email once dispatched.</p>
-
-      <h3>3. Same-day Metro (Dawn Wing) — R149</h3>
-      <p>Order before 11am and get it the same day. Only available in major metros (Johannesburg, Cape Town, Durban, Pretoria). ETA: same day.</p>
+      <h3>The Courier Guy door delivery — R89</h3>
+      <p>Standard delivery to your address nationwide. ETA 2-5 working days is an estimate. We do not currently provide live Courier Guy booking or tracking from checkout.</p>
 
       <h2>Delivery times</h2>
       <p>All ETAs are estimates. Public holidays, severe weather, and courier operational issues may cause delays. We&apos;ll keep you informed if your delivery is delayed.</p>
 
       <h2>Tracking</h2>
-      <p>Once your order ships, you&apos;ll receive an email with a tracking link. You can also view tracking on your <a href="/account/orders">account orders page</a>.</p>
+        <p>We will share dispatch information when available. Live courier tracking is not currently integrated.</p>
 
       <h2>Issues with delivery</h2>
       <p>If your order hasn&apos;t arrived within 7 days of the ETA, please email <a href={`mailto:${brand.contact.email}`}>{brand.contact.email}</a> with your order number.</p>

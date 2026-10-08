@@ -1,8 +1,7 @@
 /**
  * Evasale shipping adapters.
  *
- * Three SA couriers: Pargo (pickup points), The Courier Guy (door delivery),
- * Dawn Wing (same-day metro only).
+ * The Courier Guy is the only active customer-facing courier.
  *
  * In v1 with MOCK_SHIPPING=true (default), the quote function returns the
  * spec'd flat rates. Real courier API integration is a Phase 2 task that
@@ -11,7 +10,7 @@
 
 const MOCK = process.env.MOCK_SHIPPING !== 'false';
 
-export type ShippingMethod = 'pargo_pickup' | 'tcg_door' | 'dawn_wing_metro' | 'store_pickup';
+export type ShippingMethod = 'tcg_door';
 
 export type ShippingQuote = {
   method: ShippingMethod;
@@ -22,29 +21,11 @@ export type ShippingQuote = {
 };
 
 const RATES: Record<ShippingMethod, Omit<ShippingQuote, 'method'>> = {
-  store_pickup: {
-    label: 'Pickup from Store',
-    description: 'Collect your order from our store. We\'ll notify you when it\'s ready.',
-    costCents: 0,
-    estimatedDays: 'Ready within 24 hours'
-  },
-  pargo_pickup: {
-    label: 'Pargo Pickup Point',
-    description: 'Collect at one of 2,500+ Pargo points nationwide',
-    costCents: 4900,
-    estimatedDays: '3-5 working days'
-  },
   tcg_door: {
     label: 'Door Delivery (The Courier Guy)',
     description: 'Standard delivery to your address',
     costCents: 8900,
     estimatedDays: '2-5 working days'
-  },
-  dawn_wing_metro: {
-    label: 'Same-day Metro (Dawn Wing)',
-    description: 'Order before 11am, delivered same day (JHB/CPT/DBN/PTA only)',
-    costCents: 14900,
-    estimatedDays: 'Same day'
   }
 };
 
@@ -60,15 +41,11 @@ export function isMetroPostalCode(postalCode: string): boolean {
   );
 }
 
-export function getAllShippingOptions(postalCode?: string): ShippingQuote[] {
-  const all: ShippingQuote[] = (Object.keys(RATES) as ShippingMethod[]).map((method) => ({
+export function getAllShippingOptions(_postalCode?: string): ShippingQuote[] {
+  return (Object.keys(RATES) as ShippingMethod[]).map((method) => ({
     method,
     ...RATES[method]
   }));
-  if (postalCode && !isMetroPostalCode(postalCode)) {
-    return all.filter((q) => q.method !== 'dawn_wing_metro');
-  }
-  return all;
 }
 
 export function calculateShippingCents(method: ShippingMethod, _subtotalCents: number): number {
@@ -89,9 +66,8 @@ export type ShippingAddress = {
  */
 export async function bookShipment(method: ShippingMethod, orderNumber: string, address: ShippingAddress): Promise<{ trackingNumber: string; courier: string }> {
   if (MOCK) {
-    const prefix = method === 'pargo_pickup' ? 'PAR' : method === 'tcg_door' ? 'TCG' : 'DW';
-    const trackingNumber = `${prefix}${Date.now()}${Math.floor(Math.random() * 1000)}`;
-    return { trackingNumber, courier: RATES[method].label.split(' ')[0] };
+    const trackingNumber = `TCG${Date.now()}${Math.floor(Math.random() * 1000)}`;
+    return { trackingNumber, courier: 'The Courier Guy' };
   }
 
   // Real courier API calls would go here

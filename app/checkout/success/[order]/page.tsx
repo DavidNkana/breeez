@@ -1,4 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin';
+import { getCurrentUser } from '@/lib/auth/session';
 import Link from 'next/link';
 import { formatRand } from '@/lib/format';
 import { Badge } from '@/components/ui/Badge';
@@ -7,11 +8,10 @@ type Props = { params: { order: string }; searchParams: { ref?: string } };
 
 export default async function OrderSuccessPage({ params, searchParams }: Props) {
   const supabase = await createAdminClient();
-  const { data: order } = await supabase
-    .from('orders')
-    .select('*')
-    .eq('id', params.order)
-    .maybeSingle();
+  const user = await getCurrentUser();
+  const { data: order } = user
+    ? await supabase.from('orders').select('*').eq('id', params.order).eq('customer_id', user.id).maybeSingle()
+    : { data: null };
 
   return (
     <>
@@ -22,9 +22,15 @@ export default async function OrderSuccessPage({ params, searchParams }: Props) 
           </svg>
         </div>
 
-        <h1 className="mt-4 text-2xl font-semibold text-brand-950">Order placed!</h1>
-        <p className="mt-2 text-sm text-brand-600">
-          Thanks for shopping with Evasale. We&apos;ve sent a confirmation email.
+         <h1 className="mt-4 text-2xl font-semibold text-brand-950">
+            {user && (order as any)?.status === 'paid' ? 'Payment received' : user && order ? 'Payment pending' : 'Payment confirmation received'}
+         </h1>
+         <p className="mt-2 text-sm text-brand-600">
+            {user && (order as any)?.status === 'paid'
+              ? 'Thanks for shopping with Evasale. We&apos;ve sent a confirmation email.'
+              : user && order
+                ? 'Your order is reserved while PayFast confirms the payment. We will confirm it only after server verification.'
+                : 'We are processing your payment. Your order status will be available in your account once confirmed.'}
         </p>
 
         {order && (

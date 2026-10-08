@@ -1,18 +1,17 @@
 import 'server-only';
+import { isMockPaymentsEnabled } from './mock-mode';
 
 /**
  * Server-side payment gateway integration.
  * Only imported by api/checkout/create-payment/route.ts.
  */
 
-const MOCK = process.env.MOCK_PAYMENTS !== 'false';
-
 export type PaymentIntent = {
   reference: string;
   redirectUrl: string;
 };
 
-export type PaymentMethod = 'payfast' | 'yoco' | 'ozow';
+export type PaymentMethod = 'payfast';
 
 export async function createPayment(params: {
   orderId: string;
@@ -23,19 +22,17 @@ export async function createPayment(params: {
   returnUrl: string;
   cancelUrl: string;
 }): Promise<PaymentIntent> {
-  if (MOCK) {
+  if (isMockPaymentsEnabled()) {
     const ref = `MOCK-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     return { reference: ref, redirectUrl: `${params.returnUrl}&mock=1&ref=${ref}` };
   }
   switch (params.method) {
     case 'payfast': return await createPayFastPayment(params);
-    case 'yoco':    return await createYocoPayment(params);
-    case 'ozow':    return await createOzowPayment(params);
   }
 }
 
 export function isMockMode(): boolean {
-  return MOCK;
+  return isMockPaymentsEnabled();
 }
 
 async function createPayFastPayment(p: { orderId: string; orderNumber: string; amountCents: number; customerEmail: string; returnUrl: string; cancelUrl: string }): Promise<PaymentIntent> {
@@ -49,34 +46,25 @@ async function createPayFastPayment(p: { orderId: string; orderNumber: string; a
   }
 
   const baseUrl = sandbox ? 'https://sandbox.payfast.co.za/eng/process' : 'https://www.payfast.co.za/eng/process';
-  const data: Record<string, string | number> = {
-    merchant_id: merchantId,
-    merchant_key: merchantKey,
-    return_url: p.returnUrl,
-    cancel_url: p.cancelUrl,
-    notify_url: `${process.env.NEXT_PUBLIC_SUPABASE_URL ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).origin : ''}/api/webhooks/payfast`,
-    name: 'Evasale',
-    item_name: `Order ${p.orderNumber}`,
-    item_description: `Evasale order ${p.orderNumber}`,
-    amount: (p.amountCents / 100).toFixed(2),
-    email: p.customerEmail
-  };
+  const { buildPayFastFields, getPayFastAppOrigin, payFastSignature } = await import('./payfast');
+  const appOrigin = getPayFastAppOrigin();
+  const data = buildPayFastFields({
+    merchantId,
+    merchantKey,
+    orderId: p.orderId,
+    orderNumber: p.orderNumber,
+    amountCents: p.amountCents,
+    customerEmail: p.customerEmail,
+    returnUrl: `${appOrigin}/checkout/success/${p.orderId}?ref=${p.orderNumber}`,
+    cancelUrl: `${appOrigin}/cart`,
+    notifyUrl: `${appOrigin}/api/webhooks/payfast`,
+  });
 
   const query = Object.entries(data)
     .map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`)
     .join('&');
 
-  const signatureString = passphrase ? `${query}&passphrase=${encodeURIComponent(passphrase)}` : query;
-  const { createHash } = await import('node:crypto');
-  const signature = createHash('md5').update(signatureString).digest('hex');
+  const signature = payFastSignature(Object.entries(data), passphrase);
 
   return { reference: p.orderId, redirectUrl: `${baseUrl}?${query}&signature=${signature}` };
-}
-
-async function createYocoPayment(_p: any): Promise<PaymentIntent> {
-  throw new Error('Yoco integration requires YOCO_SECRET_KEY env. Set up in Vercel when ready.');
-}
-
-async function createOzowPayment(_p: any): Promise<PaymentIntent> {
-  throw new Error('Ozow integration requires OZOW_SITE_CODE + OZOW_PRIVATE_KEY env. Set up in Vercel when ready.');
 }

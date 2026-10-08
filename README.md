@@ -321,6 +321,13 @@ All three are integrated as **Supabase Edge Functions** that:
 
 **Money flow:** PayFast/Yoco/Ozow settle into your bank account on their schedule (PayFast = T+2, Yoco = T+1, Ozow = T+1).
 
+### 6.1 Payment measurement
+
+Checkout records `pending_payment_created` when a pending order is created. It
+does not record `abandoned_pending`: Breeez does not yet have an authoritative
+payment timeout/reconciliation job, and a successful pending payment must never
+be labelled abandoned. Timeout reconciliation remains future operational work.
+
 ---
 
 ## 7. Shipping

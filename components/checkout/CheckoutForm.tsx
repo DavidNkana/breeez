@@ -18,11 +18,12 @@ import type { AppliedCoupon } from './CouponCodeInput';
 type Props = {
   user: User | null;
   savedAddresses: any[];
+  mockPaymentsEnabled: boolean;
 };
 
 type Step = 'email' | 'address' | 'shipping' | 'payment';
 
-export function CheckoutForm({ user, savedAddresses }: Props) {
+export function CheckoutForm({ user, savedAddresses, mockPaymentsEnabled }: Props) {
   const router = useRouter();
   const items = useCart((s) => s.items);
   const subtotal = useCart((s) => s.subtotalCents());
@@ -39,9 +40,7 @@ export function CheckoutForm({ user, savedAddresses }: Props) {
   const [province, setProvince] = useState('Gauteng');
   const [postalCode, setPostalCode] = useState('');
   const [shippingMethod, setShippingMethod] = useState<ShippingMethod>('tcg_door');
-  const [paymentMethod, setPaymentMethod] = useState<
-    'payfast' | 'yoco' | 'ozow' | 'apple_pay' | 'paypal'
-  >('payfast');
+  const [paymentMethod, setPaymentMethod] = useState<'payfast' | 'payjustnow'>('payfast');
   const [coupon, setCoupon] = useState<AppliedCoupon | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -81,11 +80,14 @@ export function CheckoutForm({ user, savedAddresses }: Props) {
           couponCode: coupon?.code ?? null
         })
       });
-      const { orderId, orderNumber, redirectUrl } = await paymentRes.json();
+      const { orderId, orderNumber, redirectUrl, error } = await paymentRes.json();
+      if (!paymentRes.ok) throw new Error(error || 'Checkout failed');
 
-      // In mock mode, payment is auto-confirmed and we redirect to the success page
-      // In real mode, we'd redirect to the gateway (PayFast etc)
       clear();
+      if (redirectUrl) {
+        window.location.assign(redirectUrl);
+        return;
+      }
       router.push(`/checkout/success/${orderId}?ref=${orderNumber}`);
     } catch (err: any) {
       showToast(err.message || 'Checkout failed', 'error');
@@ -213,7 +215,7 @@ export function CheckoutForm({ user, savedAddresses }: Props) {
         {step === 'payment' && (
             <div className="space-y-4 rounded-lg border border-brand-200 bg-brand-50 dark:border-brand-700 dark:bg-brand-800 p-5">
              <h2 className="text-lg font-semibold text-brand-950 dark:text-brand-50">Payment method</h2>
-            {paymentsMock() && (
+             {paymentsMock({ enabled: mockPaymentsEnabled }) && (
               <div className="rounded-md border border-warning bg-yellow-50 p-3 text-sm text-yellow-900">
                 <strong>Mock mode active.</strong> No real payment will be taken. Order will be auto-confirmed.
               </div>
@@ -224,11 +226,8 @@ export function CheckoutForm({ user, savedAddresses }: Props) {
 
             <div className="space-y-2">
               {[
-                { id: 'payfast', label: 'PayFast', desc: 'Card, Instant EFT, SnapScan, Zapper, normal EFT' },
-                { id: 'yoco', label: 'Yoco', desc: 'Credit/debit card' },
-                { id: 'ozow', label: 'Ozow', desc: 'Instant EFT from your bank' },
-                { id: 'apple_pay', label: 'Apple Pay', desc: 'Touch ID / Face ID on your Apple device', planned: true },
-                { id: 'paypal', label: 'PayPal', desc: 'Pay with your PayPal balance or linked card', planned: true }
+                 { id: 'payfast', label: 'PayFast', desc: 'Card, Instant EFT, SnapScan, Zapper, normal EFT', logo: 'https://payfast.io/wp-content/uploads/2024/12/Payfast-logo.svg' },
+                  { id: 'payjustnow', label: 'PayJustNow', desc: 'Pay in three interest-free instalments', logo: null, planned: true }
               ].map((g) => (
                 <label
                   key={g.id}
@@ -239,7 +238,12 @@ export function CheckoutForm({ user, savedAddresses }: Props) {
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                     <p className="font-medium text-brand-900 dark:text-brand-50">{g.label}</p>
+                     <div className="flex items-center gap-3">
+                        {g.logo ? <img src={g.logo} alt={`${g.label} logo`} width={86} height={32} className="h-8 w-auto max-w-[86px] object-contain" /> : (
+                          <span className="w-[86px] text-center text-[10px] font-semibold leading-tight text-brand-600">PayJustNow<br />Coming soon</span>
+                        )}
+                       <p className="font-medium text-brand-900 dark:text-brand-50">{g.label}</p>
+                     </div>
                     {(g as any).planned && (
                       <span className="rounded-full bg-brand-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-brand-700">
                         Coming soon
