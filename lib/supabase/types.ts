@@ -110,13 +110,13 @@ export type Wishlist = {
   created_at: string;
 };
 
-export type OrderStatus = 'pending_payment' | 'paid' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
+export type OrderStatus = 'pending_payment' | 'cancellation_pending' | 'paid' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
 // Includes legacy values so historical order rows remain readable. New writes
 // are restricted by the active-provider trigger in migration 022.
 export type ShippingMethod = 'pargo_pickup' | 'tcg_door' | 'dawn_wing_metro' | 'store_pickup';
 export type ActiveShippingMethod = 'tcg_door';
 export type PaymentGateway = 'payfast' | 'payjustnow' | 'yoco' | 'ozow';
-export type ActivePaymentGateway = 'payfast';
+export type ActivePaymentGateway = 'payfast' | 'payjustnow';
 
 export type Order = {
   id: string;
@@ -134,6 +134,8 @@ export type Order = {
   shipping_tracking: string | null;
   payment_gateway: PaymentGateway | null;
   payment_reference: string | null;
+  payment_request_id: string | null;
+  payment_checkout_token: string | null;
   notes: string | null;
   created_at: string;
   paid_at: string | null;

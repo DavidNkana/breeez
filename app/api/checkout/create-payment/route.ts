@@ -5,59 +5,33 @@ import { revalidatePath } from 'next/cache';
 import { createPayment, isMockMode } from '@/lib/payments/server';
 import { getCurrentUser } from '@/lib/auth/session';
 import { sendOrderConfirmation } from '@/lib/email/resend';
-import { getStockRollbackItems, STOCK_COMPENSATION_FAILURE_MESSAGE } from '@/lib/checkout/stock';
+import { STOCK_COMPENSATION_FAILURE_MESSAGE } from '@/lib/checkout/stock';
 import { getCheckoutProductSlugs } from '@/lib/checkout/cache';
 import { recordPaymentEvent } from '@/lib/payments/events';
+import { cancelPayJustNowCheckout, getPayJustNowConfig, isPayJustNowConfigured } from '@/lib/payments/payjustnow';
 
 type SuccessfulDecrement = { order_item_id: string };
 
 async function rollbackCheckout(
   adminSupabase: any,
   orderId: string,
-  successfulDecrements: SuccessfulDecrement[],
   affectedProductSlugs: string[],
 ) {
-  const compensationFailures: string[] = [];
-  for (const { order_item_id } of getStockRollbackItems(successfulDecrements)) {
-    try {
-      const compensation = await adminSupabase.rpc('compensate_checkout_stock' as any, {
-        p_order_item_id: order_item_id,
-      } as any);
-      if (compensation.error) {
-        compensationFailures.push(`${order_item_id}: ${compensation.error.message ?? 'unknown compensation error'}`);
-        console.error('[checkout] stock compensation failed', {
-          orderId,
-          orderItemId: order_item_id,
-          error: compensation.error.message ?? 'unknown compensation error',
-        });
-      }
-    } catch (error: any) {
-      compensationFailures.push(`${order_item_id}: ${error?.message ?? 'unknown compensation error'}`);
-      console.error('[checkout] stock compensation failed', {
-        orderId,
-        orderItemId: order_item_id,
-        error: error?.message ?? 'unknown compensation error',
-      });
-    }
+  const cancellation = await adminSupabase.rpc('cancel_order_and_compensate_checkout_stock' as any, {
+    p_order_id: orderId,
+  } as any);
+  if (cancellation.error || cancellation.data !== true) {
+    const current = await adminSupabase.from('orders').select('status').eq('id', orderId).maybeSingle();
+    if (current.data?.status === 'paid') return { failed: false, paid: true };
+    console.error('[checkout] atomic cancellation and stock compensation failed', {
+      orderId,
+      error: cancellation.error?.message ?? 'order was not cancellable',
+    });
+    return { failed: true, paid: false };
   }
 
-  let cancellationError: string | null = null;
-  try {
-    const cancellation = await adminSupabase
-      .from('orders')
-      .update({ status: 'cancelled' } as any)
-      .eq('id', orderId);
-    if (cancellation.error) cancellationError = cancellation.error.message ?? 'unknown cancellation error';
-  } catch (error: any) {
-    cancellationError = error?.message ?? 'unknown cancellation error';
-  }
-  if (cancellationError) {
-    console.error('[checkout] order cancellation failed', { orderId, error: cancellationError });
-  }
-
-  // The reservation changed stock before payment creation. Refresh PDPs even
-  // when the reservation is compensated so a previously cached sold-out state
-  // cannot survive a failed checkout.
+  // The reservation changed stock before payment creation. Refresh PDPs after
+  // the atomic cancellation/compensation so stale sold-out pages do not persist.
   try { revalidatePath('/'); } catch (error) {
     console.error('[checkout] cache revalidation failed during rollback', error);
   }
@@ -67,7 +41,7 @@ async function rollbackCheckout(
     }
   }
 
-  return { failed: compensationFailures.length > 0 || Boolean(cancellationError) };
+  return { failed: false, paid: false };
 }
 
 function revalidateCheckoutProducts(items: any[]) {
@@ -91,8 +65,12 @@ export async function POST(req: Request) {
     if (shippingMethod !== 'tcg_door') {
       return NextResponse.json({ error: 'The Courier Guy is the only available delivery option.' }, { status: 400 });
     }
-    if (paymentMethod !== 'payfast') {
-      return NextResponse.json({ error: 'PayJustNow is not available yet. Please choose PayFast.' }, { status: 400 });
+    if (!['payfast', 'payjustnow'].includes(paymentMethod)) return NextResponse.json({ error: 'Unsupported payment method.' }, { status: 400 });
+    if (paymentMethod === 'payjustnow' && !isPayJustNowConfigured(getPayJustNowConfig())) {
+      return NextResponse.json({ error: 'PayJustNow is not configured.' }, { status: 503 });
+    }
+    if (paymentMethod === 'payjustnow' && isMockMode()) {
+      return NextResponse.json({ error: 'PayJustNow cannot be used in mock payment mode.' }, { status: 503 });
     }
 
     const sessionUser = await getCurrentUser();
@@ -210,7 +188,7 @@ export async function POST(req: Request) {
     }
 
     if (stockFailure) {
-      const rollback = await rollbackCheckout(adminSupabase, order.id, successfulDecrements, getCheckoutProductSlugs(items));
+      const rollback = await rollbackCheckout(adminSupabase, order.id, getCheckoutProductSlugs(items));
       if (rollback.failed) {
         return NextResponse.json(
           { error: STOCK_COMPENSATION_FAILURE_MESSAGE },
@@ -244,25 +222,77 @@ export async function POST(req: Request) {
       return NextResponse.json({ orderId: order.id, orderNumber: order.order_number });
     }
 
-    const origin = req.headers.get('origin') || '';
+    // Provider redirects and item links use the configured origin only. The
+    // browser Origin header is caller-controlled and is never trusted here.
+    const origin = paymentMethod === 'payjustnow' ? getPayJustNowConfig().appOrigin : '';
+    const payJustNowRequestId = `breeez-${order.id}`;
     try {
+      if (paymentMethod === 'payjustnow') {
+        const prepared = await adminSupabase.rpc('prepare_payjustnow_attempt' as any, {
+          p_order_id: order.id, p_request_id: payJustNowRequestId,
+        } as any);
+        if (prepared.error || prepared.data !== true) throw new Error('Payment attempt could not be prepared.');
+      }
       const intent = await createPayment({
         orderId: order.id, orderNumber: order.order_number, amountCents: totalCents,
         customerEmail: email, method: paymentMethod,
-        returnUrl: `${origin}/checkout/success/${order.id}?ref=${order.order_number}`, cancelUrl: `${origin}/cart`
-      });
+        returnUrl: `${origin}/checkout/success/${order.id}?ref=${order.order_number}`, cancelUrl: `${origin}/cart`,
+        shippingCents, discountCents,
+        items: items.map((ci: any) => ({
+          name: ci.variant?.product?.name ?? ci.variant?.name ?? 'Breeez item',
+          sku: ci.variant?.sku ?? `${order.order_number}-${ci.variant_id}`,
+          quantity: ci.quantity,
+          priceCents: ci.variant?.price_cents ?? ci.variant?.product?.base_price_cents ?? 0,
+           pageUrl: ci.variant?.product?.slug ? `${origin}/p/${ci.variant.product.slug}` : undefined,
+         })),
+         shippingAddress,
+       });
       // A valid ITN may mark the order paid before this response completes.
       // Only attach the redirect reference while the order is still pending;
       // this prevents a late create-payment response from overwriting the
       // authoritative PayFast payment ID.
+      if (paymentMethod === 'payjustnow') {
+        const attempt = await adminSupabase.from('payment_attempts').update({
+          checkout_token: intent.checkoutToken, payment_reference: intent.paymentReference ?? null,
+          status: 'created', updated_at: new Date().toISOString(),
+         }).eq('provider', 'payjustnow').eq('request_id', payJustNowRequestId).eq('status', 'created').select('id').maybeSingle();
+         if (attempt.error || !attempt.data) {
+           const [state, callbackAttempt] = await Promise.all([
+             adminSupabase.from('orders').select('status').eq('id', order.id).maybeSingle(),
+             adminSupabase.from('payment_attempts').select('status').eq('provider', 'payjustnow').eq('request_id', payJustNowRequestId).maybeSingle(),
+           ]);
+           if (state.data?.status === 'paid') return NextResponse.json({ orderId: order.id, orderNumber: order.order_number, redirectUrl: intent.redirectUrl });
+           if (callbackAttempt.data?.status === 'callback_received') return NextResponse.json({ orderId: order.id, orderNumber: order.order_number, redirectUrl: intent.redirectUrl });
+          const remoteCancel = intent.checkoutToken ? await cancelPayJustNowCheckout(intent.checkoutToken, order.order_number) : null;
+          if (remoteCancel && !remoteCancel.ok) console.error('[checkout] remote PayJustNow cancellation failed after attempt persistence failure', { orderId: order.id, error: remoteCancel.error });
+          throw new Error('Payment succeeded remotely but could not be recorded.');
+        }
+      }
+      const paymentUpdate: Record<string, string> = paymentMethod === 'payjustnow'
+        ? { payment_request_id: intent.reference, payment_checkout_token: intent.checkoutToken ?? '', ...(intent.paymentReference ? { payment_reference: intent.paymentReference } : {}) }
+        : { payment_reference: intent.reference };
       const _p: any = await adminSupabase.from('orders')
-        .update({ payment_reference: intent.reference } as any)
+        .update(paymentUpdate as any)
         .eq('id', order.id)
-        .eq('status', 'pending_payment');
-      await recordPaymentEvent(adminSupabase, order.id, 'payfast_redirect', `redirect:${intent.reference}`, { gateway: 'payfast' });
+        .eq('status', 'pending_payment')
+        .select('id')
+        .maybeSingle();
+      if (_p.error || !_p.data) {
+        const state = await adminSupabase.from('orders').select('status').eq('id', order.id).maybeSingle();
+        if (state.data?.status === 'paid') return NextResponse.json({ orderId: order.id, orderNumber: order.order_number, redirectUrl: intent.redirectUrl });
+        if (paymentMethod === 'payjustnow' && intent.checkoutToken) {
+          const remoteCancel = await cancelPayJustNowCheckout(intent.checkoutToken, order.order_number);
+          if (!remoteCancel.ok) console.error('[checkout] remote PayJustNow cancellation failed after local persistence failure', { orderId: order.id, error: remoteCancel.error });
+        }
+        throw new Error('Payment succeeded remotely but could not be linked to the order.');
+      }
+      await recordPaymentEvent(adminSupabase, order.id, paymentMethod === 'payjustnow' ? 'payjustnow_redirect' : 'payfast_redirect', `redirect:${intent.reference}`, { gateway: paymentMethod });
       return NextResponse.json({ orderId: order.id, orderNumber: order.order_number, redirectUrl: intent.redirectUrl });
     } catch (paymentError: any) {
-      const rollback = await rollbackCheckout(adminSupabase, order.id, successfulDecrements, getCheckoutProductSlugs(items));
+      const rollback = await rollbackCheckout(adminSupabase, order.id, getCheckoutProductSlugs(items));
+      if (rollback.paid) {
+        return NextResponse.json({ orderId: order.id, orderNumber: order.order_number });
+      }
       if (rollback.failed) {
         return NextResponse.json({ error: STOCK_COMPENSATION_FAILURE_MESSAGE }, { status: 500 });
       }

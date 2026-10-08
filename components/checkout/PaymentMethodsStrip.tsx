@@ -11,9 +11,9 @@ export const PAYMENT_METHODS = [
   {
     id: 'payjustnow',
     name: 'PayJustNow',
-    alt: 'PayJustNow coming soon',
+    alt: 'PayJustNow payment option',
     src: null,
-    disabled: true,
+    disabled: false,
   },
 ] as const;
 
@@ -21,10 +21,12 @@ export function PaymentMethodsStrip({
   size = 'md',
   showLabel = false,
   className = '',
+  payJustNowEnabled = false,
 }: {
   size?: 'sm' | 'md';
   showLabel?: boolean;
   className?: string;
+  payJustNowEnabled?: boolean;
 }) {
   const iconHeight = size === 'sm' ? 18 : 32;
   const iconWidth = size === 'sm' ? 28 : 48;
@@ -41,7 +43,7 @@ export function PaymentMethodsStrip({
           style={{ height: iconHeight + 8 }}
         >
           {method.src ? <img src={method.src} alt={method.alt} width={iconWidth} height={iconHeight} className="max-h-full w-auto max-w-full object-contain" /> : (
-            <span className="px-1 text-center text-[10px] font-semibold leading-tight text-brand-700">PayJustNow<br />Coming soon</span>
+            <span className={`px-1 text-center text-[10px] font-semibold leading-tight text-brand-700 ${payJustNowEnabled ? '' : 'opacity-60'}`}>PayJustNow</span>
           )}
         </div>
       ))}

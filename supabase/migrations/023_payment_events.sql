@@ -5,8 +5,8 @@ create table if not exists public.payment_events (
   id uuid primary key default uuid_generate_v4(),
   order_id uuid not null references public.orders(id) on delete cascade,
   event_type text not null check (event_type in (
-    'checkout_started', 'payfast_redirect', 'payfast_itn_valid',
-    'payfast_itn_invalid', 'payment_failed', 'paid_transition', 'pending_payment_created'
+    'checkout_started', 'payfast_redirect', 'payjustnow_redirect', 'payjustnow_callback_valid',
+    'payjustnow_callback_invalid', 'payjustnow_cancelled', 'payjustnow_refunded', 'payjustnow_status', 'payfast_itn_valid', 'payfast_itn_invalid', 'payment_failed', 'paid_transition', 'pending_payment_created'
   )),
   idempotency_key text not null,
   payload jsonb not null default '{}'::jsonb,
@@ -29,8 +29,8 @@ create or replace function public.record_payment_event(
 ) returns boolean language plpgsql security definer set search_path = public as $$
 begin
   if p_order_id is null or p_event_type not in (
-    'checkout_started', 'payfast_redirect', 'payfast_itn_valid',
-    'payfast_itn_invalid', 'payment_failed', 'paid_transition', 'pending_payment_created'
+    'checkout_started', 'payfast_redirect', 'payjustnow_redirect', 'payjustnow_callback_valid',
+    'payjustnow_callback_invalid', 'payjustnow_cancelled', 'payjustnow_refunded', 'payjustnow_status', 'payfast_itn_valid', 'payfast_itn_invalid', 'payment_failed', 'paid_transition', 'pending_payment_created'
   ) or p_idempotency_key is null or length(trim(p_idempotency_key)) = 0 then
     return false;
   end if;

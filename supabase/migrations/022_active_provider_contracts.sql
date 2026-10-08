@@ -17,7 +17,7 @@ begin
     if new.shipping_method <> 'tcg_door' then
       raise exception 'Inactive shipping provider: %', new.shipping_method using errcode = 'check_violation';
     end if;
-    if new.payment_gateway is distinct from 'payfast' then
+     if new.payment_gateway not in ('payfast', 'payjustnow') then
       raise exception 'Inactive payment provider: %', new.payment_gateway using errcode = 'check_violation';
     end if;
   end if;

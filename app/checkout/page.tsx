@@ -3,6 +3,7 @@ import { CheckoutForm } from '@/components/checkout/CheckoutForm';
 import { requireUser } from '@/lib/auth/session';
 import { redirect } from 'next/navigation';
 import { isMockPaymentsEnabled } from '@/lib/payments/mock-mode';
+import { getPayJustNowConfig, isPayJustNowConfigured } from '@/lib/payments/payjustnow';
 
 export default async function CheckoutPage() {
   const user = await requireUser('/checkout');
@@ -25,6 +26,7 @@ export default async function CheckoutPage() {
             user={user}
             savedAddresses={savedAddresses}
             mockPaymentsEnabled={isMockPaymentsEnabled()}
+            payJustNowEnabled={isPayJustNowConfigured(getPayJustNowConfig())}
           />
         </div>
       </main>

@@ -19,11 +19,12 @@ type Props = {
   user: User | null;
   savedAddresses: any[];
   mockPaymentsEnabled: boolean;
+  payJustNowEnabled: boolean;
 };
 
 type Step = 'email' | 'address' | 'shipping' | 'payment';
 
-export function CheckoutForm({ user, savedAddresses, mockPaymentsEnabled }: Props) {
+export function CheckoutForm({ user, savedAddresses, mockPaymentsEnabled, payJustNowEnabled }: Props) {
   const router = useRouter();
   const items = useCart((s) => s.items);
   const subtotal = useCart((s) => s.subtotalCents());
@@ -222,12 +223,12 @@ export function CheckoutForm({ user, savedAddresses, mockPaymentsEnabled }: Prop
             )}
 
             {/* Visual trust strip at the top of the payment step */}
-            <PaymentMethodsStrip />
+             <PaymentMethodsStrip payJustNowEnabled={payJustNowEnabled} />
 
             <div className="space-y-2">
               {[
                  { id: 'payfast', label: 'PayFast', desc: 'Card, Instant EFT, SnapScan, Zapper, normal EFT', logo: 'https://payfast.io/wp-content/uploads/2024/12/Payfast-logo.svg' },
-                  { id: 'payjustnow', label: 'PayJustNow', desc: 'Pay in three interest-free instalments', logo: null, planned: true }
+                   { id: 'payjustnow', label: 'PayJustNow', desc: 'Pay in three interest-free instalments', logo: null, planned: !payJustNowEnabled }
               ].map((g) => (
                 <label
                   key={g.id}
@@ -240,13 +241,13 @@ export function CheckoutForm({ user, savedAddresses, mockPaymentsEnabled }: Prop
                   <div className="flex items-center justify-between">
                      <div className="flex items-center gap-3">
                         {g.logo ? <img src={g.logo} alt={`${g.label} logo`} width={86} height={32} className="h-8 w-auto max-w-[86px] object-contain" /> : (
-                          <span className="w-[86px] text-center text-[10px] font-semibold leading-tight text-brand-600">PayJustNow<br />Coming soon</span>
+                           <span className="w-[86px] text-center text-[10px] font-semibold leading-tight text-brand-600">PayJustNow</span>
                         )}
                        <p className="font-medium text-brand-900 dark:text-brand-50">{g.label}</p>
                      </div>
                     {(g as any).planned && (
                       <span className="rounded-full bg-brand-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-brand-700">
-                        Coming soon
+                         Configuration required
                       </span>
                     )}
                   </div>

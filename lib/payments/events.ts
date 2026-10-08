@@ -1,6 +1,12 @@
 export type PaymentEventType =
   | 'checkout_started'
   | 'payfast_redirect'
+  | 'payjustnow_redirect'
+  | 'payjustnow_callback_valid'
+  | 'payjustnow_callback_invalid'
+  | 'payjustnow_cancelled'
+  | 'payjustnow_refunded'
+  | 'payjustnow_status'
   | 'payfast_itn_valid'
   | 'payfast_itn_invalid'
   | 'payment_failed'
@@ -8,7 +14,7 @@ export type PaymentEventType =
   | 'pending_payment_created';
 
 const safeTypes = new Set<PaymentEventType>([
-  'checkout_started', 'payfast_redirect', 'payfast_itn_valid', 'payfast_itn_invalid',
+  'checkout_started', 'payfast_redirect', 'payjustnow_redirect', 'payjustnow_callback_valid', 'payjustnow_callback_invalid', 'payjustnow_cancelled', 'payjustnow_refunded', 'payjustnow_status', 'payfast_itn_valid', 'payfast_itn_invalid',
   'payment_failed', 'paid_transition', 'pending_payment_created',
 ]);
 

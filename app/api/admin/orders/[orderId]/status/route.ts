@@ -21,7 +21,7 @@ export async function PATCH(
   const tracking_number: string | null = (body?.tracking_number ?? null) || null;
   if (!status) return NextResponse.json({ error: 'status required' }, { status: 400 });
 
-  const VALID = ['pending_payment', 'paid', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'];
+  const VALID = ['pending_payment', 'cancellation_pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'];
   if (!VALID.includes(status)) {
     return NextResponse.json({ error: 'invalid status' }, { status: 400 });
   }

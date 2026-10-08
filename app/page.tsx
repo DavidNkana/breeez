@@ -107,7 +107,7 @@ export default async function HomePage() {
                 <div className="flex-shrink-0 h-10 w-10 rounded-full bg-white dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-brand-100"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg></div>
               <div>
                  <p className="font-medium text-brand-900 dark:text-white">Secure payments</p>
-                  <p className="text-sm text-brand-600 dark:text-brand-300">PayFast now, with PayJustNow coming soon.</p>
+                  <p className="text-sm text-brand-600 dark:text-brand-300">Secure checkout with PayFast and PayJustNow where configured.</p>
               </div>
             </div>
           </div>
