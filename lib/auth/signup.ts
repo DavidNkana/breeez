@@ -13,3 +13,10 @@ export function getSignupState({
   if (error || !user) return 'error';
   return session ? 'authenticated' : 'check-email';
 }
+
+/** Query-string email values are UI convenience only, never an auth credential. */
+export function getSafeEmailPrefill(value: string | string[] | undefined): string {
+  const email = (Array.isArray(value) ? value[0] : value)?.trim() || '';
+  if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return '';
+  return email;
+}
