@@ -15,7 +15,7 @@ export default function TermsPage() {
         <p>Evasale is an online retail store operated from South Africa. By using this website you agree to these terms.</p>
 
         <h2>2. Orders &amp; Payment</h2>
-         <p>All prices are in South African Rand (ZAR) and include VAT where applicable. PayFast is currently available at checkout; PayJustNow is listed as coming soon and cannot be selected. Orders are confirmed only after successful payment. We reserve the right to cancel orders due to pricing errors, stock issues, or suspected fraud.</p>
+         <p>All prices are in South African Rand (ZAR) and include VAT where applicable. PayFast and, where configured, PayJustNow are available at checkout. Orders are confirmed only after successful payment. We reserve the right to cancel orders due to pricing errors, stock issues, or suspected fraud.</p>
 
         <h2>3. Delivery</h2>
          <p>We deliver nationwide via The Courier Guy. Delivery times are estimates, not guarantees. Risk passes to you on delivery.</p>

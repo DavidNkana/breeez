@@ -65,19 +65,78 @@ test('compensation migration is rerunnable and idempotent by order item marker',
   );
 });
 
-test('checkout surfaces compensation failures instead of claiming cleanup succeeded', async () => {
+test('checkout surfaces atomic cancellation and compensation failures instead of claiming cleanup succeeded', async () => {
   const route = await readFile(resolve('app/api/checkout/create-payment/route.ts'), 'utf8');
-  assert.match(route, /compensation\.error/);
-  assert.match(route, /console\.error\('\[checkout\] stock compensation failed'/);
+  assert.match(route, /cancellation\.error/);
+  assert.match(route, /console\.error\('\[checkout\] atomic cancellation and stock compensation failed'/);
   assert.match(route, /STOCK_COMPENSATION_FAILURE_MESSAGE/);
-  assert.match(route, /p_order_item_id: order_item_id/);
   assert.match(route, /catch \(paymentError/);
-  assert.match(route, /if \(stockFailure\)[\s\S]*rollbackCheckout\(adminSupabase, order\.id, successfulDecrements, getCheckoutProductSlugs\(items\)\)/);
-  assert.match(route, /catch \(paymentError[\s\S]*rollbackCheckout\(adminSupabase, order\.id, successfulDecrements, getCheckoutProductSlugs\(items\)\)/);
+  assert.match(route, /if \(stockFailure\)[\s\S]*rollbackCheckout\(adminSupabase, order\.id, getCheckoutProductSlugs\(items\)\)/);
+  assert.match(route, /catch \(paymentError[\s\S]*rollbackCheckout\(adminSupabase, order\.id, getCheckoutProductSlugs\(items\)\)/);
   assert.equal(
     STOCK_COMPENSATION_FAILURE_MESSAGE,
     'Checkout cancellation requires support intervention because stock restoration did not complete.',
   );
+});
+
+test('PayJustNow cancellation remains pending after failed compensation and can be retried', async () => {
+  const route = await readFile(resolve('app/api/admin/orders/[orderId]/payjustnow/route.ts'), 'utf8');
+  const migration = await readFile(resolve('supabase/migrations/026_payjustnow_cancellation_pending.sql'), 'utf8');
+  assert.match(migration, /cancellation_pending/);
+  assert.match(route, /status: 'cancellation_pending'/);
+  assert.match(route, /cancellation_pending/);
+  assert.match(route, /stock compensation is pending\. Retry cancellation/);
+  assert.match(route, /cancel_order_and_compensate_checkout_stock/);
+  assert.ok(route.indexOf('cancel_order_and_compensate_checkout_stock') > route.indexOf("status: 'cancellation_pending'"));
+  assert.ok(route.indexOf('payjustnow_cancelled') > route.indexOf("status: 'cancelled'"));
+  assert.match(route, /provider_cancelled/);
+  assert.match(route, /getPayJustNowStatus/);
+  assert.match(route, /attempt\?\.status === 'provider_cancelled'/);
+  assert.match(route, /Provider cancellation status is ambiguous/);
+  const callback = await readFile(resolve('app/api/webhooks/payjustnow/route.ts'), 'utf8');
+  assert.match(callback, /neq\('status', 'provider_cancelled'\)/);
+});
+
+test('atomic cancellation does not compensate a zero-row pending transition, but does compensate after confirmed cancellation', async () => {
+  const migration = await readFile(resolve('supabase/migrations/031_atomic_order_cancellation_compensation.sql'), 'utf8');
+  const checkout = await readFile(resolve('app/api/checkout/create-payment/route.ts'), 'utf8');
+  const route = await readFile(resolve('app/api/admin/orders/[orderId]/payjustnow/route.ts'), 'utf8');
+
+  assert.match(migration, /select status into v_status[\s\S]*for update/);
+  assert.match(migration, /v_status not in \('pending_payment', 'cancellation_pending', 'cancelled'\)/);
+  assert.match(migration, /update public\.orders set status = 'cancelled'/);
+  assert.match(migration, /perform public\.compensate_checkout_stock\(v_order_item_id\)/);
+  assert.match(checkout, /cancel_order_and_compensate_checkout_stock/);
+  assert.doesNotMatch(checkout, /\.update\(\{ status: 'cancelled' \}/);
+  assert.match(route, /cancel_order_and_compensate_checkout_stock/);
+  assert.doesNotMatch(route, /rpc\('compensate_checkout_stock'/);
+});
+
+test('provider-cancel-success then compensation-failure retry skips provider cancel', () => {
+  const pending = new Set(['item-1', 'item-2']);
+  let providerCancelCalls = 0;
+  let attemptStatus = 'created';
+  let stock = 0;
+  const cancelProvider = () => {
+    providerCancelCalls += 1;
+    attemptStatus = 'provider_cancelled';
+  };
+  const compensate = (itemId: string, fail = false) => {
+    if (fail) throw new Error('temporary RPC failure');
+    if (!pending.delete(itemId)) return false;
+    stock += 1;
+    return true;
+  };
+
+  cancelProvider();
+  assert.equal(compensate('item-1'), true);
+  assert.throws(() => compensate('item-2', true), /temporary RPC failure/);
+  assert.equal(stock, 1);
+  if (attemptStatus !== 'provider_cancelled') cancelProvider();
+  assert.equal(compensate('item-2'), true);
+  assert.equal(compensate('item-2'), false);
+  assert.equal(providerCancelCalls, 1);
+  assert.equal(stock, 2);
 });
 
 test('checkout binds customer identity to the authenticated session', async () => {
@@ -128,7 +187,7 @@ test('checkout rollback invalidates every affected product PDP, not just the sto
     { variant: { product: { slug: 'blue-shoes' } } },
   ]), ['lily-dress', 'blue-shoes']);
   const route = await readFile(resolve('app/api/checkout/create-payment/route.ts'), 'utf8');
-  assert.match(route, /rollbackCheckout\(adminSupabase, order\.id, successfulDecrements, getCheckoutProductSlugs\(items\)\)/);
+  assert.match(route, /rollbackCheckout\(adminSupabase, order\.id, getCheckoutProductSlugs\(items\)\)/);
   assert.match(route, /for \(const slug of affectedProductSlugs\)[\s\S]*revalidatePath\(`\/p\/\$\{slug\}`\)/);
   assert.match(route, /revalidatePath\('\/'\)/);
 });
