@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
 import type { Customer } from '@/lib/supabase/types';
+import { getSafeNextPath } from '@/lib/auth/redirect';
 
 export async function getCurrentUser() {
   const supabase = await createClient();
@@ -9,9 +10,9 @@ export async function getCurrentUser() {
   return user;
 }
 
-export async function requireUser() {
+export async function requireUser(next = '/account') {
   const user = await getCurrentUser();
-  if (!user) redirect('/auth/login?next=/account');
+  if (!user) redirect(`/auth/login?next=${encodeURIComponent(getSafeNextPath(next))}`);
   return user;
 }
 

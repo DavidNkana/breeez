@@ -4,7 +4,7 @@ import { requireUser } from '@/lib/auth/session';
 import { redirect } from 'next/navigation';
 
 export default async function CheckoutPage() {
-  const user = await requireUser();
+  const user = await requireUser('/checkout');
   const supabase = await createAdminClient();
 
   const { data: savedAddresses } = (await supabase

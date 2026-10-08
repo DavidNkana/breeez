@@ -16,9 +16,9 @@ function getSupabase() {
   );
 }
 
-export function LoginForm({ next = '/account' }: { next?: string }) {
+export function LoginForm({ next = '/account', initialEmail = '' }: { next?: string; initialEmail?: string }) {
   const router = useRouter();
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
@@ -28,13 +28,16 @@ export function LoginForm({ next = '/account' }: { next?: string }) {
     e.preventDefault();
     setLoading(true);
     try {
-      const { error } = await getSupabase().auth.signInWithPassword({ email, password });
+      const normalizedEmail = email.trim().toLowerCase();
+      setEmail(normalizedEmail);
+      const { error } = await getSupabase().auth.signInWithPassword({ email: normalizedEmail, password });
       if (error) {
         showToast(error.message, 'error');
         return;
       }
       showToast('Welcome back!', 'success');
-      router.push(getSafeNextPath(next));
+      const safeNext = getSafeNextPath(next);
+      router.push(safeNext);
       router.refresh();
     } catch (caught) {
       showToast(caught instanceof Error ? caught.message : 'We could not sign you in. Please try again.', 'error');
@@ -44,14 +47,16 @@ export function LoginForm({ next = '/account' }: { next?: string }) {
   }
 
   async function onMagicLink() {
-    if (!email) {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) {
       showToast('Enter your email first', 'warning');
       return;
     }
+    setEmail(normalizedEmail);
     setLoading(true);
     try {
       const { error } = await getSupabase().auth.signInWithOtp({
-        email,
+        email: normalizedEmail,
         options: { emailRedirectTo: getAuthCallbackUrl(next, window.location.origin) }
       });
       if (error) {
@@ -98,7 +103,7 @@ export function LoginForm({ next = '/account' }: { next?: string }) {
         Or email me a magic link
       </button>
        <p className="text-center text-sm text-brand-600 dark:text-brand-300">
-        New to Evasale? <Link href="/auth/register" className="text-accent-700 hover:underline">Create an account</Link>
+         New to Evasale? <Link href={`/auth/register?next=${encodeURIComponent(getSafeNextPath(next))}`} className="text-accent-700 hover:underline">Create an account</Link>
       </p>
     </form>
   );

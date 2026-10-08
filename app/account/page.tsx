@@ -8,24 +8,35 @@ export default async function AccountPage() {
 
   // Display name: full_name first, then email prefix (before @), then email
   const displayName = customer?.full_name || user.email?.split('@')[0] || user.email;
+  const initials = String(displayName || '?')
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join('');
 
   return (
     <>
-      <main className="mx-auto max-w-3xl px-4 py-10 pb-20 safe-bottom">
-        <div className="-mx-4 -mt-10 flex justify-center bg-black px-4 pb-6 pt-10">
-          <img src="/brand/evasale-solo-logo.png" alt="Evasale" className="h-14 w-auto" />
-        </div>
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-brand-950">
-              Hi {displayName}
-            </h1>
-            <p className="mt-1 text-sm text-brand-600">{user.email}</p>
+      <main className="mx-auto w-full max-w-4xl px-4 py-10 pb-24 safe-bottom sm:px-6 sm:py-14">
+        <section className="rounded-2xl bg-brand-950 p-6 text-white shadow-xl sm:flex sm:items-center sm:justify-between sm:p-8">
+          <div className="flex items-center gap-4">
+            <div aria-hidden="true" className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-accent-500 text-2xl font-semibold uppercase">
+              {initials}
+            </div>
+            <div>
+              <p className="text-sm font-medium uppercase tracking-[0.16em] text-brand-300">Your account</p>
+              <h1 className="mt-1 text-2xl font-semibold sm:text-3xl">Hi {displayName}</h1>
+              <p className="mt-1 break-all text-sm text-brand-300">{user.email}</p>
+            </div>
           </div>
-          <LogoutButton redirectTo="/" />
-        </div>
+          <div className="mt-6 sm:mt-0"><LogoutButton redirectTo="/" /></div>
+        </section>
 
-        <div className="mt-8 grid gap-3 md:grid-cols-2">
+        <div className="mt-10">
+          <h2 className="text-lg font-semibold text-brand-950 dark:text-brand-50">Manage your account</h2>
+          <p className="mt-1 text-sm text-brand-600 dark:text-brand-200">Everything you need to shop with ease.</p>
+        </div>
+        <div className="mt-5 grid gap-4 sm:grid-cols-2">
           {[
             { label: 'Orders', href: '/account/orders', desc: 'Track and manage your orders' },
             { label: 'Addresses', href: '/account/addresses', desc: 'Manage delivery addresses' },
@@ -35,10 +46,13 @@ export default async function AccountPage() {
             <Link
               key={card.href}
               href={card.href}
-               className="rounded-lg border border-brand-200 bg-white dark:bg-brand-900 p-4 hover:border-brand-400"
+               className="group rounded-xl border border-brand-200 bg-white p-5 shadow-sm hover:-translate-y-0.5 hover:border-accent-400 dark:bg-brand-900"
             >
-              <p className="font-medium text-brand-900">{card.label}</p>
-              <p className="mt-1 text-sm text-brand-600">{card.desc}</p>
+              <div className="flex items-center justify-between gap-4">
+                <p className="font-semibold text-brand-900 dark:text-brand-50">{card.label}</p>
+                <span aria-hidden="true" className="text-xl text-accent-500 transition-transform group-hover:translate-x-1">→</span>
+              </div>
+              <p className="mt-2 text-sm leading-6 text-brand-600 dark:text-brand-200">{card.desc}</p>
             </Link>
           ))}
         </div>

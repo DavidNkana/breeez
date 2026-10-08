@@ -89,8 +89,11 @@ export async function POST(req: Request) {
     }
 
     const sessionUser = await getCurrentUser();
-    const resolvedUserId = userId || sessionUser?.id;
-    if (!resolvedUserId) return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    if (!sessionUser) return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    if (userId && userId !== sessionUser.id) {
+      return NextResponse.json({ error: 'Authenticated user does not match checkout user' }, { status: 403 });
+    }
+    const resolvedUserId = sessionUser.id;
     const supabase: any = await createClient(); // cast to any to bypass typed-client friction
     const adminSupabase = (await createAdminClient()) as any; // service-role for atomic RPC + writes
 

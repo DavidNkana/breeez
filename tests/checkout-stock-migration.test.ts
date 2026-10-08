@@ -80,6 +80,14 @@ test('checkout surfaces compensation failures instead of claiming cleanup succee
   );
 });
 
+test('checkout binds customer identity to the authenticated session', async () => {
+  const route = await readFile(resolve('app/api/checkout/create-payment/route.ts'), 'utf8');
+  assert.match(route, /if \(!sessionUser\)[\s\S]*Authentication required/);
+  assert.match(route, /if \(userId && userId !== sessionUser\.id\)[\s\S]*status: 403/);
+  assert.match(route, /const resolvedUserId = sessionUser\.id/);
+  assert.doesNotMatch(route, /const resolvedUserId = userId \|\| sessionUser\?\.id/);
+});
+
 test('checkout rejects non-positive quantities and decrements exactly the requested amount', async () => {
   const sql = await readFile(resolve('supabase/migrations/021_checkout_stock_guards.sql'), 'utf8');
   assert.match(sql, /drop function if exists public\.atomic_checkout_stock/);

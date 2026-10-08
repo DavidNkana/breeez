@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { getAuthCallbackUrl, getAuthOrigin, getAuthResetUrl, getLoginNextPath, getSafeNextPath } from '../lib/auth/redirect';
-import { getSignupState } from '../lib/auth/signup';
+import { getSafeEmailPrefill, getSignupState } from '../lib/auth/signup';
 
 test('signup callback uses the production HTTPS origin by default', () => {
   const callback = new URL(getAuthCallbackUrl('/account', 'https://attacker.example'));
@@ -64,4 +64,34 @@ test('signup states distinguish errors, confirmation email, and auto-confirmed s
   assert.equal(getSignupState({ error: null, user: { id: 'u1' }, session: null }), 'check-email');
   assert.equal(getSignupState({ error: null, user: { id: 'u1' }, session: { access_token: 'redacted' } }), 'authenticated');
   assert.equal(getSignupState({ error: null, user: null, session: null }), 'error');
+});
+
+test('registered login email is sanitized as a UI-only prefill', () => {
+  assert.equal(getSafeEmailPrefill(' customer@example.com '), 'customer@example.com');
+  assert.equal(getSafeEmailPrefill('not-an-email'), '');
+  assert.equal(getSafeEmailPrefill('https://attacker.example/?email=x'), '');
+});
+
+test('signup and modal source contracts normalize email, preserve safe next, and fail closed', () => {
+  const registerSource = readFileSync(new URL('../components/auth/RegisterForm.tsx', import.meta.url), 'utf8');
+  const loginSource = readFileSync(new URL('../components/auth/LoginForm.tsx', import.meta.url), 'utf8');
+  const modalSource = readFileSync(new URL('../components/ui/Modal.tsx', import.meta.url), 'utf8');
+  assert.match(registerSource, /const normalizedEmail = email\.trim\(\)\.toLowerCase\(\)/);
+  assert.match(registerSource, /email: normalizedEmail/);
+  assert.match(registerSource, /getAuthCallbackUrl\(getSafeNextPath\(next\)/);
+  assert.match(registerSource, /auth\.signOut\(\{ scope: 'local' \}\)/);
+  assert.match(registerSource, /auth\.getSession\(\)/);
+  assert.match(registerSource, /data-modal-initial-focus/);
+  assert.match(loginSource, /const normalizedEmail = email\.trim\(\)\.toLowerCase\(\)/);
+  assert.match(loginSource, /signInWithPassword\(\{ email: normalizedEmail, password \}/);
+  assert.match(loginSource, /signInWithOtp\(\{[\s\S]*email: normalizedEmail/);
+  assert.doesNotMatch(loginSource, /trackAuthFunnelEvent|auth-funnel/);
+  assert.match(modalSource, /e\.key === 'Escape'/);
+  assert.match(modalSource, /e\.key !== 'Tab'/);
+  assert.match(modalSource, /e\.shiftKey/);
+  assert.match(modalSource, /onClick=\{onClose\}/);
+  assert.match(modalSource, /React\.useId\(\)/);
+  assert.match(modalSource, /dialogRef\.current/);
+  assert.doesNotMatch(modalSource, /document\.querySelector/);
+  assert.doesNotMatch(registerSource, /new URLSearchParams\([^)]*password/i);
 });
