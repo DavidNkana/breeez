@@ -55,7 +55,7 @@ export default async function OpengraphImage() {
             Apparel · Home · Kitchen · School
           </div>
           <div style={{ fontSize: 22, color: '#cbd5e1' }}>
-            7 Days Return Policy · PayFast / Yoco / Ozow
+            7 Days Return Policy · PayFast · PayJustNow coming soon
           </div>
         </div>
       </div>

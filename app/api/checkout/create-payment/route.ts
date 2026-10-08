@@ -7,6 +7,7 @@ import { getCurrentUser } from '@/lib/auth/session';
 import { sendOrderConfirmation } from '@/lib/email/resend';
 import { getStockRollbackItems, STOCK_COMPENSATION_FAILURE_MESSAGE } from '@/lib/checkout/stock';
 import { getCheckoutProductSlugs } from '@/lib/checkout/cache';
+import { recordPaymentEvent } from '@/lib/payments/events';
 
 type SuccessfulDecrement = { order_item_id: string };
 
@@ -87,6 +88,12 @@ export async function POST(req: Request) {
     if (!cartId || !email || !shippingMethod || !paymentMethod || !shippingAddress?.line1) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
+    if (shippingMethod !== 'tcg_door') {
+      return NextResponse.json({ error: 'The Courier Guy is the only available delivery option.' }, { status: 400 });
+    }
+    if (paymentMethod !== 'payfast') {
+      return NextResponse.json({ error: 'PayJustNow is not available yet. Please choose PayFast.' }, { status: 400 });
+    }
 
     const sessionUser = await getCurrentUser();
     if (!sessionUser) return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
@@ -158,6 +165,8 @@ export async function POST(req: Request) {
     } as any).select('id, order_number').single()) as any;
 
     if (orderErr || !order) return NextResponse.json({ error: 'Failed to create order' }, { status: 500 });
+    await recordPaymentEvent(adminSupabase, order.id, 'checkout_started', `checkout:${order.id}`, { gateway: paymentMethod });
+    await recordPaymentEvent(adminSupabase, order.id, 'pending_payment_created', `pending-created:${order.id}`, { gateway: paymentMethod });
 
     if (appliedCouponCode) {
       const _r: any = await supabase.rpc('increment_coupon_usage' as any, { p_code: appliedCouponCode } as any).catch(() => null);
@@ -224,6 +233,7 @@ export async function POST(req: Request) {
 
     if (isMockMode()) {
       const _m: any = await adminSupabase.from('orders').update({ status: 'paid', paid_at: new Date().toISOString() } as any).eq('id', order.id);
+      await recordPaymentEvent(adminSupabase, order.id, 'paid_transition', `mock-paid:${order.id}`, { gateway: 'mock' });
 
       // Send order confirmation email (silent fail if RESEND_API_KEY not set)
       const itemsList = items.map((ci: any) =>
@@ -241,13 +251,22 @@ export async function POST(req: Request) {
         customerEmail: email, method: paymentMethod,
         returnUrl: `${origin}/checkout/success/${order.id}?ref=${order.order_number}`, cancelUrl: `${origin}/cart`
       });
-      const _p: any = await adminSupabase.from('orders').update({ payment_reference: intent.reference } as any).eq('id', order.id);
+      // A valid ITN may mark the order paid before this response completes.
+      // Only attach the redirect reference while the order is still pending;
+      // this prevents a late create-payment response from overwriting the
+      // authoritative PayFast payment ID.
+      const _p: any = await adminSupabase.from('orders')
+        .update({ payment_reference: intent.reference } as any)
+        .eq('id', order.id)
+        .eq('status', 'pending_payment');
+      await recordPaymentEvent(adminSupabase, order.id, 'payfast_redirect', `redirect:${intent.reference}`, { gateway: 'payfast' });
       return NextResponse.json({ orderId: order.id, orderNumber: order.order_number, redirectUrl: intent.redirectUrl });
     } catch (paymentError: any) {
       const rollback = await rollbackCheckout(adminSupabase, order.id, successfulDecrements, getCheckoutProductSlugs(items));
       if (rollback.failed) {
         return NextResponse.json({ error: STOCK_COMPENSATION_FAILURE_MESSAGE }, { status: 500 });
       }
+      await recordPaymentEvent(adminSupabase, order.id, 'payment_failed', `failed:${order.id}`, { gateway: paymentMethod });
       return NextResponse.json({ error: paymentError?.message || 'Payment creation failed' }, { status: 502 });
     }
   } catch (err: any) {

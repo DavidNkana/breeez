@@ -14,7 +14,7 @@ export default function PrivacyPage() {
         <ul>
           <li><strong>Account:</strong> email, name, password (hashed)</li>
           <li><strong>Orders:</strong> shipping address, phone, order history</li>
-          <li><strong>Payments:</strong> handled by PayFast / Yoco / Ozow (we never see your card)</li>
+          <li><strong>Payments:</strong> PayFast handles payment details (we never see your card)</li>
           <li><strong>Usage:</strong> pages viewed, device type (via PostHog analytics)</li>
         </ul>
 
@@ -30,8 +30,8 @@ export default function PrivacyPage() {
 
         <h2>4. Who We Share It With</h2>
         <ul>
-          <li><strong>Couriers</strong> (Pargo, The Courier Guy, Dawn Wing) — your name, address, phone for delivery</li>
-          <li><strong>Payment gateways</strong> (PayFast, Yoco, Ozow) — your payment details (handled on their sites)</li>
+          <li><strong>Courier</strong> (The Courier Guy) — your name, address, phone for delivery</li>
+          <li><strong>Payment gateway</strong> (PayFast) — your payment details (handled on its site)</li>
           <li><strong>Supabase</strong> (our database host, EU-based) — your account and order data</li>
           <li><strong>Resend</strong> (our email provider) — your email for transactional emails</li>
         </ul>

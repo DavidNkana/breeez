@@ -1,22 +1,20 @@
 'use client';
 
+export type MockPaymentConfig = { enabled: boolean };
+
 /**
- * Client-safe mock mode check.
- * Always returns true unless MOCK_PAYMENTS env is explicitly 'false'.
- *
- * Server-side code that actually creates payment intents lives in
- * lib/payments/server.ts (which uses node:crypto for PayFast MD5).
+ * Client-safe view of the server payment configuration. The server must
+ * provide this value; browser environment variables are not trusted for
+ * payment decisions.
  */
 
-const MOCK = process.env.NEXT_PUBLIC_MOCK_PAYMENTS !== 'false';
-
-export function isMockMode(): boolean {
-  return MOCK;
+export function isMockMode(config: MockPaymentConfig): boolean {
+  return config.enabled === true;
 }
 
 /**
- * Client-side stub. The real createPayment function (which talks to PayFast /
- * Yoco / Ozow) lives in lib/payments/server.ts and is only called from
+ * Client-side stub. The real createPayment function (which talks to PayFast)
+ * lives in lib/payments/server.ts and is only called from
  * server route handlers (api/checkout/create-payment).
  */
 export async function createPayment(_params: any): Promise<{ reference: string; redirectUrl: string }> {

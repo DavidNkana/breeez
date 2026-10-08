@@ -66,7 +66,7 @@ Fill in this exact text (you can customise later):
 ### Step 4 — Target audience & data safety
 1. **Target audience**: 13+
 2. **Data safety form** under App content:
-   - Collected: email (account), name (account), address (orders), payment info (handled by PayFast/Yoco, NOT stored by us)
+   - Collected: email (account), name (account), address (orders), payment info (handled by PayFast, NOT stored by us)
    - Encrypted in transit: Yes
    - Users can request deletion: Yes (via account settings, or email info@evasale.co.za)
    - All required by app function: Yes
@@ -80,8 +80,8 @@ Fill in this exact text (you can customise later):
    • Welcome to Breeez — your one-stop shop for kitchen, home & lifestyle essentials.
    • Browse 14 categories: women, men, kids, shoes, bags, home, kitchen & more.
    • Save your wishlist.
-   • Fast checkout with PayFast, Yoco or Ozow.
-   • South African couriers: Pargo, The Courier Guy, Dawn Wing.
+   • Fast checkout with PayFast; PayJustNow coming soon.
+   • Nationwide delivery with The Courier Guy.
    ```
 5. **Review release** → **Start rollout to Production**
 6. **First review** takes 1–7 days. After approval, app is live in Play Store.

@@ -111,8 +111,12 @@ export type Wishlist = {
 };
 
 export type OrderStatus = 'pending_payment' | 'paid' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
-export type ShippingMethod = 'pargo_pickup' | 'tcg_door' | 'dawn_wing_metro';
-export type PaymentGateway = 'payfast' | 'yoco' | 'ozow';
+// Includes legacy values so historical order rows remain readable. New writes
+// are restricted by the active-provider trigger in migration 022.
+export type ShippingMethod = 'pargo_pickup' | 'tcg_door' | 'dawn_wing_metro' | 'store_pickup';
+export type ActiveShippingMethod = 'tcg_door';
+export type PaymentGateway = 'payfast' | 'payjustnow' | 'yoco' | 'ozow';
+export type ActivePaymentGateway = 'payfast';
 
 export type Order = {
   id: string;
@@ -236,6 +240,19 @@ export type Database = {
       delete_product: {
         Args: { p_product_id: string };
         Returns: undefined;
+      };
+      mark_order_paid_from_payfast: {
+        Args: {
+          p_order_id: string;
+          p_payment_id: string;
+          p_amount_cents: number;
+          p_merchant_id: string;
+        };
+        Returns: boolean;
+      };
+      record_payment_event: {
+        Args: { p_order_id: string; p_event_type: string; p_idempotency_key: string; p_payload?: Json };
+        Returns: boolean;
       };
     };
     Enums: {

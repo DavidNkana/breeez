@@ -15,11 +15,11 @@ const VALUES = [
   },
   {
     title: 'Fair, transparent pricing',
-    body: 'You see the deal before checkout. No surprise fees at the end. 7 Days Return Policy, in-store pickup from R0.',
+    body: 'You see the deal before checkout. No surprise fees at the end. 7-day returns on unused items.',
   },
   {
     title: 'Local couriers, real tracking',
-    body: 'Pargo lockers, The Courier Guy, Dawn Wing — all three set up so you can pick the delivery style that fits your day.',
+    body: 'The Courier Guy delivers nationwide to your door. Delivery pricing and timing are shown at checkout.',
   },
   {
     title: 'POPIA-compliant, no spam',
@@ -68,9 +68,7 @@ export default function AboutPage() {
 
         <h2 className="mt-10 text-2xl font-semibold text-brand-950">Where we are</h2>
         <p className="mt-3 text-brand-700 leading-relaxed">
-          Founded in {brand.about.founded} in Pretoria, {brand.name} ships nationwide via Pargo (lockers
-          and pickup points), The Courier Guy (door to door), and Dawn Wing
-          (same-day and overnight in major metros).
+          Founded in {brand.about.founded} in Pretoria, {brand.name} ships nationwide via The Courier Guy.
         </p>
 
         <h2 className="mt-10 text-2xl font-semibold text-brand-950">Talk to us</h2>
