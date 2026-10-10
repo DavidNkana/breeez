@@ -51,7 +51,7 @@ export const brand = {
     phoneLink: 'tel:+27747778886',
     whatsapp: '+27 74 777 8886',
     whatsappLink: 'https://wa.me/27747778886',
-    email: 'info@evasale.co.za',
+    email: 'support@evasale.co.za',
     hours: 'Mon–Sat 08:00–17:00',
   },
 
@@ -72,7 +72,7 @@ export const brand = {
   email: {
     fromName: 'Evasale',
     // from address comes from RESEND_FROM_EMAIL env
-    replyTo: 'info@evasale.co.za',
+    replyTo: 'support@evasale.co.za',
     orderConfirmationSubject: 'Your Evasale order is confirmed',
     orderShippedSubject: 'Your order is on its way',
     newsletterWelcomeSubject: 'Welcome to Evasale',

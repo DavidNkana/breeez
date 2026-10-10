@@ -58,12 +58,12 @@ YOUR ACCOUNT
 • POPIA-compliant — we never sell your data
 
 FOR THE BUSINESS CUSTOMER
-Breeez invoices for VAT-registered buyers. Email info@evasale.co.za for bulk orders.
+Breeez invoices for VAT-registered buyers. Email support@evasale.co.za for bulk orders.
 
 BUILT FOR SA
 • All prices in South African Rand (ZAR). No currency surprises at checkout.
 • Real SA mobile numbers supported for SMS notifications.
-• Local customer support: info@evasale.co.za
+• Local customer support: support@evasale.co.za
 
 Made with care in Cape Town.
 

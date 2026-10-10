@@ -27,7 +27,7 @@ test('launch banner renders in native mode while install promotion stays web-onl
 });
 
 test('Evasale contact constants use the approved customer links', () => {
-  assert.equal(brand.contact.email, 'info@evasale.co.za');
+  assert.equal(brand.contact.email, 'support@evasale.co.za');
   assert.equal(brand.contact.phone, '+27 74 777 8886');
   assert.equal(brand.contact.phoneLink, 'tel:+27747778886');
   assert.equal(brand.contact.whatsappLink, 'https://wa.me/27747778886');
