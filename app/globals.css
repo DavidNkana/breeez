@@ -118,3 +118,19 @@ input[type="number"] {
   outline: 2px solid #C72E28;
   outline-offset: 2px;
 }
+
+@media (min-width: 768px) {
+  .pdp-pull-indicator { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pdp-refresh-spinner { animation: none; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pdp-refresh-spinner { animation: pdp-refresh-spin 800ms linear infinite; }
+}
+
+@keyframes pdp-refresh-spin {
+  to { transform: rotate(360deg); }
+}

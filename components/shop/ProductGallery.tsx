@@ -57,7 +57,7 @@ export function ProductGallery({ images }: ProductGalleryProps) {
   const active = images[activeIdx];
 
   return (
-    <div>
+    <div data-pdp-no-pull>
       {/* Main image with hover zoom + click-to-lightbox */}
       <div
         ref={mainRef}

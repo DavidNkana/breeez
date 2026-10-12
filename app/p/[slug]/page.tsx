@@ -10,6 +10,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { getAvailableStock, isPurchasableVariant } from '@/lib/catalog/variant-options';
+import { PdpPullToRefresh } from '@/components/shop/PdpPullToRefresh';
 
 // Stock changes during checkout; never serve a cached option/availability state.
 export const dynamic = 'force-dynamic';
@@ -118,6 +119,9 @@ export default async function ProductPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(orgLd) }}
       />
+      <PdpPullToRefresh
+        productSlug={product.slug}
+      >
       <main className="mx-auto max-w-6xl px-4 py-6 pb-20 safe-bottom overflow-x-clip max-w-full">
         <nav className="text-xs text-brand-500">
           <Link href="/" className="hover:underline">Home</Link>
@@ -178,6 +182,7 @@ export default async function ProductPage({ params }: Props) {
           }
         />
       </main>
+      </PdpPullToRefresh>
     </>
   );
 }
