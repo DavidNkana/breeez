@@ -1,18 +1,28 @@
 import { ProductGrid } from '@/components/shop/ProductGrid';
-import { listProducts } from '@/lib/catalog/queries';
+import { listProductsPage } from '@/lib/catalog/queries';
+import { parsePage, pageHref, PRODUCTS_PER_PAGE, shouldRedirectToCanonicalPage, shouldRedirectToFirstPage, type QueryParams } from '@/lib/catalog/pagination';
+import { ProductPagination } from '@/components/shop/ProductPagination';
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
 
-export const metadata: Metadata = {
-  title: 'New Arrivals — Evasale',
-  description: 'The newest products at Evasale. All categories, latest first.'
-};
+type Props = { searchParams: QueryParams };
 
-type Props = { searchParams: { sort?: string } };
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  return {
+    title: 'New Arrivals — Evasale',
+    description: 'The newest products at Evasale. All categories, latest first.',
+    alternates: { canonical: pageHref('/new', searchParams, parsePage(searchParams.page)) },
+  };
+}
 
 export default async function NewArrivalsPage({ searchParams }: Props) {
-  const sort = (searchParams.sort as 'newest' | 'price_asc' | 'price_desc' | 'popular') || 'newest';
-  const products = await listProducts({ sort, limit: 40 });
+  const sort = (searchParams.sort === 'price_asc' || searchParams.sort === 'price_desc' || searchParams.sort === 'popular') ? searchParams.sort : 'newest';
+  const page = parsePage(searchParams.page);
+  if (shouldRedirectToCanonicalPage(searchParams.page, page)) redirect(pageHref('/new', searchParams, page));
+  const { products, totalCount } = await listProductsPage({ sort, limit: PRODUCTS_PER_PAGE, offset: (page - 1) * PRODUCTS_PER_PAGE });
+  const totalPages = Math.ceil(totalCount / PRODUCTS_PER_PAGE);
+  if (shouldRedirectToFirstPage(page, totalPages)) redirect(pageHref('/new', searchParams, 1));
 
   return (
     <>
@@ -25,7 +35,7 @@ export default async function NewArrivalsPage({ searchParams }: Props) {
 
         <div className="mt-2 flex items-baseline justify-between">
           <h1 className="text-2xl md:text-3xl font-semibold text-brand-950">New arrivals</h1>
-          <p className="text-sm text-brand-600">{products.length} {products.length === 1 ? 'product' : 'products'}</p>
+           <p className="text-sm text-brand-600">{totalCount} {totalCount === 1 ? 'product' : 'products'}</p>
         </div>
 
         <p className="mt-1 text-sm text-brand-600">The latest products across all categories, newest first.</p>
@@ -38,7 +48,7 @@ export default async function NewArrivalsPage({ searchParams }: Props) {
             return (
               <Link
                 key={s}
-                href={`/new?sort=${s}`}
+                 href={pageHref('/new', { ...searchParams, sort: s }, 1)}
                 className={isActive ? 'rounded-full bg-brand-900 px-3 py-1 text-xs font-medium text-white' : 'rounded-full border border-brand-300 bg-white px-3 py-1 text-xs font-medium text-brand-700 hover:border-brand-500'}
               >
                 {label}
@@ -48,7 +58,8 @@ export default async function NewArrivalsPage({ searchParams }: Props) {
         </div>
 
         <div className="mt-6">
-          <ProductGrid products={products} />
+         <ProductGrid products={products} />
+         <ProductPagination pathname="/new" query={searchParams} page={page} totalCount={totalCount} />
         </div>
       </main>
     </>

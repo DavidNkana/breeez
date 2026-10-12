@@ -1,17 +1,20 @@
 import { ProductGrid } from '@/components/shop/ProductGrid';
-import { getCategoryBySlug, listProducts } from '@/lib/catalog/queries';
-import { notFound } from 'next/navigation';
+import { getCategoryBySlug, listProductsPage } from '@/lib/catalog/queries';
+import { notFound, redirect } from 'next/navigation';
+import { parsePage, pageHref, PRODUCTS_PER_PAGE, shouldRedirectToCanonicalPage, shouldRedirectToFirstPage, type QueryParams } from '@/lib/catalog/pagination';
+import { ProductPagination } from '@/components/shop/ProductPagination';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 
-type Props = { params: { slug: string }; searchParams: { sort?: string; minPrice?: string; maxPrice?: string; page?: string } };
+type Props = { params: { slug: string }; searchParams: QueryParams };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const category = await getCategoryBySlug(params.slug);
   if (!category) return { title: 'Category not found — Evasale' };
   return {
     title: `${category.name} — Evasale`,
-    description: category.description || `Shop ${category.name} at Evasale. ZAR. SA-wide delivery.`
+    description: category.description || `Shop ${category.name} at Evasale. ZAR. SA-wide delivery.`,
+    alternates: { canonical: pageHref(`/c/${category.slug}`, searchParams, parsePage(searchParams.page)) },
   };
 }
 
@@ -19,21 +22,24 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const category = await getCategoryBySlug(params.slug);
   if (!category) notFound();
 
-  const sort = (searchParams.sort as 'newest' | 'price_asc' | 'price_desc' | 'popular') || 'newest';
-  const minPriceCents = searchParams.minPrice ? Math.round(parseFloat(searchParams.minPrice) * 100) : undefined;
-  const maxPriceCents = searchParams.maxPrice ? Math.round(parseFloat(searchParams.maxPrice) * 100) : undefined;
-  const page = Math.max(1, parseInt(searchParams.page || '1', 10));
-  const limit = 24;
-  const offset = (page - 1) * limit;
+  const sort = (searchParams.sort === 'price_asc' || searchParams.sort === 'price_desc' || searchParams.sort === 'popular') ? searchParams.sort : 'newest';
+  const minPrice = typeof searchParams.minPrice === 'string' ? Number.parseFloat(searchParams.minPrice) : NaN;
+  const maxPrice = typeof searchParams.maxPrice === 'string' ? Number.parseFloat(searchParams.maxPrice) : NaN;
+  const minPriceCents = Number.isFinite(minPrice) ? Math.round(minPrice * 100) : undefined;
+  const maxPriceCents = Number.isFinite(maxPrice) ? Math.round(maxPrice * 100) : undefined;
+  const page = parsePage(searchParams.page);
+  if (shouldRedirectToCanonicalPage(searchParams.page, page)) redirect(pageHref(`/c/${category.slug}`, searchParams, page));
 
-  const products = await listProducts({
+  const { products, totalCount } = await listProductsPage({
     categoryId: category.id,
     sort,
     minPriceCents,
     maxPriceCents,
-    limit,
-    offset
+    limit: PRODUCTS_PER_PAGE,
+    offset: (page - 1) * PRODUCTS_PER_PAGE
   });
+  const totalPages = Math.ceil(totalCount / PRODUCTS_PER_PAGE);
+  if (shouldRedirectToFirstPage(page, totalPages)) redirect(pageHref(`/c/${category.slug}`, searchParams, 1));
 
   return (
     <>
@@ -46,7 +52,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
 
         <div className="mt-2 flex items-baseline justify-between">
            <h1 className="text-2xl md:text-3xl font-semibold text-brand-950 dark:text-brand-50">{category.name}</h1>
-           <p className="text-sm text-brand-600 dark:text-brand-300">{products.length} {products.length === 1 ? 'product' : 'products'}</p>
+           <p className="text-sm text-brand-600 dark:text-brand-300">{totalCount} {totalCount === 1 ? 'product' : 'products'}</p>
         </div>
 
         {category.description && (
@@ -58,8 +64,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
           {(['newest', 'price_asc', 'price_desc', 'popular'] as const).map((s) => {
             const label = s === 'newest' ? 'Newest' : s === 'price_asc' ? 'Price: Low → High' : s === 'price_desc' ? 'Price: High → Low' : 'Popular';
             const isActive = sort === s;
-            const params = new URLSearchParams({ ...searchParams, sort: s, page: '1' });
-            const href = `/c/${category.slug}?${params.toString()}`;
+            const href = pageHref(`/c/${category.slug}`, { ...searchParams, sort: s }, 1);
             return (
               <Link
                 key={s}
@@ -73,7 +78,8 @@ export default async function CategoryPage({ params, searchParams }: Props) {
         </div>
 
         <div className="mt-6">
-          <ProductGrid products={products} />
+         <ProductGrid products={products} />
+         <ProductPagination pathname={`/c/${category.slug}`} query={searchParams} page={page} totalCount={totalCount} />
         </div>
       </main>
     </>

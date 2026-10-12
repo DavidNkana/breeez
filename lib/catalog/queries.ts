@@ -128,11 +128,16 @@ export type ProductListItem = Product & {
 };
 
 export async function listProducts(params: ListProductsParams = {}): Promise<ProductListItem[]> {
+  const result = await listProductsPage(params);
+  return result.products;
+}
+
+export async function listProductsPage(params: ListProductsParams = {}): Promise<{ products: ProductListItem[]; totalCount: number }> {
   const supabase = await createClient();
 
   let builder = (supabase
     .from('products')
-    .select('*')
+    .select('*', { count: 'exact' })
     .eq('is_active', true)) as any;
 
   if (params.categoryId) builder = builder.eq('category_id', params.categoryId);
@@ -142,21 +147,20 @@ export async function listProducts(params: ListProductsParams = {}): Promise<Pro
   if (params.search) builder = builder.textSearch('search_tsv', params.search, { type: 'websearch', config: 'english' });
 
   switch (params.sort) {
-    case 'price_asc':  builder = builder.order('base_price_cents', { ascending: true }); break;
-    case 'price_desc': builder = builder.order('base_price_cents', { ascending: false }); break;
-    case 'popular':    builder = builder.order('is_featured', { ascending: false }).order('created_at', { ascending: false }); break;
+    case 'price_asc':  builder = builder.order('base_price_cents', { ascending: true }).order('id', { ascending: true }); break;
+    case 'price_desc': builder = builder.order('base_price_cents', { ascending: false }).order('id', { ascending: true }); break;
+    case 'popular':    builder = builder.order('is_featured', { ascending: false }).order('created_at', { ascending: false }).order('id', { ascending: true }); break;
     case 'newest':
-    default:           builder = builder.order('created_at', { ascending: false });
+    default:           builder = builder.order('created_at', { ascending: false }).order('id', { ascending: true });
   }
 
-  if (params.limit) builder = builder.limit(params.limit);
-  if (params.offset) builder = builder.range(params.offset, params.offset + (params.limit ?? 20) - 1);
+  if (params.limit != null) builder = builder.range(params.offset ?? 0, (params.offset ?? 0) + params.limit - 1);
 
-  const { data, error } = await builder;
-  if (error) { logError({ message: `[listProducts] ${error.message}`, severity: 'error' }); return []; }
+  const { data, error, count } = await builder;
+  if (error) { logError({ message: `[listProducts] ${error.message}`, severity: 'error' }); return { products: [], totalCount: 0 }; }
 
   const products = (data ?? []) as Product[];
-  if (products.length === 0) return [];
+  if (products.length === 0) return { products: [], totalCount: count ?? 0 };
 
   const categoryIds = [...new Set(products.map((p) => p.category_id).filter(Boolean))];
   let catMap = new Map<string, Pick<Category, 'id' | 'slug' | 'name'>>();
@@ -196,7 +200,7 @@ export async function listProducts(params: ListProductsParams = {}): Promise<Pro
     }
   }
 
-  return products.map((p) => {
+  return { products: products.map((p) => {
     const r = ratingMap.get(p.id);
     return {
       ...p,
@@ -209,7 +213,7 @@ export async function listProducts(params: ListProductsParams = {}): Promise<Pro
       review_count: r?.review_count ?? 0,
       variants: variantMap.get(p.id) ?? [],
     };
-  });
+  }), totalCount: count ?? products.length };
 }
 
 export type ProductDetail = Product & {
