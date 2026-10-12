@@ -90,6 +90,14 @@ html, body {
   .safe-bottom { padding-bottom: max(0px, env(safe-area-inset-bottom)); }
 }
 
+/* Touch listeners arbitrate pull after native scrolling has had its chance;
+   auto keeps browser overscroll, vertical scrolling, and horizontal controls intact. */
+.pdp-pull-surface {
+  touch-action: auto;
+  overscroll-behavior-x: auto;
+  overscroll-behavior-y: auto;
+}
+
 /* Hide scrollbar on horizontal category strip */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

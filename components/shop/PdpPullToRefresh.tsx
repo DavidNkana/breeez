@@ -111,7 +111,7 @@ export function PdpPullToRefresh({ children, productSlug }: Props) {
   const pullProgress = Math.min(state.distance / PULL_THRESHOLD, 1);
 
   return (
-    <div ref={rootRef} className="relative">
+    <div ref={rootRef} className="pdp-pull-surface relative">
       <div className="flex justify-end px-1 pt-2">
         <button
           type="button"
