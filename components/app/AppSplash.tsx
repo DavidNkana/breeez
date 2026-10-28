@@ -1,12 +1,21 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { brand } from '@/lib/brand';
 
 const SPLASH_KEY = 'breeez:splash_shown_v3';
 const MIN_DISPLAY_MS = 1500;
 const MAX_DISPLAY_MS = 4000;
+
+/**
+ * Tagline artwork shown near the bottom of the splash.
+ *
+ * The asset is optional: if it has not been added to public/brand yet the
+ * image request 404s and the element is removed, so the splash never shows a
+ * broken-image icon.
+ */
+const SPLASH_TAGLINE = '/brand/evasale_tagline_high_res.png';
 
 /**
  * Full-screen splash shown on app startup.
@@ -20,6 +29,7 @@ const MAX_DISPLAY_MS = 4000;
  */
 export function AppSplash() {
   const ref = useRef<HTMLDivElement>(null);
+  const [taglineFailed, setTaglineFailed] = useState(false);
 
   useEffect(() => {
     const node = ref.current;
@@ -91,6 +101,25 @@ export function AppSplash() {
         className="h-auto w-48 sm:w-56 animate-pulse"
         style={{ animationDuration: '2s' }}
       />
+
+      {/* Tagline artwork, sitting just above the bottom edge of the splash. */}
+      {!taglineFailed && (
+        <div
+          className="absolute inset-x-0 bottom-0 flex justify-center px-6"
+          style={{ paddingBottom: 'max(2rem, calc(env(safe-area-inset-bottom) + 1rem))' }}
+        >
+          <div className="relative h-[64px] w-full max-w-[440px] sm:h-[84px]">
+            <Image
+              src={SPLASH_TAGLINE}
+              alt=""
+              fill
+              sizes="(max-width: 640px) 78vw, 440px"
+              onError={() => setTaglineFailed(true)}
+              className="object-contain"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
