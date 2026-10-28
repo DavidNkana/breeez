@@ -44,7 +44,15 @@ const config: CapacitorConfig = {
   },
 
   ios: {
-    contentInset: 'automatic',
+    // Edge-to-edge: the webview fills the whole screen, including the area
+    // behind the status bar. The app's own dark header then paints that strip
+    // (with the safe-area padding from `.safe-top` keeping the logo clear of
+    // the clock), so the status bar reads as part of the app instead of a
+    // transparent window onto the page.
+    //
+    // This pairs with `viewportFit: 'cover'` in app/layout.tsx: without it,
+    // env(safe-area-inset-top) is 0 and the padding does nothing.
+    contentInset: 'never',
     backgroundColor: '#000000',
     limitsNavigationsToAppBoundDomains: true
   },
@@ -73,7 +81,15 @@ const config: CapacitorConfig = {
       splashImmersive: true
     },
     StatusBar: {
-      style: 'dark',
+      // 'light' = LIGHT status bar text (white icons/clock). The app chrome is
+      // dark, so dark text was invisible on iOS and made the status bar look
+      // like an empty transparent strip.
+      //
+      // NOTE: on iOS the status bar background is always transparent — it can
+      // only be controlled by what is rendered behind it. `backgroundColor`
+      // below applies to Android only; on iOS the header's own background
+      // (plus `contentInset: 'never'`) provides the strip.
+      style: 'light',
       backgroundColor: '#000000'
     },
     PushNotifications: {

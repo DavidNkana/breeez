@@ -99,6 +99,12 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   themeColor: brand.colors.primary,
+  // Required on notched iPhones/iPads. Without `viewport-fit=cover` the
+  // browser does NOT expose safe-area insets to the page, so
+  // env(safe-area-inset-top) resolves to 0 — which is why the iOS status bar
+  // used to sit ON TOP of the header with no padding and looked like a
+  // transparent strip showing the app behind it.
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
