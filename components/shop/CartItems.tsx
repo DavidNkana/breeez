@@ -1,10 +1,12 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useCart } from '@/lib/cart/store';
 import { formatRand } from '@/lib/format';
 import { brand } from '@/lib/brand';
 import { QuantityStepper } from './QuantityStepper';
+import { storefrontImageProps } from '@/lib/images/props';
 
 export function ShippingProgress({ subtotal }: { subtotal: number }) {
   const threshold = brand.freeShippingThresholdCents;
@@ -22,7 +24,7 @@ export function CartItems({ drawer = false, onNavigate }: { drawer?: boolean; on
   const remove = useCart((s) => s.remove);
   return <ul className={drawer ? 'flex-1 divide-y divide-brand-100 overflow-y-auto px-2' : 'space-y-3'}>
     {items.map((it) => <li key={it.variantId} className={drawer ? 'flex gap-3 px-3 py-4' : 'flex gap-3 rounded-lg border border-brand-200 bg-white dark:bg-brand-900 p-4'}>
-      {it.imageUrl ? <img src={it.imageUrl} alt={it.name} className={`${drawer ? 'h-20 w-20' : 'h-24 w-24'} flex-shrink-0 rounded object-cover`} /> : <div className={`${drawer ? 'h-20 w-20' : 'h-24 w-24'} flex-shrink-0 rounded bg-brand-100`} />}
+      {it.imageUrl ? <Image {...storefrontImageProps(it.imageUrl, 'cart')} alt={it.name} width={96} height={96} className={`${drawer ? 'h-20 w-20' : 'h-24 w-24'} flex-shrink-0 rounded object-cover`} /> : <div className={`${drawer ? 'h-20 w-20' : 'h-24 w-24'} flex-shrink-0 rounded bg-brand-100`} />}
       <div className="min-w-0 flex-1"><Link href={`/p/${it.productSlug}`} onClick={onNavigate} className="font-medium text-brand-900 hover:underline">{it.name}</Link>
          <p className="mt-1 text-sm text-brand-700 dark:text-brand-200">{formatRand(it.priceCents)}</p>
         <div className="mt-2 flex items-center justify-between"><QuantityStepper value={it.quantity} min={1} onChange={(v) => setQuantity(it.variantId, v)} /><button onClick={() => remove(it.variantId)} className="text-xs text-brand-500 hover:text-danger">Remove</button></div>

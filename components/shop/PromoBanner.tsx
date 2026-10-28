@@ -1,6 +1,8 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
+import { storefrontImageProps } from '@/lib/images/props';
 
 type PromoBannerProps = {
   /** Public CDN URL for the background image (Unsplash, Pexels, etc.) */
@@ -61,11 +63,10 @@ export function PromoBanner({
     >
       {/* Background image. Lazy on mobile to keep LCP snappy. */}
       <div className="relative h-[440px] sm:h-[520px] md:h-[560px]">
-        <img
-          src={imageUrl}
+        <Image
+          {...storefrontImageProps(imageUrl, 'banner')}
           alt={alt}
-          loading="lazy"
-          decoding="async"
+          fill
           className="absolute inset-0 h-full w-full object-cover"
         />
 

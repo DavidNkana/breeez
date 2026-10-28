@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import packageJson from '../../package.json';
 import { brand } from '@/lib/brand';
 
@@ -11,9 +12,12 @@ export function Footer() {
   return (
     <footer className="mt-16 border-t border-brand-800 bg-brand-900 md:mt-24">
       <div className="flex justify-center bg-black py-6 px-4">
-        <img
+        <Image
           src={brand.logo}
           alt={`${brand.name}`}
+          width={brand.logoWidth}
+          height={brand.logoHeight}
+          loading="lazy"
           className="h-10 w-auto max-w-full"
         />
       </div>

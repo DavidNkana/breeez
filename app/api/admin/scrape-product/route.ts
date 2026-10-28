@@ -14,6 +14,7 @@ import { getCurrentUser } from '@/lib/auth/session';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { IMPORT_STOCK_FLOOR, importedStock } from '@/lib/catalog/importer';
 import { assignVariantSkus } from '@/lib/catalog/variant-skus';
+import { optimizeImageBytes, resolveImageFormat } from '@/lib/images/optimize';
 
 export const runtime = 'nodejs';
 
@@ -885,6 +886,32 @@ export function imageFormat(contentType: string, bytes: Uint8Array) {
   return null;
 }
 
+/**
+ * Downscale + re-encode a downloaded retailer original before it is stored.
+ *
+ * Retailer originals are full-resolution (4-8 MB) files. Storing them as-is
+ * is what made a single product page download ~42 MB. The re-encoded bytes
+ * keep the source format family, so the stored object path (and therefore the
+ * public URL and its extension) is unchanged.
+ *
+ * Returns the original bytes untouched when optimisation fails — a broken
+ * encoder must never fail an import.
+ */
+export async function prepareImageForStorage(bytes: Uint8Array, type: string) {
+  const source = Buffer.from(bytes);
+  try {
+    const optimized = await optimizeImageBytes(source, resolveImageFormat(type));
+    if (!optimized.bytes.byteLength) return { bytes: source, contentType: type, warning: null as string | null };
+    return { bytes: optimized.bytes, contentType: optimized.contentType, warning: null as string | null };
+  } catch {
+    return {
+      bytes: source,
+      contentType: type,
+      warning: 'image optimisation failed',
+    };
+  }
+}
+
 export async function rehostImages(images: string[], pageUrl: string) {
   if (images.length === 0) return { images: [], warnings: [] };
   const stored: string[] = [];
@@ -936,8 +963,13 @@ export async function rehostImages(images: string[], pageUrl: string) {
       const bytes = await readLimitedBody(response, MAX_IMAGE_BYTES);
       const format = imageFormat(type, bytes);
       if (!format) throw new Error('unsupported or invalid image');
+      // Store the optimised bytes, never the multi-megabyte retailer original.
+      const prepared = await prepareImageForStorage(bytes, format.type);
+      if (prepared.warning) {
+        warnings.push(`Image ${index + 1} was stored at its original size (${prepared.warning})`);
+      }
       const path = `imports/${randomUUID()}-${index}.${format.extension}`;
-      const { data, error } = await admin.storage.from('product-images').upload(path, Buffer.from(bytes), { contentType: format.type, cacheControl: '31536000', upsert: false });
+      const { data, error } = await admin.storage.from('product-images').upload(path, prepared.bytes, { contentType: prepared.contentType, cacheControl: '31536000', upsert: false });
       if (error || !data) {
         // The migration only installs policies; it does not create the bucket.
         stored.push(finalUrl);

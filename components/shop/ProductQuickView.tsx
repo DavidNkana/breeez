@@ -2,9 +2,11 @@
 
 import { createPortal } from 'react-dom';
 import { useEffect, useRef } from 'react';
+import Image from 'next/image';
 import type { ProductVariant } from '@/lib/supabase/types';
 import { AddToCartButton } from './AddToCartButton';
 import { formatRand } from '@/lib/format';
+import { storefrontImageProps } from '@/lib/images/props';
 
 type ProductQuickViewProps = {
   open: boolean;
@@ -62,7 +64,14 @@ export function ProductQuickView({ open, onClose, slug, name, priceCents, compar
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M6 6l12 12M6 18L18 6" /></svg>
         </button>
         <div className="grid gap-5 p-5 pt-8 md:grid-cols-2 md:p-6">
-          <img src={imageUrl} alt={name} className="aspect-square w-full rounded-xl bg-brand-100 object-cover" />
+          <div className="relative aspect-square overflow-hidden rounded-xl bg-brand-100">
+            <Image
+              {...storefrontImageProps(imageUrl, 'quickview')}
+              alt={name}
+              fill
+              className="h-full w-full object-cover"
+            />
+          </div>
           <div className="flex min-w-0 flex-col">
              {categoryName && <p className="text-xs font-medium uppercase tracking-wide text-brand-500 dark:text-brand-400">{categoryName}</p>}
             <h2 id="quick-view-title" className="mt-1 text-xl font-semibold text-brand-950 dark:text-white">{name}</h2>

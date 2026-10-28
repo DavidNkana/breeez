@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useWishlist } from '@/lib/wishlist/store';
 import { formatRand, calcDiscountPercent } from '@/lib/format';
 import { useToast } from '@/components/ui/Toast';
@@ -11,6 +12,7 @@ import type { ProductVariant } from '@/lib/supabase/types';
 import clsx from 'clsx';
 import { LowStockBadge } from './LowStockBadge';
 import { ProductQuickView } from './ProductQuickView';
+import { storefrontImageProps } from '@/lib/images/props';
 
 type ProductCardProps = {
   slug: string;
@@ -70,10 +72,10 @@ export function ProductCard({ slug, name, priceCents, compareAtCents, imageUrl, 
     >
       <Link href={`/p/${slug}`} className="block">
           <div className="relative aspect-square overflow-clip rounded-md bg-brand-100">
-          <img
-            src={imageUrl}
+          <Image
+            {...storefrontImageProps(imageUrl, 'card')}
             alt={name}
-            loading="lazy"
+            fill
             className="absolute inset-0 h-full w-full object-cover"
           />
 
@@ -136,7 +138,13 @@ export function ProductCard({ slug, name, priceCents, compareAtCents, imageUrl, 
         >
            <div className="rounded-lg border border-brand-200 bg-white p-3 shadow-2xl dark:border-brand-700 dark:bg-brand-900">
             <div className="flex gap-3">
-              <img src={imageUrl} alt="" className="h-20 w-20 flex-shrink-0 rounded object-cover" />
+              <Image
+                {...storefrontImageProps(imageUrl, 'thumbnail')}
+                alt=""
+                width={80}
+                height={80}
+                className="h-20 w-20 flex-shrink-0 rounded object-cover"
+              />
               <div className="flex-1 min-w-0">
                 {categoryName && (
                   <p className="text-[10px] uppercase tracking-wide text-brand-500">{categoryName}</p>

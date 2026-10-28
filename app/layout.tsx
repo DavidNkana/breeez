@@ -75,20 +75,16 @@ export const metadata: Metadata = {
     url: SITE_URL,
     locale: 'en_ZA',
     alternateLocale: ['en_US'],
-    images: [
-      {
-        url: brand.ogDefault,
-        width: 1200,
-        height: 630,
-        alt: `${SITE_NAME} — everyday essentials`,
-      },
-    ],
+    // No explicit `images` here on purpose: the file convention
+    // (app/opengraph-image.tsx) generates a real 1200x630 social image.
+    // Listing an image here would OVERRIDE that generated image — and the
+    // old entry pointed at /brand/og-default.png, a file that does not exist.
   },
   twitter: {
     card: 'summary_large_image',
     title: TITLE_DEFAULT,
     description: DESCRIPTION,
-    images: [brand.ogDefault],
+    // Falls back to the generated OpenGraph image (app/opengraph-image.tsx).
   },
   alternates: {
     canonical: SITE_URL,

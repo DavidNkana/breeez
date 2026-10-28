@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { CartButton } from '@/components/shop/CartButton';
 import { SearchAutocomplete } from '@/components/shop/SearchAutocomplete';
@@ -27,17 +28,23 @@ export function Header() {
     <header className="sticky top-0 z-40 border-b border-brand-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:border-black dark:bg-black safe-top">
       <div className="mx-auto flex max-w-6xl items-center gap-2 sm:gap-3 px-4 py-2">
         <Link href="/" className="flex flex-shrink-0 items-center gap-2">
-          <img
+          <Image
             src={brand.headerLogo}
             alt={`${brand.name} logo`}
+            width={brand.logoWidth}
+            height={brand.logoHeight}
+            priority
             className="h-10 sm:h-12 md:h-16 md:max-h-20 lg:max-h-20 w-auto max-w-full"
           />
         </Link>
 
         <div className="flex flex-1 items-center justify-center min-w-0">
-          <img
+          <Image
             src={brand.subtextLogo}
             alt={`${brand.name} logo with tagline`}
+            width={brand.subtextLogoWidth}
+            height={brand.subtextLogoHeight}
+            priority
             className="h-10 sm:h-12 md:h-14 lg:h-16 w-auto max-w-full"
           />
         </div>

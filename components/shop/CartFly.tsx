@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
+import { storefrontImageProps } from '@/lib/images/props';
 
 type FlyItem = {
   id: string;
@@ -117,8 +118,13 @@ function FlyItem_({ item, onDone }: { item: FlyItem; onDone: () => void }) {
       className="pointer-events-none fixed z-[100] h-12 w-12 overflow-hidden rounded-md shadow-xl ring-2 ring-accent-500"
       style={{ willChange: 'transform, left, top, opacity' }}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={item.imageUrl || '/placeholder.svg'} alt="" className="h-full w-full object-cover" />
+      <Image
+        {...storefrontImageProps(item.imageUrl || '/placeholder.svg', 'thumbnail')}
+        alt=""
+        width={48}
+        height={48}
+        className="h-full w-full object-cover"
+      />
     </div>
   );
 }

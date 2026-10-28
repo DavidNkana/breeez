@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { brand } from '@/lib/brand';
 
 const SPLASH_KEY = 'breeez:splash_shown_v3';
@@ -81,9 +82,12 @@ export function AppSplash() {
       className="pointer-events-none fixed inset-0 z-[99999] flex items-center justify-center bg-black"
       aria-hidden="true"
     >
-      <img
+      <Image
         src={brand.logo}
         alt={brand.name}
+        width={brand.logoWidth}
+        height={brand.logoHeight}
+        priority
         className="h-auto w-48 sm:w-56 animate-pulse"
         style={{ animationDuration: '2s' }}
       />

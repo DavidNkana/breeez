@@ -1,5 +1,7 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { listCategories } from '@/lib/catalog/queries';
+import { storefrontImageProps } from '@/lib/images/props';
 
 type CategoryGridProps = {
   homeOnly?: boolean;
@@ -27,18 +29,25 @@ export async function CategoryGrid({ homeOnly = false }: CategoryGridProps) {
 
   return (
     <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-      {cats.map((c) => (
+      {cats.map((c) => {
+        const imageUrl = c.imageUrl ?? DEFAULT_IMAGES[c.slug];
+        return (
         <Link key={c.slug} href={`/c/${c.slug}`} className="group relative aspect-square overflow-hidden rounded-lg bg-brand-800">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          {c.imageUrl || DEFAULT_IMAGES[c.slug] ? (
-            <img src={c.imageUrl ?? DEFAULT_IMAGES[c.slug]} alt={c.name} loading="lazy" className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+          {imageUrl ? (
+            <Image
+              {...storefrontImageProps(imageUrl, 'category')}
+              alt={c.name}
+              fill
+              className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center text-2xl font-semibold text-brand-300">{c.name[0]}</div>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
           <span className="absolute bottom-2 left-2 right-2 text-sm font-medium text-white drop-shadow-sm">{c.name}</span>
         </Link>
-      ))}
+        );
+      })}
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useToast } from '@/components/ui/Toast';
@@ -42,7 +43,14 @@ export default function ForgotPasswordPage() {
   return (
     <main className="mx-auto max-w-md px-4 py-10 pb-20 safe-bottom">
       <div className="-mx-4 -mt-10 flex justify-center bg-black px-4 pb-6 pt-10">
-        <img src="/brand/evasale-solo-logo.png" alt="Evasale" className="h-14 w-auto" />
+        <Image
+          src="/brand/evasale-solo-logo.png"
+          alt="Evasale"
+          width={224}
+          height={156}
+          priority
+          className="h-14 w-auto"
+        />
       </div>
       <h1 className="text-2xl font-semibold text-brand-950">Reset your password</h1>
       <p className="mt-1 text-sm text-brand-600">

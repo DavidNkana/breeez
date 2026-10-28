@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef, MouseEvent } from 'react';
+import Image from 'next/image';
 import clsx from 'clsx';
 import type { ProductImage } from '@/lib/supabase/types';
+import { storefrontImageProps } from '@/lib/images/props';
 
 type ProductGalleryProps = {
   images: ProductImage[];
@@ -48,8 +50,13 @@ export function ProductGallery({ images }: ProductGalleryProps) {
 
   if (images.length === 0) {
     return (
-      <div className="aspect-square overflow-hidden rounded-lg bg-brand-100">
-        <img src="/placeholder.svg" alt="No image" className="h-full w-full object-cover" />
+      <div className="relative aspect-square overflow-hidden rounded-lg bg-brand-100">
+        <Image
+          {...storefrontImageProps('/placeholder.svg', 'hero')}
+          alt="No image"
+          fill
+          className="h-full w-full object-cover"
+        />
       </div>
     );
   }
@@ -66,10 +73,11 @@ export function ProductGallery({ images }: ProductGalleryProps) {
         onMouseLeave={() => setZoom(null)}
         onTouchStart={() => setZoom(null)}
       >
-        <img
-          src={active.url}
+        <Image
+          {...storefrontImageProps(active.url, 'hero')}
           alt={active.alt_text || 'Product image'}
-            className="h-full w-full select-none object-cover transition-transform duration-150 ease-out"
+          fill
+          className="h-full w-full select-none object-cover transition-transform duration-150 ease-out"
           style={
             zoom
               ? {
@@ -121,12 +129,17 @@ export function ProductGallery({ images }: ProductGalleryProps) {
               type="button"
               onClick={() => setActiveIdx(i)}
               className={clsx(
-                'aspect-square overflow-hidden rounded border-2 transition-colors',
+                'relative aspect-square overflow-hidden rounded border-2 transition-colors',
                 i === activeIdx ? 'border-brand-900' : 'border-transparent hover:border-brand-300'
               )}
               aria-label={`View image ${i + 1}`}
             >
-              <img src={img.url} alt="" className="h-full w-full object-cover" />
+              <Image
+                {...storefrontImageProps(img.url, 'thumbnail')}
+                alt=""
+                fill
+                className="h-full w-full object-cover"
+              />
             </button>
           ))}
         </div>
@@ -165,11 +178,13 @@ export function ProductGallery({ images }: ProductGalleryProps) {
             </button>
           )}
 
-          <div className="relative max-h-[90vh] max-w-[90vw]" onClick={(e) => e.stopPropagation()}>
-            <img
-              src={images[lightboxIdx].url}
+          <div className="relative" onClick={(e) => e.stopPropagation()}>
+            <Image
+              {...storefrontImageProps(images[lightboxIdx].url, 'lightbox')}
               alt={images[lightboxIdx].alt_text || 'Product image'}
-              className="max-h-[90vh] max-w-[90vw] object-contain"
+              width={1600}
+              height={1600}
+              className="h-auto max-h-[90vh] max-w-[90vw] w-auto object-contain"
             />
           </div>
 

@@ -370,15 +370,66 @@ Meilisearch has a generous free tier and runs on Fly.io / Render free tier. Not 
 **Storage:** Supabase Storage, public bucket `product-images`.
 
 **Upload:** admin uploads via admin UI → stored at `product-images/{product_id}/{filename}`.
+The importer (`/api/admin/scrape-product`) stores retailer originals under
+`product-images/imports/{uuid}-{index}.{ext}`.
 
-**Transforms:** Supabase Storage's built-in image transformation API. We render responsive sizes:
-- `?width=80` — cart thumbnail
-- `?width=300` — product card (PLP)
-- `?width=800` — PDP hero
+**What is stored (the important rule):** retailer originals are FULL-RESOLUTION
+files — often 4-8 MB each. They are never stored as-is. Every image that goes
+into the bucket is normalised first:
 
-Lazy-loaded with native `<img loading="lazy">`.
+- long edge ≤ **1600 px** (`fit: inside`, never upscaled)
+- re-encoded: JPEG q80 (mozjpeg), WebP q80, PNG stays lossless PNG
+- the format family is preserved, so the object path, its extension and the
+  content type never change — every existing product URL keeps working
 
-**Format:** WebP with JPEG fallback (Supabase Storage's transform handles automatically).
+**Delivery:** `next/image` (the Next image optimiser, backed by `sharp`).
+
+- every storefront image declares an accurate `sizes` attribute
+  (see `lib/images/props.ts` — one source of truth for every slot)
+- exactly ONE eager image per page: the PDP hero (the LCP element). Cards,
+  thumbnails, the lightbox, cart, wishlist and banners are all lazy.
+- output format: WebP; the optimiser caches each variant for 1 hour
+
+**Format:** WebP via the Next optimiser, JPEG fallback for browsers that do not
+accept WebP (the optimiser serves the original bytes then).
+
+### 9.1 Backfilling the images that were stored before this rule existed
+
+Images imported before the optimiser existed are still multi-megabyte originals.
+The backfill rewrites them **in place** — same path, same extension, same
+content type — so no product URL breaks. Nothing is deleted or renamed, and the
+script is idempotent (a second run finds nothing left to do).
+
+```bash
+# preview what would change (no writes)
+npm run images:optimize -- --dry-run
+
+# rewrite the bucket (requires NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY
+# in the environment or in .env.local)
+npm run images:optimize
+
+# optional flags
+npm run images:optimize -- --prefix=imports/   # only one folder
+npm run images:optimize -- --limit=50          # stop after 50 objects
+npm run images:optimize -- --concurrency=8     # parallel downloads
+```
+
+The script reads the service-role key from the environment only — it never
+prints or writes it. After a backfill run the Next image optimiser may still
+serve cached (pre-backfill) variants for up to `images.minimumCacheTTL`
+(1 hour); purge the deployment's image cache if you need it live immediately.
+
+### 9.2 Brand assets
+
+`public/brand/evasale-solo-logo.png` and `evasale-logo-right-subtext.png` are
+shipped at 640px wide (2x of the largest rendered size) and re-encoded as
+indexed PNGs — 31 KB and 17 KB instead of 337 KB and 141 KB. The artwork is
+unchanged. The originals live in `brand-assets/`; rebuild the shipped files
+with:
+
+```bash
+npm run brand:optimize
+```
 
 ---
 

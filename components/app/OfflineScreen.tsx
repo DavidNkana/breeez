@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { brand } from '@/lib/brand';
 
 type OfflineScreenProps = {
@@ -62,9 +63,12 @@ export function OfflineScreen({
       aria-labelledby="offline-headline"
       aria-describedby="offline-body"
     >
-      <img
+      <Image
         src={brand.logo}
         alt={brand.name}
+        width={brand.logoWidth}
+        height={brand.logoHeight}
+        priority
         className="h-auto w-40 sm:w-48"
       />
 

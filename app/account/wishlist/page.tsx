@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useWishlist, type WishlistItem } from '@/lib/wishlist/store';
 import { formatRand } from '@/lib/format';
+import { storefrontImageProps } from '@/lib/images/props';
 
 export default function WishlistPage() {
   // Hydration-safe: only show items after mount (Zustand persist hydrates from localStorage)
@@ -33,8 +35,13 @@ export default function WishlistPage() {
                 <div key={it.variantId} className="group relative rounded-lg border border-brand-200 bg-white p-3 hover:border-brand-400">
                   <Link href={`/p/${it.productSlug}`} className="block">
                     {it.imageUrl ? (
-                      <div className="aspect-square overflow-hidden rounded bg-brand-100 mb-2">
-                        <img src={it.imageUrl} alt={it.name} className="h-full w-full object-cover" />
+                      <div className="relative aspect-square overflow-hidden rounded bg-brand-100 mb-2">
+                        <Image
+                          {...storefrontImageProps(it.imageUrl, 'card')}
+                          alt={it.name}
+                          fill
+                          className="h-full w-full object-cover"
+                        />
                       </div>
                     ) : (
                       <div className="aspect-square rounded bg-brand-100 mb-2" />

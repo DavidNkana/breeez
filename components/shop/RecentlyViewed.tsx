@@ -1,8 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { formatRand } from '@/lib/format';
 import { useRecentlyViewed } from '@/lib/utils/recently-viewed';
+import { storefrontImageProps } from '@/lib/images/props';
 
 type Props = {
   /** Pass the *current* product so it isn't shown in the "also viewed" list. */
@@ -30,13 +32,12 @@ export function RecentlyViewed({ currentSlug, heading = 'Recently viewed' }: Pro
               href={`/p/${p.slug}`}
               className="block w-32 group"
             >
-              <div className="aspect-square overflow-hidden rounded-md bg-brand-100">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={p.imageUrl || '/placeholder.svg'}
+              <div className="relative aspect-square overflow-hidden rounded-md bg-brand-100">
+                <Image
+                  {...storefrontImageProps(p.imageUrl || '/placeholder.svg', 'strip')}
                   alt=""
+                  fill
                   className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
-                  loading="lazy"
                 />
               </div>
               <p className="mt-1 line-clamp-2 text-xs text-brand-700">{p.name}</p>
