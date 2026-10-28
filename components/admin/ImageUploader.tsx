@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { useToast } from '@/components/ui/Toast';
+import { optimizeImageForUpload } from '@/lib/images/client-optimize';
 import clsx from 'clsx';
 
 const supabase = createBrowserClient(
@@ -39,8 +40,10 @@ export function ImageUploader({ images, onChange, max = 10 }: Props) {
       showToast(`"${file.name}" is not an image`, 'error');
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      showToast(`"${file.name}" is over 5MB`, 'error');
+    if (file.size > 25 * 1024 * 1024) {
+      // The browser downscales before uploading (see optimizeImageForUpload),
+      // so the original may legitimately be large — but not unbounded.
+      showToast(`"${file.name}" is over 25MB`, 'error');
       return;
     }
 
@@ -53,11 +56,15 @@ export function ImageUploader({ images, onChange, max = 10 }: Props) {
     // — handleFiles below uses a different pattern to avoid that.
 
     try {
-      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+      // Downscale before uploading: retailer originals are 4-9 MB and used to
+      // be stored at full size, which made every product page download ~42 MB.
+      const prepared = await optimizeImageForUpload(file);
+      const uploadFile = prepared.file;
+      const ext = (uploadFile.name.split('.').pop() || 'jpg').toLowerCase();
       const path = `${tempId}.${ext}`;
       const { data, error: upErr } = await supabase.storage
         .from('product-images')
-        .upload(path, file, { cacheControl: '3600', upsert: false });
+        .upload(path, uploadFile, { cacheControl: '3600', upsert: false });
       if (upErr) throw upErr;
 
       const { data: { publicUrl } } = supabase.storage.from('product-images').getPublicUrl(data.path);
@@ -106,11 +113,14 @@ export function ImageUploader({ images, onChange, max = 10 }: Props) {
       const file = toUpload[i];
       const tempId = placeholders[i].id;
       try {
-        const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+        // Same downscale as the single-file path — see uploadFile().
+        const prepared = await optimizeImageForUpload(file);
+        const uploadFile = prepared.file;
+        const ext = (uploadFile.name.split('.').pop() || 'jpg').toLowerCase();
         const path = `${tempId}.${ext}`;
         const { data, error: upErr } = await supabase.storage
           .from('product-images')
-          .upload(path, file, { cacheControl: '3600', upsert: false });
+          .upload(path, uploadFile, { cacheControl: '3600', upsert: false });
         if (upErr) throw upErr;
         const { data: { publicUrl } } = supabase.storage.from('product-images').getPublicUrl(data.path);
         // Revoke the blob URL since we now have the real one
