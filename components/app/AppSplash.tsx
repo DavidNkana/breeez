@@ -108,12 +108,14 @@ export function AppSplash() {
           className="absolute inset-x-0 bottom-0 flex justify-center px-6"
           style={{ paddingBottom: 'max(2rem, calc(env(safe-area-inset-bottom) + 1rem))' }}
         >
-          <div className="relative h-[64px] w-full max-w-[440px] sm:h-[84px]">
+          {/* The box keeps the artwork's exact 2080x360 ratio so it is never
+              letterboxed or distorted. */}
+          <div className="relative aspect-[2080/360] w-[min(46vw,180px)] sm:w-[220px]">
             <Image
               src={SPLASH_TAGLINE}
               alt=""
               fill
-              sizes="(max-width: 640px) 78vw, 440px"
+              sizes="(max-width: 640px) 46vw, 220px"
               onError={() => setTaglineFailed(true)}
               className="object-contain"
             />
