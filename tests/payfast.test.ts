@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { buildPayFastFields, getPayFastAppOrigin, payFastSignature, validatePayFastNotification } from '../lib/payments/payfast';
+import { buildPayFastFields, getPayFastAppOrigin, payFastNotificationSignature, validatePayFastNotification } from '../lib/payments/payfast';
 
 function notification(amount = '108.99') {
   // Shaped like a real Payfast ITN for a ZAR account: no `currency` field is
@@ -10,7 +10,7 @@ function notification(amount = '108.99') {
     ['amount_gross', amount], ['custom_str1', 'order-id'], ['custom_str2', 'EV-1'],
     ['m_payment_id', 'EV-1'], ['email_address', 'buyer@example.test'],
   ]);
-  const signature = payFastSignature([...fields.entries()], 'secret');
+  const signature = payFastNotificationSignature([...fields.entries()], 'secret');
   return { fields, signature };
 }
 
@@ -38,12 +38,12 @@ test('a genuine ITN without a currency field is accepted', () => {
   // If a currency IS present it has to match the order.
   const wrong = notification();
   wrong.fields.set('currency', 'USD');
-  wrong.signature = payFastSignature([...wrong.fields.entries()], 'secret');
+  wrong.signature = payFastNotificationSignature([...wrong.fields.entries()], 'secret');
   assert.equal(validatePayFastNotification({ ...wrong, ...args }).ok, false);
 
   const right = notification();
   right.fields.set('currency', 'ZAR');
-  right.signature = payFastSignature([...right.fields.entries()], 'secret');
+  right.signature = payFastNotificationSignature([...right.fields.entries()], 'secret');
   assert.equal(validatePayFastNotification({ ...right, ...args }).ok, true);
 });
 
