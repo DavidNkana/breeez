@@ -1,4 +1,27 @@
 import { NextResponse } from 'next/server';
+import { getCurrentUser } from '@/lib/auth/session';
+import { createAdminClient } from '@/lib/supabase/admin';
+
+/**
+ * Only an admin may use this endpoint.
+ *
+ * Without a guard this was an open relay: anyone could POST an address and
+ * have the store send them an email through our Resend account. That burns
+ * sending quota, damages the sending domain's reputation (which also affects
+ * order emails), and is a route to abusing the company's Resend account.
+ */
+async function authorize(): Promise<{ ok: true } | { ok: false; status: number; error: string }> {
+  try {
+    const user = await getCurrentUser();
+    if (!user) return { ok: false, status: 401, error: 'Sign in required' };
+    const admin = await createAdminClient();
+    const { data } = await admin.from('admins').select('user_id').eq('user_id', user.id).maybeSingle();
+    if (!data) return { ok: false, status: 403, error: 'Admin access required' };
+    return { ok: true };
+  } catch {
+    return { ok: false, status: 503, error: 'Could not verify admin access' };
+  }
+}
 
 async function handleSend(to: string) {
   const apiKey = process.env.RESEND_API_KEY;
@@ -53,6 +76,10 @@ async function handleSend(to: string) {
 }
 
 export async function GET(req: Request) {
+  const auth = await authorize();
+  if (!auth.ok) {
+    return NextResponse.json({ ok: false, error: auth.error }, { status: auth.status });
+  }
   const url = new URL(req.url);
   const to = url.searchParams.get('to') || '';
 
@@ -68,6 +95,10 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  const auth = await authorize();
+  if (!auth.ok) {
+    return NextResponse.json({ ok: false, error: auth.error }, { status: auth.status });
+  }
   let to = '';
   try {
     const body = await req.json();
