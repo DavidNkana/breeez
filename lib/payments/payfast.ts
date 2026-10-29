@@ -41,7 +41,12 @@ export function validatePayFastNotification(params: {
   if (merchantId !== params.merchantId || params.fields.get('payment_status') !== 'COMPLETE' || !paymentId || !orderId) {
     return { ok: false, error: 'Invalid payment identity or status' };
   }
-  if (params.fields.get('currency') !== 'ZAR' || params.fields.get('currency') !== params.expectedCurrency) {
+  // Payfast's published ITN carries no currency field for a ZAR account, so
+  // a missing currency must NOT reject the notification — the exact
+  // amount_gross match below is the real protection. If a currency IS
+  // present, it has to match the order.
+  const notifiedCurrency = params.fields.get('pf_currency') || params.fields.get('currency');
+  if (notifiedCurrency && notifiedCurrency !== params.expectedCurrency) {
     return { ok: false, error: 'Currency mismatch' };
   }
   if (!/^\d+(?:\.\d{1,2})?$/.test(amount)) return { ok: false, error: 'Invalid payment amount' };
@@ -87,18 +92,31 @@ export function buildPayFastFields(params: {
   cancelUrl: string;
   notifyUrl: string;
 }): PayFastFields {
+  // Field names below follow Payfast's published checkout specification
+  // (developers.payfast.co.za). Two mistakes were fixed here:
+  //   - the customer email field is `email_address`, NOT `email` — sending
+  //     `email` means Payfast never receives the customer's address, so no
+  //     receipt reaches them.
+  //   - there is no `name` field and no `currency` field in the spec. Sending
+  //     `name` was meaningless; `currency` was actively harmful because the
+  //     ITN does not carry it back, so a validator that required it would
+  //     reject every genuine payment notification.
+  //
+  // `confirmation_address` makes the customer the recipient of the Payfast
+  // receipt (by default it goes to the address configured on the account).
+  // `email_confirmation` additionally sends the merchant a copy.
   return {
     merchant_id: params.merchantId,
     merchant_key: params.merchantKey,
     return_url: params.returnUrl,
     cancel_url: params.cancelUrl,
     notify_url: params.notifyUrl,
-    name: 'Evasale',
     item_name: `Order ${params.orderNumber}`,
     item_description: `Evasale order ${params.orderNumber}`,
     amount: (params.amountCents / 100).toFixed(2),
-    currency: 'ZAR',
-    email: params.customerEmail,
+    email_address: params.customerEmail,
+    confirmation_address: params.customerEmail,
+    email_confirmation: 1,
     custom_str1: params.orderId,
     custom_str2: params.orderNumber,
   };
