@@ -152,7 +152,7 @@ export async function POST(req: Request) {
 
     // Atomic stock decrement using row-level locking so concurrent buyers can't oversell.
     const successfulDecrements: SuccessfulDecrement[] = [];
-    let stockFailure: { kind: 'unavailable' | 'shortage' | 'error'; name: string; requested: number } | null = null;
+    let stockFailure: { kind: 'unavailable' | 'shortage' | 'error'; name: string; requested: number; reason?: string } | null = null;
     for (const ci of items) {
       const v = ci.variant as any;
       const p = v?.product as any;
@@ -176,6 +176,7 @@ export async function POST(req: Request) {
           kind: /unavailable/i.test(result.error.message ?? '') ? 'unavailable' : 'error',
           name: p?.name ?? 'Item',
           requested: ci.quantity,
+          reason: result.error.message ?? 'stock reservation failed',
         };
         break;
       }
@@ -190,8 +191,16 @@ export async function POST(req: Request) {
     if (stockFailure) {
       const rollback = await rollbackCheckout(adminSupabase, order.id, getCheckoutProductSlugs(items));
       if (rollback.failed) {
+        // Surface WHY the reservation failed. Without this the checkout only
+        // ever reports a generic compensation failure, which hides database
+        // contract problems (missing migration, missing grant) completely.
+        console.error('[checkout] stock reservation failed', {
+          orderId: order.id,
+          kind: stockFailure.kind,
+          reason: stockFailure.reason,
+        });
         return NextResponse.json(
-          { error: STOCK_COMPENSATION_FAILURE_MESSAGE },
+          { error: STOCK_COMPENSATION_FAILURE_MESSAGE, reason: stockFailure.reason ?? null },
           { status: 500 },
         );
       }
@@ -294,7 +303,14 @@ export async function POST(req: Request) {
         return NextResponse.json({ orderId: order.id, orderNumber: order.order_number });
       }
       if (rollback.failed) {
-        return NextResponse.json({ error: STOCK_COMPENSATION_FAILURE_MESSAGE }, { status: 500 });
+        console.error('[checkout] payment failed and rollback could not compensate', {
+          orderId: order.id,
+          reason: paymentError?.message,
+        });
+        return NextResponse.json(
+          { error: STOCK_COMPENSATION_FAILURE_MESSAGE, reason: paymentError?.message ?? null },
+          { status: 500 },
+        );
       }
       await recordPaymentEvent(adminSupabase, order.id, 'payment_failed', `failed:${order.id}`, { gateway: paymentMethod });
       return NextResponse.json({ error: paymentError?.message || 'Payment creation failed' }, { status: 502 });
