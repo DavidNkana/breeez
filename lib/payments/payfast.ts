@@ -55,8 +55,11 @@ export function validatePayFastNotification(params: {
 
 export function getPayFastAppOrigin(env: NodeJS.ProcessEnv = process.env): string {
   const configured = env.NEXT_PUBLIC_APP_URL || env.APP_URL;
-  const vercel = env.VERCEL_URL ? `https://${env.VERCEL_URL}` : undefined;
-  const candidate = configured || vercel || 'https://www.evasale.co.za';
+  // Deliberately NOT falling back to VERCEL_URL: that is a per-deployment
+  // host, so a preview build would point Payfast's ITN at a URL that only
+  // exists for that one deployment (and dies with it). The notification URL
+  // must be the stable customer-facing domain.
+  const candidate = configured || 'https://www.evasale.co.za';
   let url: URL;
   try {
     url = new URL(candidate);

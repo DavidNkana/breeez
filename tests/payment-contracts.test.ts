@@ -23,11 +23,17 @@ test('payment event contract is service-role-only and idempotent', async () => {
 
 test('checkout and PayFast webhook write bounded funnel events', async () => {
   const checkout = await readFile(resolve('app/api/checkout/create-payment/route.ts'), 'utf8');
-  const webhook = await readFile(resolve('app/api/webhooks/payfast/route.ts'), 'utf8');
+  // The ITN logic lives in one shared handler; both published routes delegate
+  // to it so there is a single implementation.
+  const webhook = await readFile(resolve('lib/payments/payfast-notify.ts'), 'utf8');
+  const canonicalRoute = await readFile(resolve('app/api/payfast/notify/route.ts'), 'utf8');
+  const aliasRoute = await readFile(resolve('app/api/webhooks/payfast/route.ts'), 'utf8');
   for (const event of ['checkout_started', 'pending_payment_created', 'payfast_redirect', 'payment_failed']) assert.match(checkout, new RegExp(event));
   assert.doesNotMatch(checkout, /abandoned_pending/);
   for (const event of ['payfast_itn_invalid', 'payfast_itn_valid']) assert.match(webhook, new RegExp(event));
   assert.match(webhook, /mark_order_paid_from_payfast/);
+  assert.match(canonicalRoute, /handlePayFastNotify/);
+  assert.match(aliasRoute, /handlePayFastNotify/);
   const eventsSql = await readFile(resolve('supabase/migrations/023_payment_events.sql'), 'utf8');
   assert.match(eventsSql, /paid_transition/);
   assert.match(eventsSql, /pending_payment_created/);

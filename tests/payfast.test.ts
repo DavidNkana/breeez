@@ -38,7 +38,10 @@ test('PayFast requires ZAR and the stored order currency', () => {
 
 test('PayFast callback origin is restricted to Evasale, Vercel, or local test origins', () => {
   assert.equal(getPayFastAppOrigin({ NODE_ENV: 'production' }), 'https://www.evasale.co.za');
-  assert.equal(getPayFastAppOrigin({ NODE_ENV: 'production', VERCEL_URL: 'evasale.vercel.app' }), 'https://evasale.vercel.app');
+  // VERCEL_URL is deliberately ignored: it is a per-deployment host, so a
+  // preview build would point Payfast's ITN at a URL that only exists for
+  // that one deployment. The canonical domain is used instead.
+  assert.equal(getPayFastAppOrigin({ NODE_ENV: 'production', VERCEL_URL: 'evasale.vercel.app' }), 'https://www.evasale.co.za');
   assert.equal(getPayFastAppOrigin({ NODE_ENV: 'development', APP_URL: 'http://localhost:3000' }), 'http://localhost:3000');
   assert.throws(() => getPayFastAppOrigin({ NODE_ENV: 'production', APP_URL: 'https://attacker.example' }));
 });

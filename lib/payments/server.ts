@@ -101,7 +101,7 @@ async function createPayFastPayment(p: { orderId: string; orderNumber: string; a
     customerEmail: p.customerEmail,
     returnUrl: `${appOrigin}/checkout/success/${p.orderId}?ref=${p.orderNumber}`,
     cancelUrl: `${appOrigin}/cart`,
-    notifyUrl: `${appOrigin}/api/webhooks/payfast`,
+    notifyUrl: `${appOrigin}/api/payfast/notify`,
   });
 
   const query = Object.entries(data)
