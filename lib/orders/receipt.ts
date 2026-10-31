@@ -59,6 +59,16 @@ const STEP_COPY: Record<string, { label: string; description: string }> = {
   delivered: { label: 'Delivered', description: 'Your parcel has been delivered. We hope you love it.' },
 };
 
+const GENERIC_PRODUCT_NAMES = new Set(['', 'item', 'items', 'product', 'products', 'untitled']);
+
+/** Some imported products still carry a generic name — use the variant name. */
+export function receiptProductName(productName: string, variantName: string): string {
+  const product = String(productName ?? '').trim();
+  if (product && !GENERIC_PRODUCT_NAMES.has(product.toLowerCase())) return product;
+  const variant = String(variantName ?? '').trim();
+  return variant || product || 'Item';
+}
+
 /**
  * Build the timeline from the order's own state timestamps.
  *
@@ -139,7 +149,7 @@ export async function loadOrderReceipt(orderId: string): Promise<OrderReceiptDat
     .eq('order_id', orderId)) as any;
   const items: OrderItem[] = (rows ?? []).map((r: any) => ({
     id: r.id,
-    productName: r.product_name,
+    productName: receiptProductName(r.product_name, r.variant_name),
     variantName: r.variant_name,
     sku: r.sku,
     quantity: r.quantity,

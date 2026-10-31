@@ -12,6 +12,16 @@ import { cancelPayJustNowCheckout, getPayJustNowConfig, isPayJustNowConfigured }
 
 type SuccessfulDecrement = { order_item_id: string };
 
+const GENERIC_PRODUCT_NAMES = new Set(['', 'item', 'items', 'product', 'products', 'untitled']);
+
+/** Prefer a real product name, otherwise use the variant name. */
+function meaningfulProductName(productName: string | undefined | null, variantName: string | undefined | null): string {
+  const product = String(productName ?? '').trim();
+  if (product && !GENERIC_PRODUCT_NAMES.has(product.toLowerCase())) return product;
+  const variant = String(variantName ?? '').trim();
+  return variant || product || 'Item';
+}
+
 async function rollbackCheckout(
   adminSupabase: any,
   orderId: string,
@@ -175,7 +185,9 @@ export async function POST(req: Request) {
           p_variant_id: ci.variant_id,
           p_quantity: ci.quantity,
           p_order_id: order.id,
-          p_product_name: p?.name ?? 'Item',
+          // Some imported products still carry a generic name — fall back to
+          // the variant name so the receipt and the courier note are useful.
+          p_product_name: meaningfulProductName(p?.name, v?.name),
           p_sku: v?.sku ?? '',
           p_unit_price_cents: pc,
         } as any);
