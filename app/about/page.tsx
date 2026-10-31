@@ -40,7 +40,7 @@ export default function AboutPage() {
         ctaLabel="Get in touch"
       />
       <main className="mx-auto max-w-3xl px-4 py-10 pb-20 safe-bottom prose prose-sm">
-        <p className="text-sm font-medium text-accent-700">Proudly South African since {brand.about.founded}</p>
+        <p className="text-sm font-medium text-accent-700">Proudly South African, based in Pretoria</p>
         <h1 className="mt-2 text-3xl font-semibold text-brand-950">Shop Smart, Save Big — Every Day.</h1>
         <p className="mt-4 text-base text-brand-700 leading-relaxed">
           {brand.about.mission}
@@ -68,7 +68,7 @@ export default function AboutPage() {
 
         <h2 className="mt-10 text-2xl font-semibold text-brand-950">Where we are</h2>
         <p className="mt-3 text-brand-700 leading-relaxed">
-          Founded in {brand.about.founded} in Pretoria, {brand.name} ships nationwide via The Courier Guy.
+          {brand.name} is based in Pretoria and ships nationwide via The Courier Guy.
         </p>
 
         <h2 className="mt-10 text-2xl font-semibold text-brand-950">Talk to us</h2>

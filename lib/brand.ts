@@ -16,7 +16,6 @@ export const brand = {
   tagline: 'Shop Smart, Save Big — Every Day.',
   shortDescription:
     'South African multi-category marketplace. Everyday essentials at unbeatable prices — delivered nationwide.',
-  founded: 2010,
   freeShippingThresholdCents: 65000,
 
   // Colors — Evasale visual identity.
@@ -109,9 +108,8 @@ export const brand = {
   about: {
     intro:
       'At Evasale, we believe in making everyday essentials accessible without compromising on quality.',
-    founded: 2010,
     mission:
-      'Since 2010, we\'ve been committed to providing unbeatable prices and exceptional value to South African homes.',
+      'We\'re committed to providing unbeatable prices and exceptional value to South African homes.',
   },
 } as const;
 
