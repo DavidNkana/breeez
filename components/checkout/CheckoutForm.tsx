@@ -210,7 +210,7 @@ export function CheckoutForm({ user, savedAddresses, mockPaymentsEnabled, payJus
               )}
             </div>
 
-            <Button onClick={() => setStep('address')} disabled={!email || !fullName || !phone} fullWidth size="lg">
+            <Button onClick={() => setStep('address')} disabled={!email || !fullName || !phone} size="lg" className="w-full">
               Continue to delivery address
             </Button>
           </div>
@@ -343,9 +343,11 @@ export function CheckoutForm({ user, savedAddresses, mockPaymentsEnabled, payJus
               </label>
             )}
 
-            <div className="flex gap-2">
-              <Button onClick={() => setStep('contact')} variant="secondary">Back</Button>
-              <Button onClick={() => setStep('delivery')} disabled={!addressReady} fullWidth size="lg">
+            <div className="flex flex-wrap items-center gap-2">
+              <Button onClick={() => setStep('contact')} variant="secondary" className="shrink-0">
+                Back
+              </Button>
+              <Button onClick={() => setStep('delivery')} disabled={!addressReady} size="lg" className="min-w-0 flex-1">
                 Continue to delivery service
               </Button>
             </div>
@@ -416,9 +418,11 @@ export function CheckoutForm({ user, savedAddresses, mockPaymentsEnabled, payJus
               )}
             </div>
 
-            <div className="flex gap-2">
-              <Button onClick={() => setStep('address')} variant="secondary">Back</Button>
-              <Button onClick={() => setStep('payment')} fullWidth size="lg">
+            <div className="flex flex-wrap items-center gap-2">
+              <Button onClick={() => setStep('address')} variant="secondary" className="shrink-0">
+                Back
+              </Button>
+              <Button onClick={() => setStep('payment')} size="lg" className="min-w-0 flex-1">
                 Continue to payment
               </Button>
             </div>
@@ -523,10 +527,12 @@ export function CheckoutForm({ user, savedAddresses, mockPaymentsEnabled, payJus
               <CouponCodeInput subtotalCents={subtotal} applied={coupon} onApplied={setCoupon} />
             </div>
 
-            <div className="flex gap-2">
-              <Button onClick={() => setStep('delivery')} variant="secondary">Back</Button>
-              <Button onClick={placeOrder} loading={submitting} fullWidth size="lg">
-                Place order · {formatRand(totalCents)}
+            <div className="flex flex-wrap items-center gap-2">
+              <Button onClick={() => setStep('delivery')} variant="secondary" className="shrink-0">
+                Back
+              </Button>
+              <Button onClick={placeOrder} loading={submitting} size="lg" className="min-w-0 flex-1">
+                Go to payment · {formatRand(totalCents)}
               </Button>
             </div>
           </div>

@@ -108,7 +108,9 @@ async function createPayFastPayment(p: { orderId: string; orderNumber: string; a
     // an account. Signed over the order id + email, so it cannot be reused
     // for a different order.
     returnUrl: `${appOrigin}/checkout/success/${p.orderId}?ref=${p.orderNumber}&token=${signOrderAccess(p.orderId, p.customerEmail)}`,
-    cancelUrl: `${appOrigin}/cart`,
+    // Backing out of the payment step cancels the order, returns the stock
+    // and puts the items back in the cart.
+    cancelUrl: `${appOrigin}/checkout/cancelled/${p.orderId}?ref=${p.orderNumber}&token=${signOrderAccess(p.orderId, p.customerEmail)}`,
     notifyUrl: `${appOrigin}/api/payfast/notify`,
   });
 

@@ -108,12 +108,12 @@ export function CouponCodeInput({ subtotalCents, applied, onApplied }: Props) {
       <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-brand-500 dark:text-brand-400">
         Coupon code
       </p>
-      <div className="flex gap-2">
+      <div className="flex flex-nowrap items-center gap-2">
         <Input
           value={code}
           onChange={(e) => setCode(e.target.value)}
           placeholder="FREESHIP, WELCOME10..."
-          className="flex-1"
+          className="min-w-0 flex-1"
           autoComplete="off"
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
@@ -122,7 +122,7 @@ export function CouponCodeInput({ subtotalCents, applied, onApplied }: Props) {
             }
           }}
         />
-        <Button onClick={apply} loading={loading} variant="secondary" size="md">
+        <Button onClick={apply} loading={loading} variant="secondary" size="md" className="shrink-0">
           Apply
         </Button>
       </div>

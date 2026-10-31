@@ -37,6 +37,34 @@ export async function PATCH(
   if (status === 'shipped') update.shipped_at = new Date().toISOString();
   if (status === 'delivered') update.delivered_at = new Date().toISOString();
 
+  const { data: previous } = (await (admin as any)
+    .from('orders')
+    .select('id, status')
+    .eq('id', orderId)
+    .maybeSingle()) as any;
+
+  // Cancelling returns the reserved stock to the products. The order items
+  // stay on the order so the invoice is still readable.
+  if (status === 'cancelled') {
+    const { data: cancelled, error: cancelError } = (await (admin as any).rpc(
+      'cancel_order_and_restore_stock' as any,
+      { p_order_id: orderId } as any,
+    )) as any;
+    if (cancelError || cancelled !== true) {
+      return NextResponse.json(
+        { error: cancelError?.message ?? 'This order could not be cancelled' },
+        { status: 409 },
+      );
+    }
+    await (admin as any).from('orders').update({ status }).eq('id', orderId);
+    const { data: order } = (await (admin as any)
+      .from('orders')
+      .select('id, order_number, email, status')
+      .eq('id', orderId)
+      .single()) as any;
+    return NextResponse.json({ order, stockRestored: true, previousStatus: previous?.status ?? null });
+  }
+
   const { data: order, error } = await (admin as any)
     .from('orders')
     .update(update)
