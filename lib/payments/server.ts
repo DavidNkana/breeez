@@ -1,5 +1,6 @@
 import 'server-only';
 import { isMockPaymentsEnabled } from './mock-mode';
+import { signOrderAccess } from '@/lib/orders/access';
 
 /**
  * Server-side payment gateway integration.
@@ -103,7 +104,10 @@ async function createPayFastPayment(p: { orderId: string; orderNumber: string; a
     customerEmail: p.customerEmail,
     customerName: p.customerName,
     customerPhone: p.customerPhone,
-    returnUrl: `${appOrigin}/checkout/success/${p.orderId}?ref=${p.orderNumber}`,
+    // The token lets a guest read their receipt after paying, even without
+    // an account. Signed over the order id + email, so it cannot be reused
+    // for a different order.
+    returnUrl: `${appOrigin}/checkout/success/${p.orderId}?ref=${p.orderNumber}&token=${signOrderAccess(p.orderId, p.customerEmail)}`,
     cancelUrl: `${appOrigin}/cart`,
     notifyUrl: `${appOrigin}/api/payfast/notify`,
   });

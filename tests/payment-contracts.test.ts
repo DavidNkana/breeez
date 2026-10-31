@@ -140,10 +140,13 @@ test('PayJustNow admin actions confirm local transitions before recording succes
   assert.match(route, /recordPaymentEvent/);
 });
 
-test('success page never uses an order UUID without authenticated customer scope', async () => {
+test('success page only shows an order to its owner or a signed-token holder', async () => {
   const page = await readFile(resolve('app/checkout/success/[order]/page.tsx'), 'utf8');
+  // A guest who paid must be able to read their receipt...
   assert.match(page, /getCurrentUser/);
-  assert.match(page, /eq\('id', params\.order\)\.eq\('customer_id', user\.id\)/);
-  assert.match(page, /Payment confirmation received/);
-  assert.doesNotMatch(page, /\.eq\('id', params\.order\)\.maybeSingle\(\)/);
+  assert.match(page, /verifyOrderAccess/);
+  // ...but only the signed-in owner or a valid signed token gets the data.
+  assert.match(page, /order\.customerId === user\.id/);
+  assert.match(page, /if \(!isOwner && !hasToken\)/);
+  assert.match(page, /OrderReceipt/);
 });

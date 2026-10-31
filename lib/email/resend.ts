@@ -14,7 +14,9 @@
 import { brand } from '@/lib/brand';
 
 const API_KEY = process.env.RESEND_API_KEY;
-const FROM = process.env.RESEND_FROM_EMAIL || `${brand.email.fromName} <onboarding@resend.dev>`;
+const FROM =
+  process.env.RESEND_FROM_EMAIL ||
+  `${brand.email.fromName} <${brand.email.replyTo}>`;
 const REPLY_TO = brand.email.replyTo;
 const SITE = brand.siteUrl;
 
@@ -45,11 +47,11 @@ function emailTemplate(title: string, body: string) {
   </div>`;
 }
 
-export async function sendEmail(payload: EmailPayload): Promise<void> {
+export async function sendEmail(payload: EmailPayload): Promise<{ ok: boolean; error?: string }> {
   if (!API_KEY) {
     // eslint-disable-next-line no-console
-    console.log('[email:mock]', payload.to, payload.subject);
-    return;
+    console.warn('[email] RESEND_API_KEY is not set — email not sent:', payload.subject);
+    return { ok: false, error: 'RESEND_API_KEY not configured' };
   }
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -66,9 +68,12 @@ export async function sendEmail(payload: EmailPayload): Promise<void> {
     }),
   });
   if (!res.ok) {
+    const detail = await res.text().catch(() => '');
     // eslint-disable-next-line no-console
-    console.error('[resend]', res.status, await res.text().catch(() => ''));
+    console.error('[email] send failed', res.status, detail, 'to=', payload.to, 'from=', FROM);
+    return { ok: false, error: `Resend ${res.status}` };
   }
+  return { ok: true };
 }
 
 /**
@@ -91,6 +96,88 @@ export async function sendOrderConfirmation(params: {
          <p style="font-weight:600;margin-top:12px;color:#C72E28">Total: ${params.totalRand}</p>
        </div>
        <p style="color:#566c7d">Track your order anytime at <a href="${SITE}/account/orders" style="color:#C72E28">your account</a>.</p>`
+    ),
+  });
+}
+
+/**
+ * Payment received — the first notification after the customer pays.
+ *
+ * Sent the moment the ITN verifies the payment, so the customer knows the
+ * order is real and has a receipt link they can use without an account.
+ */
+export async function sendOrderReceived(params: {
+  to: string;
+  orderNumber: string;
+  totalRand: string;
+  items: string;
+  receiptUrl: string;
+}) {
+  const result = await sendEmail({
+    to: params.to,
+    subject: `${brand.email.orderConfirmationSubject} — ${params.orderNumber}`,
+    html: emailTemplate(
+      `Order ${params.orderNumber} confirmed`,
+      `<p style="color:#566c7d;line-height:1.6">Thanks for your order — we have received your payment and your order is confirmed.</p>
+       <div style="background:#fef2f2;padding:16px;border-radius:8px;margin:16px 0">
+         ${params.items}
+         <p style="font-weight:600;margin-top:12px;color:#C72E28">Total: ${params.totalRand}</p>
+       </div>
+       <p style="color:#566c7d;line-height:1.6"><strong>What happens next</strong><br />
+       1. We email you again once your order is packed.<br />
+       2. Your parcel leaves with The Courier Guy (2–5 working days).<br />
+       3. Your tracking number appears on your order page.</p>
+       <p style="margin:20px 0">
+         <a href="${params.receiptUrl}" style="display:inline-block;padding:12px 20px;background:#C72E28;color:white;border-radius:6px;text-decoration:none;font-weight:600">
+           View your order &amp; track it
+         </a>
+       </p>
+       <p style="color:#566c7d;line-height:1.6">This link also works without an account — keep it for your records.</p>`
+    ),
+  });
+  return result;
+}
+
+/**
+ * "We are processing your order" — sent when fulfilment starts.
+ */
+export async function sendOrderProcessing(params: {
+  to: string;
+  orderNumber: string;
+  receiptUrl: string;
+}) {
+  return sendEmail({
+    to: params.to,
+    subject: `We are preparing your order — ${params.orderNumber}`,
+    html: emailTemplate(
+      `We are preparing order ${params.orderNumber}`,
+      `<p style="color:#566c7d;line-height:1.6">We have received your order and it is now being picked, packed and checked in our warehouse.</p>
+       <p style="color:#566c7d;line-height:1.6">We will email you again as soon as it is on its way with The Courier Guy.</p>
+       <p style="margin:20px 0">
+         <a href="${params.receiptUrl}" style="display:inline-block;padding:12px 20px;background:#C72E28;color:white;border-radius:6px;text-decoration:none;font-weight:600">
+           Track your order
+         </a>
+       </p>`
+    ),
+  });
+}
+
+/**
+ * Delivered.
+ */
+export async function sendOrderDelivered(params: { to: string; orderNumber: string; receiptUrl: string }) {
+  return sendEmail({
+    to: params.to,
+    subject: `Your order has been delivered — ${params.orderNumber}`,
+    html: emailTemplate(
+      `Order ${params.orderNumber} delivered`,
+      `<p style="color:#566c7d;line-height:1.6">Your parcel has been delivered. We hope you love it.</p>
+       <p style="color:#566c7d;line-height:1.6">Need anything else? WhatsApp us on ${brand.contact.phone}.</p>
+       <p style="margin:20px 0">
+         <a href="${params.receiptUrl}" style="display:inline-block;padding:12px 20px;background:#C72E28;color:white;border-radius:6px;text-decoration:none;font-weight:600">
+           View your order
+         </a>
+       </p>`
     ),
   });
 }

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { sendOrderShipped } from '@/lib/email/resend';
+import { sendOrderShipped, sendOrderProcessing, sendOrderDelivered } from '@/lib/email/resend';
+import { signOrderAccess } from '@/lib/orders/access';
+import { getPayFastAppOrigin } from '@/lib/payments/payfast';
 
 /**
  * PATCH /api/admin/orders/[orderId]/status
@@ -44,13 +46,23 @@ export async function PATCH(
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  // Fire-and-forget shipped email
-  if (status === 'shipped' && order?.email) {
-    sendOrderShipped({
-      to: order.email,
-      orderNumber: order.order_number,
-      tracking: tracking_number || undefined,
-    }).catch(() => {});
+  // Customer notifications. The customer gets told at every step so they can
+  // follow their order without chasing us.
+  if (order?.email) {
+    const receiptUrl = `${getPayFastAppOrigin()}/checkout/success/${order.id}?ref=${order.order_number}&token=${signOrderAccess(order.id, order.email)}`;
+    if (status === 'processing') {
+      sendOrderProcessing({ to: order.email, orderNumber: order.order_number, receiptUrl }).catch(() => {});
+    }
+    if (status === 'shipped') {
+      sendOrderShipped({
+        to: order.email,
+        orderNumber: order.order_number,
+        tracking: tracking_number || undefined,
+      }).catch(() => {});
+    }
+    if (status === 'delivered') {
+      sendOrderDelivered({ to: order.email, orderNumber: order.order_number, receiptUrl }).catch(() => {});
+    }
   }
 
   return NextResponse.json({ order });

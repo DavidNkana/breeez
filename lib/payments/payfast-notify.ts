@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { validatePayFastNotification, verifyPayFastSignature } from '@/lib/payments/payfast';
 import { recordPaymentEvent } from '@/lib/payments/events';
+import { sendOrderReceived } from '@/lib/email/resend';
+import { signOrderAccess } from '@/lib/orders/access';
+import { getPayFastAppOrigin } from '@/lib/payments/payfast';
 
 /**
  * PayFast Instant Transaction Notification (ITN) handler.
@@ -83,6 +86,42 @@ export async function handlePayFastNotify(request: Request): Promise<Response> {
       p_merchant_id: merchantId,
     } as any);
     if (markError || markedPaid !== true) return NextResponse.json({ error: 'Order payment update failed' }, { status: 409 });
+
+    // The payment is verified and the order is paid — tell the customer.
+    // This is the notification that turns a checkout into a tracked order.
+    try {
+      const { data: paidOrder } = await admin
+        .from('orders')
+        .select('id, order_number, email, total_cents')
+        .eq('id', orderIdFromNotification)
+        .maybeSingle();
+      const { data: paidItems } = await admin
+        .from('order_items')
+        .select('*')
+        .eq('order_id', orderIdFromNotification);
+      if (paidOrder) {
+        const itemsHtml = (paidItems ?? [])
+          .map(
+            (row: any) =>
+              `<div style="font-size:14px;color:#566c7d;margin:4px 0">${row.quantity}× ${row.product_name}${row.variant_name ? ` — ${row.variant_name}` : ''} — R${(row.line_total_cents / 100).toFixed(2)}</div>`,
+          )
+          .join('');
+        const appOrigin = getPayFastAppOrigin();
+        const token = signOrderAccess(paidOrder.id, paidOrder.email);
+        const receiptUrl = `${appOrigin}/checkout/success/${paidOrder.id}?ref=${paidOrder.order_number}&token=${token}`;
+        await sendOrderReceived({
+          to: paidOrder.email,
+          orderNumber: paidOrder.order_number,
+          totalRand: `R${((paidOrder.total_cents ?? 0) / 100).toFixed(2)}`,
+          items: itemsHtml,
+          receiptUrl,
+        });
+      }
+    } catch (emailError) {
+      // Never fail the notification over an email problem — the order is paid.
+      console.error('[payfast notify] order received email failed', emailError);
+    }
+
     return new Response('OK', { status: 200 });
   } catch (error) {
     console.error('[payfast notify]', error);
