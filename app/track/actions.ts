@@ -1,13 +1,12 @@
 'use server';
 
 import { createAdminClient } from '@/lib/supabase/admin';
-import { loadOrderReceipt } from '@/lib/orders/receipt';
+import { loadOrderReceipt, type OrderReceiptData } from '@/lib/orders/receipt';
 
-export type TrackResult = {
+export type TrackState = {
   ok: boolean;
   error?: string;
-  orderId?: string;
-  orderNumber?: string;
+  receipt?: OrderReceiptData;
 };
 
 /**
@@ -15,8 +14,12 @@ export type TrackResult = {
  *
  * Both are required: order numbers are sequential, so the email is what
  * proves the order belongs to the person asking.
+ *
+ * This is a POST server action on purpose — the customer's email address
+ * stays in the request body instead of ending up in the URL (and in browser
+ * history, bookmarks and server access logs).
  */
-export async function trackOrder(formData: FormData): Promise<TrackResult> {
+export async function trackOrder(_prev: TrackState, formData: FormData): Promise<TrackState> {
   const orderNumber = String(formData.get('order_number') ?? '').trim();
   const email = String(formData.get('email') ?? '').trim().toLowerCase();
 
@@ -30,7 +33,7 @@ export async function trackOrder(formData: FormData): Promise<TrackResult> {
   const admin = await createAdminClient();
   const { data } = (await admin
     .from('orders')
-    .select('id, order_number, email')
+    .select('id')
     .eq('order_number', orderNumber)
     .ilike('email', email)
     .maybeSingle()) as any;
@@ -42,5 +45,8 @@ export async function trackOrder(formData: FormData): Promise<TrackResult> {
     };
   }
 
-  return { ok: true, orderId: data.id, orderNumber: data.order_number };
+  const receipt = await loadOrderReceipt(data.id);
+  if (!receipt) return { ok: false, error: 'We could not load that order. Please contact support.' };
+
+  return { ok: true, receipt };
 }

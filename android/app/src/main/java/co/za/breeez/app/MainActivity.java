@@ -73,6 +73,38 @@ public class MainActivity extends BridgeActivity {
         if (bridge != null && bridge.getWebView() != null) {
             OfflineBridgeWebViewClient client = new OfflineBridgeWebViewClient(bridge);
             bridge.getWebView().setWebViewClient(client);
+
+            // === Dark rendering for the whole webview ===
+            // The app chrome is dark-only. The hosted payment page belongs to
+            // our payment provider and has no dark theme of its own, so on
+            // Android it would otherwise flash a white screen in the middle of
+            // the app. Forcing algorithmic darkening keeps the payment flow
+            // visually consistent with the app.
+            applyDarkWebView(bridge.getWebView());
+        }
+    }
+
+    /**
+     * Give the WebView a black background.
+     *
+     * The app chrome is dark-only, so a white flash while the hosted payment
+     * page loads would break the illusion that the customer is still in the
+     * app.
+     *
+     * Note: we deliberately do NOT force algorithmic darkening here. Payfast's
+     * hosted checkout has no dark theme of its own (verified: it stays
+     * rgb(245,245,245) even with prefers-color-scheme: dark), so forcing it
+     * would invert a third-party payment page's colours at the exact moment
+     * the customer is about to enter card details — which looks broken and
+     * undermines trust in the payment screen. A dark, in-app payment form is
+     * the better answer, and that requires Payfast's Onsite integration.
+     */
+    private void applyDarkWebView(WebView webView) {
+        try {
+            webView.setBackgroundColor(0xFF000000);
+        } catch (Throwable t) {
+            // Never let a theming nicety break app startup.
+            Log.w(TAG, "Could not set the webview background: " + t.getMessage());
         }
     }
 

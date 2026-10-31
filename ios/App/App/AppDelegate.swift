@@ -8,6 +8,22 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+        //
+        // Dark webview: the app chrome is dark-only, and the hosted payment
+        // page belongs to our payment provider with no dark theme of its own.
+        // Forcing the webview's interface style keeps the payment flow
+        // visually consistent with the rest of the app instead of flashing a
+        // white screen in the middle of it.
+        NotificationCenter.default.addObserver(
+            forName: Notification.Name.capacitorDidInitialize,
+            object: nil,
+            queue: .main
+        ) { notification in
+            guard let bridge = notification.object as? Bridge else { return }
+            bridge?.webView?.overrideUserInterfaceStyle = .dark
+            bridge?.webView?.backgroundColor = .black
+            bridge?.webView?.scrollView.backgroundColor = .black
+        }
         return true
     }
 

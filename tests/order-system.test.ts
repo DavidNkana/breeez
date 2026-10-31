@@ -73,6 +73,11 @@ test('the customer can look up an order with number AND email', async () => {
   assert.match(action, /ilike\('email', email\)/);
   assert.match(action, /eq\('order_number', orderNumber\)/);
   assert.match(action, /if \(!orderNumber \|\| !email\)/);
+  // The email must not travel in the URL — it is posted to a server action.
+  assert.match(action, /'use server'/);
+  const form = await readFile(resolve('app/track/TrackOrderForm.tsx'), 'utf8');
+  assert.match(form, /useFormState/);
+  assert.match(form, /action=\{formAction\}/);
 });
 
 test('the customer is notified at every fulfilment step', async () => {
