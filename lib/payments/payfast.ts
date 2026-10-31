@@ -266,10 +266,6 @@ export function buildPayFastFields(params: {
     email_address: params.customerEmail,
     ...(cell ? { cell_number: cell } : {}),
     amount: (params.amountCents / 100).toFixed(2),
-    // Pin the settlement currency so a customer on a foreign locale cannot
-    // be charged in another currency (which would also fail our ITN amount
-    // check). Payfast's hosted page offers a currency selector otherwise.
-    currency: 'ZAR',
     item_name: `Order ${params.orderNumber}`,
     item_description: `Evasale order ${params.orderNumber}`,
     custom_str1: params.orderId,
