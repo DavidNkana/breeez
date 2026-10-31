@@ -25,11 +25,16 @@ const config: CapacitorConfig = {
   appName: 'Evasale',
   webDir: 'out',
 
-  // Production: native app loads the live Vercel deployment.
+  // Production: the native app loads the live storefront on its canonical
+  // domain. Using the same origin as the website matters for payments: the
+  // PayFast return/cancel URLs point at www.evasale.co.za, so if the app ran
+  // on the Vercel alias the customer would be bounced out of the app to a
+  // browser after paying. Same origin = the whole payment stays in-app.
+  //
   // For testing against a local dev server, change this to http://10.0.2.2:3000
   // (Android emulator's loopback to host) or http://localhost:3000 (iOS sim).
   server: {
-    url: 'https://breeez-lyart.vercel.app',
+    url: 'https://www.evasale.co.za',
     cleartext: false
   },
 
@@ -44,17 +49,19 @@ const config: CapacitorConfig = {
   },
 
   ios: {
-    // Edge-to-edge: the webview fills the whole screen, including the area
-    // behind the status bar. The app's own dark header then paints that strip
-    // (with the safe-area padding from `.safe-top` keeping the logo clear of
-    // the clock), so the status bar reads as part of the app instead of a
-    // transparent window onto the page.
-    //
-    // This pairs with `viewportFit: 'cover'` in app/layout.tsx: without it,
+    // contentInset: 'never' + the webview filling the screen means the
+    // status-bar strip is painted by our own dark header (with `.safe-top`
+    // keeping the logo clear of the clock). This pairs with
+    // `viewportFit: 'cover'` in app/layout.tsx: without it,
     // env(safe-area-inset-top) is 0 and the padding does nothing.
     contentInset: 'never',
     backgroundColor: '#000000',
-    limitsNavigationsToAppBoundDomains: true
+    // Must be false: with it true the webview may only navigate to its own
+    // origin, which blocks the hosted PayFast checkout from loading at all.
+    // We keep the flow in-app by intercepting window.open in JS (see
+    // components/app/NativeChrome.tsx) and by only ever navigating to the
+    // payment provider from the checkout.
+    limitsNavigationsToAppBoundDomains: false
   },
 
   plugins: {

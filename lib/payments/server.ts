@@ -20,6 +20,8 @@ export async function createPayment(params: {
   orderNumber: string;
   amountCents: number;
   customerEmail: string;
+  customerName?: string;
+  customerPhone?: string;
   method: PaymentMethod;
   returnUrl: string;
   cancelUrl: string;
@@ -79,7 +81,7 @@ export function isMockMode(): boolean {
   return isMockPaymentsEnabled();
 }
 
-async function createPayFastPayment(p: { orderId: string; orderNumber: string; amountCents: number; customerEmail: string; returnUrl: string; cancelUrl: string }): Promise<PaymentIntent> {
+async function createPayFastPayment(p: { orderId: string; orderNumber: string; amountCents: number; customerEmail: string; customerName?: string; customerPhone?: string; returnUrl: string; cancelUrl: string }): Promise<PaymentIntent> {
   const merchantId = process.env.PAYFAST_MERCHANT_ID;
   const merchantKey = process.env.PAYFAST_MERCHANT_KEY;
   const passphrase = process.env.PAYFAST_PASSPHRASE;
@@ -99,6 +101,8 @@ async function createPayFastPayment(p: { orderId: string; orderNumber: string; a
     orderNumber: p.orderNumber,
     amountCents: p.amountCents,
     customerEmail: p.customerEmail,
+    customerName: p.customerName,
+    customerPhone: p.customerPhone,
     returnUrl: `${appOrigin}/checkout/success/${p.orderId}?ref=${p.orderNumber}`,
     cancelUrl: `${appOrigin}/cart`,
     notifyUrl: `${appOrigin}/api/payfast/notify`,

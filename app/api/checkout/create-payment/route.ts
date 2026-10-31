@@ -58,10 +58,18 @@ function revalidateCheckoutProducts(items: any[]) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { cartId, email, userId, shippingMethod, paymentMethod, shippingAddress, couponCode } = body;
+    const { cartId, email, fullName, phone, userId, shippingMethod, paymentMethod, shippingAddress, couponCode } = body;
     if (!cartId || !email || !shippingMethod || !paymentMethod || !shippingAddress?.line1) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
+    // The recipient's name and mobile number are required: The Courier Guy
+    // needs them for delivery, and Payfast uses them to identify the payer
+    // (which keeps its own checkout from asking for them mid-flow).
+    if (!fullName || !String(fullName).trim() || !phone || !String(phone).trim()) {
+      return NextResponse.json({ error: 'Your name and mobile number are required for delivery.' }, { status: 400 });
+    }
+    const customerName = String(fullName).trim();
+    const customerPhone = String(phone).trim();
     if (shippingMethod !== 'tcg_door') {
       return NextResponse.json({ error: 'The Courier Guy is the only available delivery option.' }, { status: 400 });
     }
@@ -135,7 +143,11 @@ export async function POST(req: Request) {
     const { data: order, error: orderErr } = (await adminSupabase.from('orders').insert({
       order_number: orderNumber, customer_id: resolvedUserId, email, status: 'pending_payment',
       subtotal_cents: subtotalCents, shipping_cents: shippingCents, discount_cents: discountCents, total_cents: totalCents,
-      currency: 'ZAR', shipping_address: shippingAddress, shipping_method: shippingMethod,
+      currency: 'ZAR',
+      // Name and mobile travel with the address: the courier needs the
+      // recipient's phone to deliver, and the order record must stand alone.
+      shipping_address: { ...shippingAddress, name: customerName, phone: customerPhone },
+      shipping_method: shippingMethod,
       payment_gateway: paymentMethod,
       // Note: applied_coupon_code is a future-proofing field from migration 007.
       // We store it in shipping_address JSON until you run 007, so the field is
@@ -244,7 +256,7 @@ export async function POST(req: Request) {
       }
       const intent = await createPayment({
         orderId: order.id, orderNumber: order.order_number, amountCents: totalCents,
-        customerEmail: email, method: paymentMethod,
+        customerEmail: email, customerName, customerPhone, method: paymentMethod,
         returnUrl: `${origin}/checkout/success/${order.id}?ref=${order.order_number}`, cancelUrl: `${origin}/cart`,
         shippingCents, discountCents,
         items: items.map((ci: any) => ({

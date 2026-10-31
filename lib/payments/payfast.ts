@@ -195,6 +195,29 @@ export function getPayFastAppOrigin(env: NodeJS.ProcessEnv = process.env): strin
   return url.origin;
 }
 
+/**
+ * Normalise a South African mobile number for Payfast's `cell_number`.
+ *
+ * Customers type "082 123 4567", "0821234567", "+27 82 123 4567" and
+ * "(082) 123-4567". Payfast wants digits, ideally in 0XXXXXXXXX form.
+ */
+export function normaliseCellNumber(input: string): string {
+  const digits = String(input || '').replace(/[^\d]/g, '');
+  if (!digits) return '';
+  if (digits.startsWith('27') && digits.length >= 11) return `0${digits.slice(2)}`;
+  if (digits.startsWith('0')) return digits;
+  if (digits.length === 9) return `0${digits}`;
+  return digits;
+}
+
+/** Split a full name into Payfast's `name_first` / `name_last` fields. */
+export function splitCustomerName(fullName: string): { first: string; last: string } {
+  const parts = String(fullName || '').trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return { first: '', last: '' };
+  if (parts.length === 1) return { first: parts[0], last: '' };
+  return { first: parts[0], last: parts.slice(1).join(' ') };
+}
+
 export function buildPayFastFields(params: {
   merchantId: string;
   merchantKey: string;
@@ -202,6 +225,8 @@ export function buildPayFastFields(params: {
   orderNumber: string;
   amountCents: number;
   customerEmail: string;
+  customerName?: string;
+  customerPhone?: string;
   returnUrl: string;
   cancelUrl: string;
   notifyUrl: string;
@@ -220,15 +245,26 @@ export function buildPayFastFields(params: {
   // receipt (by default it goes to the address configured on the account).
   // `email_confirmation` additionally sends the merchant a copy.
   //
+  // `name_first`, `name_last` and `cell_number` identify the payer. Sending
+  // them matters for more than the receipt: Payfast uses the payer identity
+  // for its own risk checks, and a fully identified payer avoids Payfast
+  // having to collect the details itself mid-checkout.
+  //
   // The KEYS ARE IN PAYFAST'S CANONICAL ORDER on purpose — the signature is
   // computed over this order and Payfast verifies it the same way.
+  const { first, last } = splitCustomerName(params.customerName ?? '');
+  const cell = normaliseCellNumber(params.customerPhone ?? '');
+
   return {
     merchant_id: params.merchantId,
     merchant_key: params.merchantKey,
     return_url: params.returnUrl,
     cancel_url: params.cancelUrl,
     notify_url: params.notifyUrl,
+    ...(first ? { name_first: first } : {}),
+    ...(last ? { name_last: last } : {}),
     email_address: params.customerEmail,
+    ...(cell ? { cell_number: cell } : {}),
     amount: (params.amountCents / 100).toFixed(2),
     item_name: `Order ${params.orderNumber}`,
     item_description: `Evasale order ${params.orderNumber}`,
