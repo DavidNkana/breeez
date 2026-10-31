@@ -9,6 +9,8 @@ import { STOCK_COMPENSATION_FAILURE_MESSAGE } from '@/lib/checkout/stock';
 import { getCheckoutProductSlugs } from '@/lib/checkout/cache';
 import { recordPaymentEvent } from '@/lib/payments/events';
 import { cancelPayJustNowCheckout, getPayJustNowConfig, isPayJustNowConfigured } from '@/lib/payments/payjustnow';
+import { isBuildingType } from '@/lib/delivery/buildings';
+import { driverTipCents, getEbucksSummary, REWARD_AMOUNT_CENTS } from '@/lib/loyalty/ebucks';
 
 type SuccessfulDecrement = { order_item_id: string };
 
@@ -68,7 +70,11 @@ function revalidateCheckoutProducts(items: any[]) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { cartId, email, fullName, phone, userId, shippingMethod, paymentMethod, shippingAddress, couponCode } = body;
+    const {
+      cartId, email, fullName, phone, userId, shippingMethod, paymentMethod, shippingAddress, couponCode,
+      orderNote, deliveryInstructions, buildingType, buildingName,
+      driverTipPercent, doorAddressConfirmed, saveLocation,
+    } = body;
     if (!cartId || !email || !shippingMethod || !paymentMethod || !shippingAddress?.line1) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
@@ -80,6 +86,29 @@ export async function POST(req: Request) {
     }
     const customerName = String(fullName).trim();
     const customerPhone = String(phone).trim();
+
+    // The courier has to reach a physical door. The customer confirms the
+    // address and tells us what kind of place it is so the driver can find it.
+    const building = isBuildingType(buildingType) ? buildingType : null;
+    const buildingPlaceName = String(buildingName ?? '').trim();
+    if (!building) {
+      return NextResponse.json(
+        { error: 'Tell us what kind of place this is so the courier can find your door.' },
+        { status: 400 },
+      );
+    }
+    if (!buildingPlaceName) {
+      return NextResponse.json(
+        { error: 'Add the name of the place so the courier can find your door.' },
+        { status: 400 },
+      );
+    }
+    if (!doorAddressConfirmed) {
+      return NextResponse.json(
+        { error: 'Please confirm the delivery address is where the door is.' },
+        { status: 400 },
+      );
+    }
     if (shippingMethod !== 'tcg_door') {
       return NextResponse.json({ error: 'The Courier Guy is the only available delivery option.' }, { status: 400 });
     }
@@ -145,7 +174,16 @@ export async function POST(req: Request) {
       }
     }
 
-    const totalCents = Math.max(0, subtotalCents + shippingCents - discountCents);
+    // Driver tip — 100% of it goes to the driver.
+    const tipPercent = Math.max(0, Math.min(50, Math.round(Number(driverTipPercent) || 0)));
+    const tipCents = driverTipCents(subtotalCents, tipPercent);
+
+    // E bucks: customers who have completed 10+ orders get R50 off this one.
+    const loyalty = await getEbucksSummary(resolvedUserId);
+    const loyaltyRewardCents = loyalty.qualifies ? Math.min(REWARD_AMOUNT_CENTS, subtotalCents) : 0;
+    if (loyaltyRewardCents > 0) discountCents += loyaltyRewardCents;
+
+    const totalCents = Math.max(0, subtotalCents + shippingCents + tipCents - discountCents);
 
     const { count } = (await adminSupabase.from('orders').select('*', { count: 'exact', head: true })) as any;
     const orderNumber = `TDTD-${new Date().getFullYear()}-${String((count ?? 0) + 1).padStart(5, '0')}`;
@@ -156,8 +194,21 @@ export async function POST(req: Request) {
       currency: 'ZAR',
       // Name and mobile travel with the address: the courier needs the
       // recipient's phone to deliver, and the order record must stand alone.
-      shipping_address: { ...shippingAddress, name: customerName, phone: customerPhone },
+      shipping_address: {
+        ...shippingAddress,
+        name: customerName,
+        phone: customerPhone,
+        building_type: building,
+        building_name: buildingPlaceName,
+      },
       shipping_method: shippingMethod,
+      delivery_building_type: building,
+      delivery_building_name: buildingPlaceName,
+      delivery_instructions: String(deliveryInstructions ?? '').trim() || null,
+      door_address_confirmed: true,
+      driver_tip_cents: tipCents,
+      driver_tip_percent: tipPercent,
+      notes: String(orderNote ?? '').trim() || null,
       payment_gateway: paymentMethod,
       // Note: applied_coupon_code is a future-proofing field from migration 007.
       // We store it in shipping_address JSON until you run 007, so the field is
@@ -165,6 +216,29 @@ export async function POST(req: Request) {
     } as any).select('id, order_number').single()) as any;
 
     if (orderErr || !order) return NextResponse.json({ error: 'Failed to create order' }, { status: 500 });
+
+    // "Save this location" — keep it for next time.
+    if (resolvedUserId && saveLocation) {
+      try {
+        await adminSupabase.from('addresses').insert({
+          customer_id: resolvedUserId,
+          label: 'Home',
+          line1: shippingAddress?.line1,
+          line2: shippingAddress?.line2 || null,
+          city: shippingAddress?.city,
+          province: shippingAddress?.province,
+          postal_code: shippingAddress?.postal_code,
+          building_type: building,
+          building_name: buildingPlaceName,
+          phone: customerPhone,
+          delivery_instructions: String(deliveryInstructions ?? '').trim() || null,
+          is_default: false,
+        } as any);
+      } catch (saveError) {
+        // Never fail a checkout because a convenience save failed.
+        console.error('[checkout] could not save location', saveError);
+      }
+    }
     await recordPaymentEvent(adminSupabase, order.id, 'checkout_started', `checkout:${order.id}`, { gateway: paymentMethod });
     await recordPaymentEvent(adminSupabase, order.id, 'pending_payment_created', `pending-created:${order.id}`, { gateway: paymentMethod });
 

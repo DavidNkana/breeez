@@ -59,6 +59,8 @@ export async function POST(req: NextRequest) {
   }
 
   const productId = body?.productId;
+  const orderId: string | null = body?.orderId ?? null;
+  const orderItemId: string | null = body?.orderItemId ?? null;
   const rating = parseInt(body?.rating, 10);
   const title: string | null = body?.title?.trim() || null;
   const reviewBody: string = (body?.body ?? '').trim();
@@ -93,6 +95,31 @@ export async function POST(req: NextRequest) {
 
   const isVerifiedPurchase = !!orderRow;
 
+  // When the review comes from an order, it must be the customer's own
+  // order, and the item must belong to it.
+  if (orderId) {
+    const { data: ownOrder } = (await supabase
+      .from('orders')
+      .select('id')
+      .eq('id', orderId)
+      .eq('customer_id', user.id)
+      .maybeSingle()) as any;
+    if (!ownOrder) {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+    }
+    if (orderItemId) {
+      const { data: ownItem } = (await supabase
+        .from('order_items')
+        .select('id, order_id')
+        .eq('id', orderItemId)
+        .eq('order_id', orderId)
+        .maybeSingle()) as any;
+      if (!ownItem) {
+        return NextResponse.json({ error: 'Order item not found' }, { status: 404 });
+      }
+    }
+  }
+
   // Resolve a friendly reviewer name. Order of preference:
   //   1. customers.display_name (set via /account/settings)
   //   2. user_metadata.full_name or name (from Google / social signup, etc.)
@@ -118,8 +145,10 @@ export async function POST(req: NextRequest) {
   const insertRow: any = {
     product_id: productId,
     customer_id: user.id,
-    order_id: orderRow?.order_id ?? null,
-    order_item_id: orderRow?.id ?? null,
+    // Tie the review to the exact order item the customer bought when we
+    // know it, so the rating shows on their order and on the product.
+    order_id: orderId ?? orderRow?.order_id ?? null,
+    order_item_id: orderItemId ?? orderRow?.id ?? null,
     rating,
     title,
     body: reviewBody,

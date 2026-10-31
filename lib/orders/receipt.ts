@@ -9,6 +9,9 @@ import { createAdminClient } from '@/lib/supabase/admin';
 
 export type OrderItem = {
   id: string;
+  productId: string | null;
+  /** The customer's own review of this item, if they left one. */
+  myReview: { rating: number; body: string; title: string | null } | null;
   productName: string;
   variantName: string;
   sku: string;
@@ -42,6 +45,13 @@ export type OrderReceiptData = {
   shippingTracking: string | null;
   paymentGateway: string | null;
   paymentReference: string | null;
+  driverTipCents: number;
+  driverTipPercent: number;
+  deliveryBuildingType: string | null;
+  deliveryBuildingName: string | null;
+  deliveryInstructions: string | null;
+  orderNote: string | null;
+  doorAddressConfirmed: boolean;
   createdAt: string;
   paidAt: string | null;
   shippedAt: string | null;
@@ -149,6 +159,8 @@ export async function loadOrderReceipt(orderId: string): Promise<OrderReceiptDat
     .eq('order_id', orderId)) as any;
   const items: OrderItem[] = (rows ?? []).map((r: any) => ({
     id: r.id,
+    productId: null,
+    myReview: null,
     productName: receiptProductName(r.product_name, r.variant_name),
     variantName: r.variant_name,
     sku: r.sku,
@@ -180,7 +192,10 @@ export async function loadOrderReceipt(orderId: string): Promise<OrderReceiptDat
       for (const item of items) {
         const row = (rows ?? []).find((r: any) => r.id === item.id);
         const productId = row?.variant_id ? byVariant.get(row.variant_id) : undefined;
-        if (productId) item.imageUrl = firstImage.get(productId) ?? null;
+        if (productId) {
+          item.imageUrl = firstImage.get(productId) ?? null;
+          item.productId = productId;
+        }
       }
     }
   }
@@ -201,6 +216,13 @@ export async function loadOrderReceipt(orderId: string): Promise<OrderReceiptDat
     shippingTracking: order.shipping_tracking,
     paymentGateway: order.payment_gateway,
     paymentReference: order.payment_reference,
+    driverTipCents: order.driver_tip_cents ?? 0,
+    driverTipPercent: order.driver_tip_percent ?? 0,
+    deliveryBuildingType: order.delivery_building_type ?? null,
+    deliveryBuildingName: order.delivery_building_name ?? null,
+    deliveryInstructions: order.delivery_instructions ?? null,
+    orderNote: order.notes ?? null,
+    doorAddressConfirmed: Boolean(order.door_address_confirmed),
     createdAt: order.created_at,
     paidAt: order.paid_at,
     shippedAt: order.shipped_at,

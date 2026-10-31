@@ -77,9 +77,13 @@ test('the checkout sends the customer name and mobile to the server', async () =
   assert.match(route, /customerName = String\(fullName\)\.trim\(\)/);
   assert.match(route, /customerPhone = String\(phone\)\.trim\(\)/);
   // Name and mobile travel with the order so the courier can deliver.
-  assert.match(route, /shipping_address: \{ \.\.\.shippingAddress, name: customerName, phone: customerPhone \}/);
+  assert.match(route, /shipping_address: \{[\s\S]{0,200}name: customerName,[\s\S]{0,120}phone: customerPhone/);
   // And they are passed to the payment provider to identify the payer.
   assert.match(route, /customerEmail: email, customerName, customerPhone, method: paymentMethod/);
+  // The courier also needs to know which door to knock on.
+  assert.match(route, /delivery_building_type: building/);
+  assert.match(route, /delivery_instructions:/);
+  assert.match(route, /door_address_confirmed: true/);
 });
 
 test('the native app keeps the payment flow in the app', async () => {

@@ -102,6 +102,36 @@ export default async function AdminOrderDetailPage({ params }: Props) {
                   <dd className="font-mono text-xs">{order.shipping_tracking}</dd>
                 </div>
               )}
+              {order.delivery_building_type && (
+                <div className="flex gap-2">
+                  <dt className="w-24 shrink-0 text-brand-500">Place type</dt>
+                  <dd>{order.delivery_building_type}</dd>
+                </div>
+              )}
+              {order.delivery_building_name && (
+                <div className="flex gap-2">
+                  <dt className="w-24 shrink-0 text-brand-500">Place name</dt>
+                  <dd>{order.delivery_building_name}</dd>
+                </div>
+              )}
+              {order.delivery_instructions && (
+                <div className="flex gap-2">
+                  <dt className="w-24 shrink-0 text-brand-500">Instructions</dt>
+                  <dd className="italic">“{order.delivery_instructions}”</dd>
+                </div>
+              )}
+              {order.door_address_confirmed && (
+                <div className="flex gap-2">
+                  <dt className="w-24 shrink-0 text-brand-500">Door</dt>
+                  <dd className="text-success">Address confirmed by the customer</dd>
+                </div>
+              )}
+              {(order.driver_tip_cents ?? 0) > 0 && (
+                <div className="flex gap-2">
+                  <dt className="w-24 shrink-0 text-brand-500">Driver tip</dt>
+                  <dd>{formatRand(order.driver_tip_cents)} ({order.driver_tip_percent}%)</dd>
+                </div>
+              )}
             </dl>
           </section>
 
@@ -140,6 +170,23 @@ export default async function AdminOrderDetailPage({ params }: Props) {
             </dl>
           </section>
         </div>
+
+        {order.notes && (
+          <section className="mt-6 rounded-lg border border-warning/40 bg-warning/5 p-4">
+            <h2 className="text-sm font-semibold text-brand-950">Note from the customer</h2>
+            <p className="mt-1 text-sm text-brand-700 dark:text-brand-200">{order.notes}</p>
+          </section>
+        )}
+
+        {order.delivery_rating && (
+          <section className="mt-6 rounded-lg border border-brand-200 bg-white p-4 dark:border-brand-800 dark:bg-brand-900">
+            <h2 className="text-sm font-semibold text-brand-950">Delivery rating</h2>
+            <p className="mt-1 text-sm text-brand-700 dark:text-brand-200">
+              {order.delivery_rating} / 5
+              {order.delivery_review_body ? ` — “${order.delivery_review_body}”` : ''}
+            </p>
+          </section>
+        )}
 
         {/* Items */}
         <section className="mt-6 overflow-hidden rounded-lg border border-brand-200 bg-white dark:border-brand-800 dark:bg-brand-900">

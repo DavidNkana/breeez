@@ -5,6 +5,9 @@ import { Badge } from '@/components/ui/Badge';
 import { ReturnSection } from '@/components/account/ReturnSection';
 import { notFound } from 'next/navigation';
 import { formatRand } from '@/lib/format';
+import { OrderTabs } from '@/components/orders/OrderTabs';
+import { loadOrderReceipt } from '@/lib/orders/receipt';
+import { loadOrderReviews } from '@/lib/orders/reviews';
 
 type Props = { params: { id: string } };
 
@@ -28,6 +31,9 @@ export default async function OrderDetailPage({ params }: Props) {
 
   // Check for existing return
   const { data: ret } = (await supabase.from('returns').select('*').eq('order_id', order.id).maybeSingle()) as any;
+
+  const receipt = await loadOrderReceipt(order.id);
+  const reviews = await loadOrderReviews(order.id, user.id);
 
   return (
     <>

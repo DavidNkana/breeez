@@ -4,6 +4,7 @@ import { requireUser } from '@/lib/auth/session';
 import { redirect } from 'next/navigation';
 import { isMockPaymentsEnabled } from '@/lib/payments/mock-mode';
 import { getPayJustNowConfig, isPayJustNowConfigured } from '@/lib/payments/payjustnow';
+import { getEbucksSummary } from '@/lib/loyalty/ebucks';
 
 export default async function CheckoutPage() {
   const user = await requireUser('/checkout');
@@ -14,6 +15,8 @@ export default async function CheckoutPage() {
     .select('*')
     .eq('customer_id', user.id)
     .order('is_default', { ascending: false })) as any;
+
+  const loyalty = await getEbucksSummary(user.id);
 
   return (
     <>
@@ -27,6 +30,7 @@ export default async function CheckoutPage() {
             savedAddresses={savedAddresses}
             mockPaymentsEnabled={isMockPaymentsEnabled()}
             payJustNowEnabled={isPayJustNowConfigured(getPayJustNowConfig())}
+            loyalty={loyalty}
           />
         </div>
       </main>

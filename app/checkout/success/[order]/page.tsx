@@ -2,7 +2,8 @@ import Link from 'next/link';
 import { getCurrentUser } from '@/lib/auth/session';
 import { loadOrderReceipt } from '@/lib/orders/receipt';
 import { verifyOrderAccess } from '@/lib/orders/access';
-import { OrderReceipt } from '@/components/orders/OrderReceipt';
+import { OrderTabs } from '@/components/orders/OrderTabs';
+import { loadOrderReviews } from '@/lib/orders/reviews';
 import { brand } from '@/lib/brand';
 import { formatRand } from '@/lib/format';
 
@@ -43,6 +44,8 @@ export default async function OrderSuccessPage({ params, searchParams }: Props) 
   }
 
   const paid = order.status === 'paid';
+  const reviews = order ? await loadOrderReviews(order.id, user?.id ?? null) : null;
+  const deliveryReview = reviews?.delivery ?? null;
   const cancelled = order.status === 'cancelled' || order.status === 'refunded';
 
   if (!isOwner && !hasToken) {
@@ -101,8 +104,11 @@ export default async function OrderSuccessPage({ params, searchParams }: Props) 
         </div>
 
         <div className="mt-8">
-          <OrderReceipt
+          <OrderTabs
             order={order}
+            loggedIn={Boolean(user)}
+            canRate={paid}
+            deliveryReview={deliveryReview}
             showEmail
             trackingHref={isOwner ? `/account/orders/${order.id}` : `/track?order=${order.orderNumber}`}
           />
