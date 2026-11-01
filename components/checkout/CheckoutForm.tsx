@@ -16,6 +16,7 @@ import { CouponCodeInput } from './CouponCodeInput';
 import type { AppliedCoupon } from './CouponCodeInput';
 import { BUILDING_TYPES, buildingNameLabel, type BuildingType } from '@/lib/delivery/buildings';
 import { DRIVER_TIP_PERCENTS, type EbucksSummary } from '@/lib/loyalty/ebucks';
+import { usePayfastOnsite } from './usePayfastOnsite';
 
 type Props = {
   user: User | null;
@@ -64,6 +65,7 @@ export function CheckoutForm({ user, savedAddresses, mockPaymentsEnabled, payJus
   const [paymentMethod, setPaymentMethod] = useState<'payfast' | 'payjustnow'>('payfast');
   const [coupon, setCoupon] = useState<AppliedCoupon | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const onsite = usePayfastOnsite();
 
   const shippingOptions = getAllShippingOptions(postalCode);
   const shippingCents = items.length > 0 ? calculateShippingCents(shippingMethod, subtotal) : 0;
@@ -129,6 +131,31 @@ export function CheckoutForm({ user, savedAddresses, mockPaymentsEnabled, payJus
       if (!paymentRes.ok) throw new Error(error || 'Checkout failed');
 
       clear();
+
+      // PayFast Onsite: the payment modal renders inside THIS page, so the
+      // customer never leaves the app. If Onsite is not enabled on the
+      // merchant account we fall back to the hosted checkout automatically.
+      if (paymentMethod === 'payfast' && orderId) {
+        const outcome = await onsite.pay({
+          orderId,
+          email,
+          fallbackUrl: redirectUrl ?? undefined,
+          onPaid: () => {
+            window.location.assign(
+              `${window.location.origin}/checkout/success/${orderId}?ref=${orderNumber}`,
+            );
+          },
+          onCancelled: () => {
+            showToast('Payment cancelled. Your items are back in your cart.', 'warning');
+            router.push('/cart');
+          },
+        });
+        if (outcome === 'paid') return;
+        if (outcome === 'cancelled') return;
+        // 'unavailable' → the fallback redirect has already been triggered.
+        return;
+      }
+
       if (redirectUrl) {
         window.location.assign(redirectUrl);
         return;
@@ -531,7 +558,7 @@ export function CheckoutForm({ user, savedAddresses, mockPaymentsEnabled, payJus
               <Button onClick={() => setStep('delivery')} variant="secondary" className="shrink-0">
                 Back
               </Button>
-              <Button onClick={placeOrder} loading={submitting} size="lg" className="min-w-0 flex-1">
+              <Button onClick={placeOrder} loading={submitting || onsite.loading} size="lg" className="min-w-0 flex-1">
                 Go to payment · {formatRand(totalCents)}
               </Button>
             </div>
