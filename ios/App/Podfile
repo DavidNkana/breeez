@@ -23,4 +23,53 @@ end
 
 post_install do |installer|
   assertDeploymentTarget(installer)
+
+  # =====================================================================
+  # Keep the hosted payment page INSIDE the app.
+  #
+  # Capacitor's default WKUIDelegate hands every new window to Safari:
+  #
+  #   UIApplication.shared.open(url, options: [:], completionHandler: nil)
+  #
+  # So when Payfast opens a step in a new window, iOS kicks the customer
+  # out of Evasale into Safari — the app is left behind, the payment looks
+  # broken, and returning to the app loses the flow.
+  #
+  # We patch it to load the URL in the SAME WKWebView instead. We also
+  # enable window.open() in JavaScript, which WKWebView blocks by default
+  # (Capacitor never enables it), so a blocked popup could stall the
+  # payment step entirely.
+  #
+  # The patch is applied on every `pod install` (which `npx cap sync ios`
+  # runs), and it is idempotent.
+  # =====================================================================
+  capacitor_dir = File.join(installer.sandbox.root, 'Capacitor', 'Capacitor')
+
+  delegate_file = File.join(capacitor_dir, 'WebViewDelegationHandler.swift')
+  if File.exist?(delegate_file)
+    content = File.read(delegate_file)
+    patched = content.gsub(
+      'UIApplication.shared.open(url, options: [:], completionHandler: nil)',
+      'webView.load(URLRequest(url: url))'
+    )
+    if patched != content
+      File.write(delegate_file, patched)
+      puts '[patch] Capacitor: new windows now open inside the app'
+    end
+  end
+
+  controller_file = File.join(capacitor_dir, 'CAPBridgeViewController.swift')
+  if File.exist?(controller_file)
+    content = File.read(controller_file)
+    unless content.include?('javaScriptCanOpenWindowsAutomatically = true')
+      patched = content.sub(
+        'webViewConfiguration.allowsInlineMediaPlayback = true',
+        "webViewConfiguration.allowsInlineMediaPlayback = true\n        webViewConfiguration.preferences.javaScriptCanOpenWindowsAutomatically = true"
+      )
+      if patched != content
+        File.write(controller_file, patched)
+        puts '[patch] Capacitor: window.open() enabled for the payment flow'
+      end
+    end
+  end
 end

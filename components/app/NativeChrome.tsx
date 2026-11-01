@@ -71,9 +71,29 @@ export function NativeChrome() {
       }
     }) as typeof window.open;
 
+    // Links that open a new tab are another way out of the app: on iOS the
+    // native delegate hands them to Safari, on Android to the system browser.
+    // Capture the click before the browser acts and navigate in place.
+    const onClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      const anchor = target?.closest?.('a[href]') as HTMLAnchorElement | null;
+      if (!anchor) return;
+      const opensNewWindow =
+        anchor.target === '_blank' ||
+        anchor.getAttribute('target') === '_blank' ||
+        (anchor.target === '' && anchor.getAttribute('rel')?.includes('noopener'));
+      if (!opensNewWindow) return;
+      const href = anchor.href;
+      if (!href || href.startsWith('#')) return;
+      event.preventDefault();
+      window.location.assign(href);
+    };
+    document.addEventListener('click', onClick, true);
+
     return () => {
       cancelled = true;
       window.open = originalOpen;
+      document.removeEventListener('click', onClick, true);
     };
   }, []);
 

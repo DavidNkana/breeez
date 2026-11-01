@@ -98,4 +98,26 @@ test('the native app keeps the payment flow in the app', async () => {
   // window.open must navigate in the same webview, not the external browser.
   assert.match(chrome, /window\.open = /);
   assert.match(chrome, /window\.location\.assign\(href\)/);
+  // Links that target a new tab must also stay in the app.
+  assert.match(chrome, /addEventListener\('click', onClick, true\)/);
+  assert.match(chrome, /_blank/);
+});
+
+test('the native layer keeps the payment page inside the app', async () => {
+  // iOS: Capacitor's WKUIDelegate hands new windows to Safari. The Podfile
+  // patches it to load them in the same WKWebView, and enables window.open().
+  const podfile = await readFile(resolve('ios/App/Podfile'), 'utf8');
+  assert.match(podfile, /UIApplication\.shared\.open\(url, options: \[:\], completionHandler: nil\)/);
+  assert.match(podfile, /webView\.load\(URLRequest\(url: url\)\)/);
+  assert.match(podfile, /javaScriptCanOpenWindowsAutomatically = true/);
+
+  // Android: multiple windows are enabled and onCreateWindow loads the new
+  // window's URL in the existing webview.
+  const activity = await readFile(
+    resolve('android/app/src/main/java/co/za/breeez/app/MainActivity.java'),
+    'utf8',
+  );
+  assert.match(activity, /setSupportMultipleWindows\(true\)/);
+  assert.match(activity, /onCreateWindow/);
+  assert.match(activity, /bridge\.getWebView\(\)\.loadUrl/);
 });

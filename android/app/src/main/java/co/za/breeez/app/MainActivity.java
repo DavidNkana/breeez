@@ -1,13 +1,18 @@
 package co.za.breeez.app;
 
 import android.os.Bundle;
+import android.os.Message;
 import android.util.Log;
+import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
+import android.webkit.WebView.WebViewTransport;
+import android.webkit.WebViewClient;
 import androidx.activity.OnBackPressedCallback;
 import com.getcapacitor.Bridge;
 import com.getcapacitor.BridgeActivity;
+import com.getcapacitor.BridgeWebChromeClient;
 import com.getcapacitor.BridgeWebViewClient;
 
 /**
@@ -73,6 +78,37 @@ public class MainActivity extends BridgeActivity {
         if (bridge != null && bridge.getWebView() != null) {
             OfflineBridgeWebViewClient client = new OfflineBridgeWebViewClient(bridge);
             bridge.getWebView().setWebViewClient(client);
+
+            // === Keep new windows inside the app ===
+            // The hosted Payfast checkout opens some steps in a new window.
+            // The default Android behaviour is to hand that to the system
+            // browser, which kicks the customer out of Evasale mid-payment.
+            // Enabling multiple windows and then loading the new window's
+            // URL in THIS webview keeps the whole payment inside the app.
+            //
+            // BridgeWebChromeClient is extended rather than replaced so the
+            // file picker (admin image upload) and permission prompts keep
+            // working exactly as before.
+            bridge.getWebView().getSettings().setSupportMultipleWindows(true);
+            bridge.getWebView().setWebChromeClient(new BridgeWebChromeClient(bridge) {
+                @Override
+                public WebView onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
+                    WebView probe = new WebView(view.getContext());
+                    probe.setWebViewClient(new WebViewClient() {
+                        @Override
+                        public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest request) {
+                            if (request != null && request.getUrl() != null) {
+                                bridge.getWebView().loadUrl(request.getUrl().toString());
+                            }
+                            v.destroy();
+                            return true;
+                        }
+                    });
+                    ((WebViewTransport) resultMsg.obj).setWebView(probe);
+                    resultMsg.sendToTarget();
+                    return probe;
+                }
+            });
 
             // === Dark rendering for the whole webview ===
             // The app chrome is dark-only. The hosted payment page belongs to
