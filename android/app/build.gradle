@@ -5,9 +5,10 @@ android {
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
         applicationId "com.breeez.app"
-        minSdkVersion 23  // Android 6.0+ (matches our webview baseline)
+        // Android 7.0+ — Play's automatic protection requires minSdk 24 or higher.
+        minSdkVersion 24
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 22
+        versionCode 23
         versionName "1.2.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
