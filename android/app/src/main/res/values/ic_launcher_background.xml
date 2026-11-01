@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#FFFFFF</color>
+    <!-- The Evasale launcher icon is black with the logo on it, so the
+         adaptive background layer is black. The foreground layer carries the
+         logo alone (scaled into the 66% safe zone) so the launcher masks
+         a solid black shape with a smaller, uncropped logo. -->
+    <color name="ic_launcher_background">#000000</color>
 </resources>
